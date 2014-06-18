@@ -45,4 +45,32 @@ class Block {
 
     drupal_flush_all_caches();
   }
+
+  /**
+   * Set the block visibility in the core block admin page.
+   *
+   * @param int $visibility
+   *  - BLOCK_VISIBILITY_LISTED
+   *  - BLOCK_VISIBILITY_NOTLISTED
+   *  - BLOCK_VISIBILITY_PHP
+   */
+  public function visibility($block_delta, $block_module, $theme, $pages, $visibility = BLOCK_VISIBILITY_LISTED) {
+    _block_rehash($theme);
+    db_update('block')
+      ->fields(array(
+        'visibility' => $visibility,
+        'pages' => $pages,
+      ))
+      ->condition('module', $block_module)
+      ->condition('delta', $block_delta)
+      ->condition('theme', $theme)
+      ->execute();
+
+    \Drupal\drupal_helpers\General::messageSet(format_string('Block "@block_module-@block_delta" successfully configured with visibility rules.', array(
+      '@block_delta' => $block_delta,
+      '@block_module' => $block_module,
+    )));
+
+    drupal_flush_all_caches();
+  }
 }
