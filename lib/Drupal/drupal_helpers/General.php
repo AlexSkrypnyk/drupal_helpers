@@ -15,7 +15,7 @@ class General {
    * @param int $indent
    *   Indent for messages. Defaults to 2.
    */
-  public function messageSet($message, $prefix = '-- ', $indent = 2) {
+  public static function messageSet($message, $prefix = '-- ', $indent = 2) {
     if (function_exists('drush_print')) {
       drush_print(((string) $prefix) . html_entity_decode($message), $indent);
     }

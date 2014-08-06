@@ -12,7 +12,7 @@ class Feature extends \Drupal\drupal_helpers\Module {
    *  Name of an individual component to revert. If NULL, all components are
    *  reverted.
    */
-  public function revert($module, $component = NULL) {
+  public static function revert($module, $component = NULL) {
     module_load_include('inc', 'features', 'features.export');
     features_include();
     if (($feature = feature_load($module, TRUE)) && module_exists($module)) {

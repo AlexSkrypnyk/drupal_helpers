@@ -3,7 +3,7 @@
 namespace Drupal\drupal_helpers;
 
 class Block {
-  public function place($block_delta, $block_module, $region, $theme, $weight = 0) {
+  public static function place($block_delta, $block_module, $region, $theme, $weight = 0) {
     _block_rehash($theme);
     db_update('block')
       ->fields(array(
@@ -26,7 +26,7 @@ class Block {
     drupal_flush_all_caches();
   }
 
-  public function remove($block_delta, $block_module, $theme) {
+  public static function remove($block_delta, $block_module, $theme) {
     _block_rehash($theme);
     db_update('block')
       ->fields(array(
@@ -54,7 +54,7 @@ class Block {
    *  - BLOCK_VISIBILITY_NOTLISTED
    *  - BLOCK_VISIBILITY_PHP
    */
-  public function visibility($block_delta, $block_module, $theme, $pages, $visibility = BLOCK_VISIBILITY_LISTED) {
+  public static function visibility($block_delta, $block_module, $theme, $pages, $visibility = BLOCK_VISIBILITY_LISTED) {
     _block_rehash($theme);
     db_update('block')
       ->fields(array(
