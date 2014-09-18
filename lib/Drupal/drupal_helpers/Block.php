@@ -3,6 +3,38 @@
 namespace Drupal\drupal_helpers;
 
 class Block {
+  /**
+   * Helper to simply return rendered block.
+   *
+   * @param string $block_delta
+   *   Block delta.
+   * @param string $block_module
+   *   Block module name.
+   * @param bool $renderable_array
+   *   TRUE: returns renderable array.
+   *   FALSE: returns rendered string.
+   */
+  public static function render($block_delta, $block_module, $renderable_array = FALSE) {
+    $block = block_load($block_module, $block_delta);
+    $render = _block_get_renderable_array(_block_render_blocks(array($block)));
+
+    if ($renderable_array) {
+      return $render;
+    }
+    else {
+      return render($render);
+    }
+  }
+
+  /**
+   * Helper to place a block in a region using core block module.
+   *
+   * @param $block_delta
+   * @param $block_module
+   * @param $region
+   * @param $theme
+   * @param int $weight
+   */
   public static function place($block_delta, $block_module, $region, $theme, $weight = 0) {
     _block_rehash($theme);
     db_update('block')
@@ -26,6 +58,13 @@ class Block {
     drupal_flush_all_caches();
   }
 
+  /**
+   * Helper to remove a block from a region using core block module.
+   *
+   * @param $block_delta
+   * @param $block_module
+   * @param $theme
+   */
   public static function remove($block_delta, $block_module, $theme) {
     _block_rehash($theme);
     db_update('block')
