@@ -1,14 +1,23 @@
 <?php
+/**
+ * @file
+ * General helpers.
+ */
 
 namespace Drupal\drupal_helpers;
 
+/**
+ * Class General.
+ *
+ * @package Drupal\drupal_helpers
+ */
 class General {
   /**
    * Helper to print messages.
    *
-   * Prints to stdout if using drush, or drupal_set_message() if the web ui.
+   * Prints to stdout if using drush, or drupal_set_message() if the web UI.
    *
-   * @param string $messages
+   * @param string $message
    *   String containing message.
    * @param string $prefix
    *   Prefix to be used for messages when called through CLI. Defaults to '-- '.
@@ -23,4 +32,5 @@ class General {
       drupal_set_message($message);
     }
   }
+
 }

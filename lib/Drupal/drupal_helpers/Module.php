@@ -1,18 +1,31 @@
 <?php
+/**
+ * @file
+ * Module helpers.
+ */
 
 namespace Drupal\drupal_helpers;
 
+/**
+ * Class Module.
+ *
+ * @package Drupal\drupal_helpers
+ */
 class Module extends \Drupal\drupal_helpers\System {
   /**
    * Enables a module and performs some error checking.
    *
    * @param string $module
+   *   Module name to enable.
    * @param bool $enable_dependencies
+   *   Flag to enable module's dependencies. Defaults to TRUE.
    *
    * @return bool
-   *  - TRUE: Module was enabled successfully.
+   *   Returns TRUE if module was enabled successfully, \DrupalUpdateException
+   *   is thrown otherwise.
    *
    * @throws \DrupalUpdateException
+   *   Throws exception if module was not enabled.
    */
   public static function enable($module, $enable_dependencies = TRUE) {
     if (self::isEnabled($module)) {
@@ -43,14 +56,18 @@ class Module extends \Drupal\drupal_helpers\System {
    * Disables a module and performs some error checking.
    *
    * @param string $module
-   * @param bool $disable_dependents
+   *   Module name to disable.
+   * @param bool $disable_dependencies
+   *   Flag to disable module's dependencies. Defaults to TRUE.
    *
    * @return bool
-   *  - TRUE: Module was disabled successfully.
+   *   Returns TRUE if module was disabled successfully, \DrupalUpdateException
+   *   is thrown otherwise.
    *
    * @throws \DrupalUpdateException
+   *   Throws exception if module was not disabled.
    */
-  public static function disable($module, $disable_dependents = TRUE) {
+  public static function disable($module, $disable_dependencies = TRUE) {
     if (self::isDisabled($module)) {
       \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" is already disabled - Aborting!', array(
         '@module' => $module,
@@ -59,13 +76,12 @@ class Module extends \Drupal\drupal_helpers\System {
       return TRUE;
     }
 
-    module_disable(array($module), $disable_dependents);
+    module_disable(array($module), $disable_dependencies);
 
     if (self::isDisabled($module)) {
       \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" was successfully disabled.', array(
         '@module' => $module,
       )));
-
 
       return TRUE;
     }
@@ -79,13 +95,19 @@ class Module extends \Drupal\drupal_helpers\System {
    * Uninstalls a module.
    *
    * @param string $module
-   * @param bool $disable_dependents
+   *   Module name to uninstall.
+   * @param bool $disable_dependencies
+   *   Flag to disable module's dependencies. Defaults to TRUE.
    *
    * @return bool
-   *  - TRUE: Module was uninstalled successfully.
+   *   Returns TRUE if module was uninstalled successfully, \DrupalUpdateException
+   *   is thrown otherwise.
+   *
+   * @throws \DrupalUpdateException
+   *   Throws exception if module was not uninstalled.
    */
-  public static function uninstall($module, $disable_dependents = TRUE) {
-    self::disable($module, $disable_dependents);
+  public static function uninstall($module, $disable_dependencies = TRUE) {
+    self::disable($module, $disable_dependencies);
     drupal_uninstall_modules(array($module), TRUE);
 
     if (self::isUninstalled($module)) {
@@ -100,4 +122,5 @@ class Module extends \Drupal\drupal_helpers\System {
       '@module' => $module,
     )));
   }
+
 }

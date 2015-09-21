@@ -9,6 +9,11 @@
 
 namespace Drupal\drupal_helpers;
 
+/**
+ * Class Random.
+ *
+ * @package Drupal\drupal_helpers
+ */
 class Random {
   /**
    * Generate a random string containing letters.
@@ -132,7 +137,7 @@ class Random {
    *   Optional email domain. Defaults to 'example.com'.
    *
    * @return string Random email address.
-   * Random email address.
+   *   Random email address.
    */
   public static function email($domain = 'example.com') {
     return self::name() . '@' . $domain;
@@ -190,4 +195,5 @@ class Random {
 
     return array_slice($array, 0, $count, TRUE);
   }
+
 }

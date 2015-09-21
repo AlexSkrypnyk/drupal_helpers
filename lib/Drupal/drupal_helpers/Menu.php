@@ -1,23 +1,24 @@
 <?php
 /**
  * @file
- *
+ * Menu helpers.
  */
 
 namespace Drupal\drupal_helpers;
 
+/**
+ * Class Menu.
+ *
+ * @package Drupal\drupal_helpers
+ */
 class Menu {
-
   /**
    * Helper to add menu item into specified menu.
    *
    * @param string $menu_name
    *   String machine menu name.
    * @param array $new_item
-   *   Array with items keys used in
-   *
-   * @see menu_link_save()
-   *
+   *   Array with items keys used in menu_link_save().
    * @param bool $unique
    *   Flag to check such item already exists and do not add the item. Check is
    *   made on both title and path meaning that if both exists - item will be
@@ -25,8 +26,10 @@ class Menu {
    *
    * @return int|bool
    *   'mlid' of the created menu item or FALSE.
+   *
+   * @see menu_link_save()
    */
-  static public function addItem($menu_name, $new_item, $unique = TRUE) {
+  static public function addItem($menu_name, array $new_item, $unique = TRUE) {
     if (!isset($new_item['link_title']) || !isset($new_item['link_path'])) {
       return FALSE;
     }
@@ -61,7 +64,6 @@ class Menu {
   }
 
 
-
   /**
    * Helper function to update existing menu item.
    *
@@ -70,7 +72,6 @@ class Menu {
    * @param array $existing_item
    *   Array of menu item fields to search item. Items keys used in
    *   menu_link_save().
-   *
    * @param array $updates
    *   Array of menu item fields to be updated. Items keys used in
    *   menu_link_save().
@@ -80,7 +81,7 @@ class Menu {
    * @return bool
    *   Updated menu link id if update was successful or FALSE otherwise.
    */
-  static public function updateItem($menu_name, $existing_item, $updates = array()) {
+  static public function updateItem($menu_name, array $existing_item, $updates = array()) {
     $mlid = self::findItem($menu_name, $existing_item);
     if (!$mlid) {
       return FALSE;
@@ -109,13 +110,14 @@ class Menu {
    *   String machine menu name.
    * @param array $existing_item
    *   Array of menu item fields to search item. Items keys used in
-   *
-   * @see menu_link_save()
+   *   menu_link_save().
    *
    * @return bool
    *   Boolean TRUE if deletion was successful or FALSE otherwise.
+   *
+   * @see menu_link_save()
    */
-  static public function deleteItem($menu_name, $existing_item) {
+  static public function deleteItem($menu_name, array $existing_item) {
     $mlid = self::findItem($menu_name, $existing_item);
     if (!$mlid) {
       return FALSE;
@@ -145,7 +147,7 @@ class Menu {
    * @return int|bool
    *   Integer mlid if item was found ot FALSE otherwise.
    */
-  static public function findItem($menu_name, $existing_item) {
+  static public function findItem($menu_name, array $existing_item) {
     // Init query.
     $query = db_select('menu_links', 'ml')
       ->fields('ml', array('mlid'))

@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Form-related helpers.
+ * Form helpers.
  */
 
 namespace Drupal\drupal_helpers;
@@ -15,15 +15,12 @@ class Form {
   /**
    * Get default values from the form.
    *
-   * @param [] $params
-   *   Array of parameter values. Usually, taken from
-   *   drupal_get_query_parameters().
-   *
    * @param ...
-   *   Variable number of keys to traverse $params.
-   *
-   * @param mixed $default
-   *   Default value to return if parameter does not exist.
+   *   Variable number of arguments:
+   *   - $params: Array of parameter values. Usually, taken from
+   *   drupal_get_query_parameters().
+   *   - ...: Variable number of keys to traverse $params.
+   *   - $default: Default value to return if parameter does not exist.
    *
    * @return mixed|null
    *   Returns one of the following values:
@@ -57,4 +54,5 @@ class Form {
 
     return $val;
   }
+
 }

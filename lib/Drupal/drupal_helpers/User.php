@@ -1,28 +1,32 @@
 <?php
 /**
  * @file
- * User-related helpers.
+ * User helpers.
  */
 
 namespace Drupal\drupal_helpers;
 
+/**
+ * Class User.
+ *
+ * @package Drupal\drupal_helpers
+ */
 class User {
   /**
    * Helper to create user with specified fields and roles.
    *
-   * @param array $editOverrides
+   * @param array $edit_overrides
    *   Array of user override fields. Value of an element with a 'mail' key
    *   is required.
-   *
-   * @param array $roleNames
+   * @param array $role_names
    *   Optional array of role names to be assigned.
    *
    * @return bool|Object
    *   User account object or FALSE if user was not created.
    */
-  public static function create($editOverrides, $roleNames = array()) {
+  public static function create(array $edit_overrides, $role_names = array()) {
     // Mail is an absolute minimum that we require.
-    if (!isset($editOverrides['mail'])) {
+    if (!isset($edit_overrides['mail'])) {
       return FALSE;
     }
 
@@ -31,16 +35,16 @@ class User {
     $edit['pass'] = user_password();
     $edit['status'] = 1;
     $edit['roles'] = array();
-    if (!empty($roleNames)) {
-      $roleNames = is_array($roleNames) ? $roleNames : array($roleNames);
-      foreach ($roleNames as $role_name) {
+    if (!empty($role_names)) {
+      $role_names = is_array($role_names) ? $role_names : array($role_names);
+      foreach ($role_names as $role_name) {
         $role = user_role_load_by_name($role_name);
         $edit['roles'][$role->rid] = $role->rid;
       }
     }
 
     // Merge fields with provided $edit_overrides.
-    $edit = array_merge($edit, $editOverrides);
+    $edit = array_merge($edit, $edit_overrides);
 
     // Build an empty user object, including all default fields.
     $account = drupal_anonymous_user();
@@ -61,4 +65,5 @@ class User {
 
     return $account;
   }
+
 }

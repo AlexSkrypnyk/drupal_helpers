@@ -24,12 +24,12 @@ class Taxonomy {
    * @param string $depth_prefix
    *   Depth indentation prefix. Defaults to '-'.
    *
-   * @return []
+   * @return array
    *   Array of options keyed by term id and suitable for use with FAPI elements
    *   that support '#options' property.
    */
   public static function formElementOptions($machine_name, $depth_prefix = '-') {
-    $options = [];
+    $options = array();
 
     $vocab = taxonomy_vocabulary_machine_name_load($machine_name);
     $terms = taxonomy_get_tree($vocab->vid);

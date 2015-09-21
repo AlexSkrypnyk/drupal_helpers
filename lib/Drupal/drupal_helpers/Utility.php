@@ -15,19 +15,19 @@ class Utility {
   /**
    * Recursively remove empty elements from array.
    *
-   * @param [] $haystack
+   * @param array $haystack
    *   Array to remove elements from.
    *
-   * @return []
+   * @return array
    *   Array with removed elements.
    */
   static public function arrayRemoveEmpty(array $haystack) {
     foreach ($haystack as $key => $value) {
       if (is_array($haystack[$key])) {
-        $haystack[$key] = call_user_func([
+        $haystack[$key] = call_user_func(array(
           __CLASS__,
           __FUNCTION__,
-        ], $haystack[$key]);
+        ), $haystack[$key]);
       }
 
       if (empty($haystack[$key])) {
@@ -69,24 +69,24 @@ class Utility {
           // Column exists.
           if (array_key_exists($column, $v)) {
             // Recursively call current function and retrieve each value.
-            $result[$k] = call_user_func([
+            $result[$k] = call_user_func(array(
               __CLASS__,
               __FUNCTION__,
-            ], $v[$column], NULL, $getter);
+            ), $v[$column], NULL, $getter);
           }
           // Column is set, but does not exist.
           else {
-            throw new Exception(format_string('Column @column does not exist', [
+            throw new Exception(format_string('Column @column does not exist', array(
               '@column' => $column,
-            ]));
+            )));
           }
         }
         // Value is not an array.
         else {
-          $result[$k] = call_user_func([
+          $result[$k] = call_user_func(array(
             __CLASS__,
             __FUNCTION__,
-          ], $v, $column, $getter);
+          ), $v, $column, $getter);
         }
       }
     }
@@ -100,10 +100,10 @@ class Utility {
         }
         // Try using getter.
         elseif (method_exists($value, $getter)) {
-          $result = call_user_func([
+          $result = call_user_func(array(
             $value,
             $getter,
-          ]);
+          ));
         }
         // Value object getter does not exist - return as is.
         else {
