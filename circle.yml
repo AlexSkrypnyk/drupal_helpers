@@ -1,0 +1,21 @@
+#
+# Configuration for drupal_helpers build on CircleCI.
+#
+machine:
+  php:
+    version: 5.5.0
+  environment:
+    APPROOT: "$HOME/$CIRCLE_PROJECT_REPONAME"
+    TEST_RESULTS: "$CIRCLE_TEST_REPORTS"
+    PATH: "$HOME/.composer/vendor/bin:$PATH"
+
+dependencies:
+  override:
+  - cd $APPROOT && composer install --no-progress
+  - cd $APPROOT && bash vendor/bin/dcr install
+test:
+  override:
+  # Lint code.
+  - source ~/.profile && cd $APPROOT && dcr
+  # Run tests.
+  - source ~/.profile && cd $APPROOT && phpunit
