@@ -11,6 +11,7 @@ machine:
 
 dependencies:
   override:
+  - "if [ \"$GITHUB_TOKEN\" != \"\" ]; then composer config -g github-oauth.github.com $GITHUB_TOKEN; fi"
   - cd $APPROOT && composer install --no-progress
   - cd $APPROOT && bash vendor/bin/dcr install
 test:
