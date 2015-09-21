@@ -134,14 +134,14 @@ class Menu {
    *   String machine menu name.
    * @param array $existing_item
    *   Array that is used to lookup existing menu item. Only first match will be
-   *   used. All specified items must exists to return valid result.
-   *   'link_title' - string title to lookup. If plid is not specified - lookup is
-   *     performed among all items.
-   *   'link_path' - path of the menu item to lookup. Aliased path will be looked
-   *     up and replaced with a system path. If plid is not specified - lookup is
-   *     performed among all items.
-   *   'mlid' - menu item link id.
-   *   'plid' - menu item parent link id. If this is present lookup is performed
+   *   used. All specified items must exists to return valid result:
+   *   - link_title: String title to lookup. If plid is not specified, lookup
+   *   is performed among all items.
+   *   - link_path: Path of the menu item to lookup. Aliased path will be looked
+   *   up and replaced with a system path. If plid is not specified - lookup is
+   *   performed among all items.
+   *   - mlid: Menu item link id.
+   *   - plid: Menu item parent link id. If this is present lookup is performed
    *     within items with specified plid.
    *
    * @return int|bool

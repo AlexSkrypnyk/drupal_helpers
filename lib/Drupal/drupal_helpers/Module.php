@@ -100,8 +100,8 @@ class Module extends \Drupal\drupal_helpers\System {
    *   Flag to disable module's dependencies. Defaults to TRUE.
    *
    * @return bool
-   *   Returns TRUE if module was uninstalled successfully, \DrupalUpdateException
-   *   is thrown otherwise.
+   *   Returns TRUE if module was uninstalled successfully,
+   *   \DrupalUpdateException is thrown otherwise.
    *
    * @throws \DrupalUpdateException
    *   Throws exception if module was not uninstalled.

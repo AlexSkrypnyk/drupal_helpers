@@ -1,7 +1,16 @@
 <?php
+/**
+ * @file
+ * Theme helpers.
+ */
 
 namespace Drupal\drupal_helpers;
 
+/**
+ * Class Theme.
+ *
+ * @package Drupal\drupal_helpers
+ */
 class Theme extends \Drupal\drupal_helpers\System {
   /**
    * Sets a theme as the default.
@@ -21,12 +30,14 @@ class Theme extends \Drupal\drupal_helpers\System {
    * Enables a theme and performs some error checking.
    *
    * @param string $theme
-   * @param bool $enable_dependencies
+   *   Theme machine name.
    *
    * @return bool
-   *  - TRUE: Theme was enabled successfully.
+   *   Returns TRUE if theme was enabled successfully, \DrupalUpdateException
+   *   is thrown otherwise.
    *
    * @throws \DrupalUpdateException
+   *   Throws exception if theme was not enabled.
    */
   public static function enable($theme) {
     if (self::isEnabled($theme, 'theme')) {
@@ -56,11 +67,14 @@ class Theme extends \Drupal\drupal_helpers\System {
    * Disables a theme and performs some error checking.
    *
    * @param string $theme
+   *   Theme machine name.
    *
    * @return bool
-   *  - TRUE: Theme was disabled successfully.
+   *   Returns TRUE if theme was disabled successfully, \DrupalUpdateException
+   *   is thrown otherwise.
    *
    * @throws \DrupalUpdateException
+   *   Throws exception if theme was not disabled.
    */
   public static function disable($theme) {
     if (self::isDisabled($theme, 'theme')) {
@@ -85,4 +99,5 @@ class Theme extends \Drupal\drupal_helpers\System {
       '@theme' => $theme,
     )));
   }
+
 }

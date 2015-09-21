@@ -20,7 +20,8 @@ class General {
    * @param string $message
    *   String containing message.
    * @param string $prefix
-   *   Prefix to be used for messages when called through CLI. Defaults to '-- '.
+   *   Prefix to be used for messages when called through CLI.
+   *   Defaults to '-- '.
    * @param int $indent
    *   Indent for messages. Defaults to 2.
    */
