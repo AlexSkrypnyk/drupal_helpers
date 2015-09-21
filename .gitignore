@@ -8,6 +8,5 @@ Thumbs.db
 *.sublime*
 .project
 .netbeans
-.idea
 codekit-config.json
 .sass-cache
