@@ -13,7 +13,7 @@ namespace Drupal\drupal_helpers;
  */
 class Block {
   /**
-   * Rendered a block.
+   * Renders a block.
    *
    * @param string $block_delta
    *   Block delta.
