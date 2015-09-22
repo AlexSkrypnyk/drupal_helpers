@@ -1,7 +1,10 @@
-[![Circle CI](https://circleci.com/gh/alexdesignworks/drupal_helpers.svg?style=svg)](https://circleci.com/gh/alexdesignworks/drupal_helpers)
+# Drupal Helpers
 
-# Drupal helpers
-A library of Drupal-related PHP helpers for core and contrib modules.
+A library of Drupal-related PHP helpers for Drupal 7 core and contrib modules.
+
+[![Circle CI](https://circleci.com/gh/nicksantamaria/drupal_helpers.svg?style=svg)](https://circleci.com/gh/nicksantamaria/drupal_helpers)
+
+## Functionality Provided
 
 * Bean
   * Create or load a bean.
@@ -31,7 +34,11 @@ A library of Drupal-related PHP helpers for core and contrib modules.
 	* Set a theme as the default or admin theme.
 	* Enable or disable a theme.
 * User
-	* Create user with specified fields and roles. 
+	* Create user with specified fields and roles.
 * Utility
 	* Recursively remove empty elements from array.
 	* Retrieve array column.
+
+## Dependencies
+
+- [X Autoload ](https://www.drupal.org/project/xautoload)
