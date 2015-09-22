@@ -1,18 +1,31 @@
 <?php
+/**
+ * @file
+ * Module helpers.
+ */
 
 namespace Drupal\drupal_helpers;
 
+/**
+ * Class Module.
+ *
+ * @package Drupal\drupal_helpers
+ */
 class Module extends \Drupal\drupal_helpers\System {
   /**
    * Enables a module and performs some error checking.
    *
    * @param string $module
+   *   Module name to enable.
    * @param bool $enable_dependencies
+   *   Flag to enable module's dependencies. Defaults to TRUE.
    *
    * @return bool
-   *  - TRUE: Module was enabled successfully.
+   *   Returns TRUE if module was enabled successfully, \DrupalUpdateException
+   *   is thrown otherwise.
    *
    * @throws \DrupalUpdateException
+   *   Throws exception if module was not enabled.
    */
   public static function enable($module, $enable_dependencies = TRUE) {
     if (self::isEnabled($module)) {
@@ -43,12 +56,16 @@ class Module extends \Drupal\drupal_helpers\System {
    * Disables a module and performs some error checking.
    *
    * @param string $module
+   *   Module name to disable.
    * @param bool $disable_dependents
+   *   If TRUE, dependent modules will automatically be added and disabled in the correct order.
    *
    * @return bool
-   *  - TRUE: Module was disabled successfully.
+   *   Returns TRUE if module was disabled successfully, \DrupalUpdateException
+   *   is thrown otherwise.
    *
    * @throws \DrupalUpdateException
+   *   Throws exception if module was not disabled.
    */
   public static function disable($module, $disable_dependents = TRUE) {
     if (self::isDisabled($module)) {
@@ -66,7 +83,6 @@ class Module extends \Drupal\drupal_helpers\System {
         '@module' => $module,
       )));
 
-
       return TRUE;
     }
 
@@ -79,10 +95,16 @@ class Module extends \Drupal\drupal_helpers\System {
    * Uninstalls a module.
    *
    * @param string $module
+   *   Module name to uninstall.
    * @param bool $disable_dependents
+   *   If TRUE, dependent modules will automatically be added and disabled in the correct order.
    *
    * @return bool
-   *  - TRUE: Module was uninstalled successfully.
+   *   Returns TRUE if module was uninstalled successfully,
+   *   \DrupalUpdateException is thrown otherwise.
+   *
+   * @throws \DrupalUpdateException
+   *   Throws exception if module was not uninstalled.
    */
   public static function uninstall($module, $disable_dependents = TRUE) {
     self::disable($module, $disable_dependents);
@@ -100,4 +122,5 @@ class Module extends \Drupal\drupal_helpers\System {
       '@module' => $module,
     )));
   }
+
 }

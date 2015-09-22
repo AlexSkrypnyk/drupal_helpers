@@ -1,18 +1,26 @@
 <?php
+/**
+ * @file
+ * Block helpers.
+ */
 
 namespace Drupal\drupal_helpers;
 
+/**
+ * Class Block.
+ *
+ * @package Drupal\drupal_helpers
+ */
 class Block {
   /**
-   * Helper to simply return rendered block.
+   * Renders a block.
    *
    * @param string $block_delta
    *   Block delta.
    * @param string $block_module
    *   Block module name.
    * @param bool $renderable_array
-   *   TRUE: returns renderable array.
-   *   FALSE: returns rendered string.
+   *   If TRUE, a renderable array is returned, FALSE -  a rendered string.
    */
   public static function render($block_delta, $block_module, $renderable_array = FALSE) {
     $block = block_load($block_module, $block_delta);
@@ -27,13 +35,18 @@ class Block {
   }
 
   /**
-   * Helper to place a block in a region using core block module.
+   * Place a block in a region using core block module.
    *
-   * @param $block_delta
-   * @param $block_module
-   * @param $region
-   * @param $theme
+   * @param string $block_delta
+   *   Block delta.
+   * @param string $block_module
+   *   Block module machine name.
+   * @param string $region
+   *   Region machine name.
+   * @param string $theme
+   *   Theme machine name.
    * @param int $weight
+   *   Block weight.
    */
   public static function place($block_delta, $block_module, $region, $theme, $weight = 0) {
     _block_rehash($theme);
@@ -59,11 +72,14 @@ class Block {
   }
 
   /**
-   * Helper to remove a block from a region using core block module.
+   * Remove a block from a region using core block module.
    *
-   * @param $block_delta
-   * @param $block_module
-   * @param $theme
+   * @param string $block_delta
+   *   Block delta.
+   * @param string $block_module
+   *   Block module machine name.
+   * @param string $theme
+   *   Theme machine name.
    */
   public static function remove($block_delta, $block_module, $theme) {
     _block_rehash($theme);
@@ -88,10 +104,18 @@ class Block {
   /**
    * Set the block visibility in the core block admin page.
    *
+   * @param string $block_delta
+   *   Block delta.
+   * @param string $block_module
+   *   Block module machine name.
+   * @param string $theme
+   *   Theme machine name.
+   * @param int $pages
+   *   Block weight.
    * @param int $visibility
-   *  - BLOCK_VISIBILITY_LISTED
-   *  - BLOCK_VISIBILITY_NOTLISTED
-   *  - BLOCK_VISIBILITY_PHP
+   *   One of the pre-defined block visibility constants:
+   *   BLOCK_VISIBILITY_LISTED, BLOCK_VISIBILITY_NOTLISTED,
+   *   BLOCK_VISIBILITY_PHP.
    */
   public static function visibility($block_delta, $block_module, $theme, $pages, $visibility = BLOCK_VISIBILITY_LISTED) {
     _block_rehash($theme);
@@ -112,4 +136,5 @@ class Block {
 
     drupal_flush_all_caches();
   }
+
 }

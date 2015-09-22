@@ -1,23 +1,33 @@
 <?php
+/**
+ * @file
+ * Features helpers.
+ */
 
 namespace Drupal\drupal_helpers;
 
+/**
+ * Class Feature.
+ *
+ * @package Drupal\drupal_helpers
+ */
 class Feature extends \Drupal\drupal_helpers\Module {
   /**
    * Reverts a feature.
    *
    * @param string $module
-   *  Machine name of the feature to revert.
-   * @param $component
-   *  Name of an individual component to revert. If NULL, all components are
-   *  reverted.
+   *   Machine name of the feature to revert.
+   * @param string $component
+   *   Name of an individual component to revert. Defaults to empty component
+   *   name to trigger all components revert.
    */
-  public static function revert($module, $component = NULL) {
+  public static function revert($module, $component = '') {
     module_load_include('inc', 'features', 'features.export');
     features_include();
+
     if (($feature = feature_load($module, TRUE)) && module_exists($module)) {
       $components = array();
-      if (is_null($component)) {
+      if (empty($component)) {
         // Forcefully revert all components of a feature.
         foreach (array_keys($feature->info['features']) as $component) {
           if (features_hook($component, 'features_revert')) {
@@ -26,9 +36,10 @@ class Feature extends \Drupal\drupal_helpers\Module {
         }
       }
       else {
-        // Use the $component argument of this function.
+        // Revert only specified component.
         $components[] = $component;
       }
+
       foreach ($components as $component) {
         features_revert(array($module => array($component)));
       }
@@ -42,4 +53,5 @@ class Feature extends \Drupal\drupal_helpers\Module {
       \Drupal\drupal_helpers\General::messageSet(t('Unable to revert "!module" feature.', array('!module' => $module)));
     }
   }
+
 }
