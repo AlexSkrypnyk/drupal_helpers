@@ -57,8 +57,8 @@ class Module extends \Drupal\drupal_helpers\System {
    *
    * @param string $module
    *   Module name to disable.
-   * @param bool $disable_dependencies
-   *   Flag to disable module's dependencies. Defaults to TRUE.
+   * @param bool $disable_dependents
+   *   If TRUE, dependent modules will automatically be added and disabled in the correct order.
    *
    * @return bool
    *   Returns TRUE if module was disabled successfully, \DrupalUpdateException
@@ -67,7 +67,7 @@ class Module extends \Drupal\drupal_helpers\System {
    * @throws \DrupalUpdateException
    *   Throws exception if module was not disabled.
    */
-  public static function disable($module, $disable_dependencies = TRUE) {
+  public static function disable($module, $disable_dependents = TRUE) {
     if (self::isDisabled($module)) {
       \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" is already disabled - Aborting!', array(
         '@module' => $module,
@@ -76,7 +76,7 @@ class Module extends \Drupal\drupal_helpers\System {
       return TRUE;
     }
 
-    module_disable(array($module), $disable_dependencies);
+    module_disable(array($module), $disable_dependents);
 
     if (self::isDisabled($module)) {
       \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" was successfully disabled.', array(
@@ -96,8 +96,8 @@ class Module extends \Drupal\drupal_helpers\System {
    *
    * @param string $module
    *   Module name to uninstall.
-   * @param bool $disable_dependencies
-   *   Flag to disable module's dependencies. Defaults to TRUE.
+   * @param bool $disable_dependents
+   *   If TRUE, dependent modules will automatically be added and disabled in the correct order.
    *
    * @return bool
    *   Returns TRUE if module was uninstalled successfully,
@@ -106,8 +106,8 @@ class Module extends \Drupal\drupal_helpers\System {
    * @throws \DrupalUpdateException
    *   Throws exception if module was not uninstalled.
    */
-  public static function uninstall($module, $disable_dependencies = TRUE) {
-    self::disable($module, $disable_dependencies);
+  public static function uninstall($module, $disable_dependents = TRUE) {
+    self::disable($module, $disable_dependents);
     drupal_uninstall_modules(array($module), TRUE);
 
     if (self::isUninstalled($module)) {
