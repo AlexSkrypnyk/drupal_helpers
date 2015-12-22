@@ -58,7 +58,8 @@ class Module extends \Drupal\drupal_helpers\System {
    * @param string $module
    *   Module name to disable.
    * @param bool $disable_dependents
-   *   If TRUE, dependent modules will automatically be added and disabled in the correct order.
+   *   If TRUE, dependent modules will automatically be added and disabled in
+   *   the correct order.
    *
    * @return bool
    *   Returns TRUE if module was disabled successfully, \DrupalUpdateException
@@ -97,7 +98,8 @@ class Module extends \Drupal\drupal_helpers\System {
    * @param string $module
    *   Module name to uninstall.
    * @param bool $disable_dependents
-   *   If TRUE, dependent modules will automatically be added and disabled in the correct order.
+   *   If TRUE, dependent modules will automatically be added and disabled in
+   *   the correct order.
    *
    * @return bool
    *   Returns TRUE if module was uninstalled successfully,
