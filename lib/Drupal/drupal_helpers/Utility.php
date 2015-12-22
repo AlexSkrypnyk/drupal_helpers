@@ -119,4 +119,23 @@ class Utility {
     return $result;
   }
 
+  /**
+   * Check that provided data is JSON string.
+   *
+   * @param string $data
+   *   JSON data to assess.
+   *
+   * @return boolean
+   *   TRUE if $data is a valid JSON string, FALSE otherwise.
+   */
+  public static function isJson($data)
+  {
+    if (!is_string($data)) {
+      return false;
+    }
+
+    json_decode($data);
+
+    return json_last_error() === JSON_ERROR_NONE;
+  }
 }
