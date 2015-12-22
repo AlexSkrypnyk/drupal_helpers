@@ -41,6 +41,23 @@ A library of Drupal-related PHP helpers for Drupal 7 core and contrib modules.
 	* Recursively remove empty elements from array.
 	* Retrieve array column.
 
+## Examples
+
+**Enable a module**
+```php
+\Drupal\drupal_helpers\Module::enable('views');
+```
+
+**Revert a feature**
+```php
+\Drupal\drupal_helpers\Feature::revert('mysite_feature');
+```
+
+**Set message**
+```php
+\Drupal\drupal_helpers\General::messageSet('My message');
+```
+
 ## Dependencies
 
 - [X Autoload ](https://www.drupal.org/project/xautoload)
