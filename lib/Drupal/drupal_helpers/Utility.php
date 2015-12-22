@@ -125,17 +125,17 @@ class Utility {
    * @param string $data
    *   JSON data to assess.
    *
-   * @return boolean
+   * @return bool
    *   TRUE if $data is a valid JSON string, FALSE otherwise.
    */
-  public static function isJson($data)
-  {
+  public static function isJson($data) {
     if (!is_string($data)) {
-      return false;
+      return FALSE;
     }
 
     json_decode($data);
 
     return json_last_error() === JSON_ERROR_NONE;
   }
+
 }

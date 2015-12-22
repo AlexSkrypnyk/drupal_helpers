@@ -12,6 +12,8 @@ A library of Drupal-related PHP helpers for Drupal 7 core and contrib modules.
   * Render a block.
   * Place or remove a block in/from a region using core block module.
   * Set the block visibility.
+* Entity
+  * Get label for entity bundle.
 * Feature
   * Revert a feature.
 * Form
