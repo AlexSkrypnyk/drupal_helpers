@@ -190,10 +190,12 @@ class Random {
   /**
    * Helper to get random array items.
    */
-  public static function arrayItems($array, $count = 1) {
-    shuffle($array);
+  public static function arrayItems($haystack, $count = 1) {
+    $haystack_keys = array_keys($haystack);
+    shuffle($haystack_keys);
+    $haystack_keys = array_slice($haystack_keys, 0, $count);
 
-    return array_slice($array, 0, $count, TRUE);
+    return array_intersect_key($haystack, array_flip($haystack_keys));
   }
 
 }
