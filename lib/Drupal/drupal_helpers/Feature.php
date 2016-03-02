@@ -26,7 +26,7 @@ class Feature extends \Drupal\drupal_helpers\Module {
     features_include();
 
     if (($feature = feature_load($module, TRUE)) && module_exists($module)) {
-      $components = array();
+      $components = [];
       if (empty($component)) {
         // Forcefully revert all components of a feature.
         foreach (array_keys($feature->info['features']) as $component) {
@@ -41,16 +41,16 @@ class Feature extends \Drupal\drupal_helpers\Module {
       }
 
       foreach ($components as $component) {
-        features_revert(array($module => array($component)));
+        features_revert([$module => [$component]]);
       }
 
-      \Drupal\drupal_helpers\General::messageSet(t('Reverted "!module" feature components !components.', array(
+      \Drupal\drupal_helpers\General::messageSet(t('Reverted "!module" feature components !components.', [
         '!module' => $module,
         '!components' => implode(', ', $components),
-      )));
+      ]));
     }
     else {
-      \Drupal\drupal_helpers\General::messageSet(t('Unable to revert "!module" feature.', array('!module' => $module)));
+      \Drupal\drupal_helpers\General::messageSet(t('Unable to revert "!module" feature.', ['!module' => $module]));
     }
   }
 

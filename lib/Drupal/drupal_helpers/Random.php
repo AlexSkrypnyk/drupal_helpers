@@ -181,8 +181,8 @@ class Random {
 
     // Handle slashes.
     // Handle %placeholders.
-    $replacements = array_map(array(__CLASS__, 'name'), array_fill(0, 20, 10));
-    $path = preg_replace(array('/(%[^\/]*)/i'), $replacements, $path);
+    $replacements = array_map([__CLASS__, 'name'], array_fill(0, 20, 10));
+    $path = preg_replace(['/(%[^\/]*)/i'], $replacements, $path);
 
     return $path;
   }

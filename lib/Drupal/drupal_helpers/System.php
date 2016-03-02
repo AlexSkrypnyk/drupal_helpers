@@ -25,10 +25,10 @@ class System {
    *   Weight of the specified item.
    */
   public static function weightGet($name, $type = 'module') {
-    return db_query("SELECT weight FROM {system} WHERE name = :name AND type = :type", array(
+    return db_query("SELECT weight FROM {system} WHERE name = :name AND type = :type", [
       ':name' => $name,
       ':type' => $type,
-    ))->fetchField();
+    ])->fetchField();
   }
 
   /**
@@ -40,7 +40,7 @@ class System {
    *   Weight value to set.
    */
   public static function weightSet($name, $weight) {
-    db_update('system')->fields(array('weight' => $weight))
+    db_update('system')->fields(['weight' => $weight])
       ->condition('name', $name)->execute();
   }
 
@@ -58,7 +58,7 @@ class System {
    */
   public static function isEnabled($name, $type = 'module') {
     $q = db_select('system');
-    $q->fields('system', array('name', 'status'))
+    $q->fields('system', ['name', 'status'])
       ->condition('name', $name, '=')
       ->condition('type', $type, '=');
     $rs = $q->execute();
@@ -96,7 +96,7 @@ class System {
    */
   public static function isUninstalled($name, $type = 'module') {
     $q = db_select('system');
-    $q->fields('system', array('name', 'schema_version'))
+    $q->fields('system', ['name', 'schema_version'])
       ->condition('name', $name, '=')
       ->condition('type', $type, '=');
     $rs = $q->execute();

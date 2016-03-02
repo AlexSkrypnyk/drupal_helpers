@@ -29,7 +29,7 @@ class ArrayRemoveEmptyUtilityTestCase extends \PHPUnit_Framework_TestCase {
 
     $this->assertArrayRemoveEmpty([
       'k1' => 1,
-      'k6' => 'abc'
+      'k6' => 'abc',
     ], $haystack, 'All empty elements removed from single dimension array');
 
     $haystack2 = [

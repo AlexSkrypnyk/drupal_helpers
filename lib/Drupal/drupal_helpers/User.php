@@ -24,7 +24,7 @@ class User {
    * @return bool|Object
    *   User account object or FALSE if user was not created.
    */
-  public static function create(array $edit_overrides, $role_names = array()) {
+  public static function create(array $edit_overrides, $role_names = []) {
     // Mail is an absolute minimum that we require.
     if (!isset($edit_overrides['mail'])) {
       return FALSE;
@@ -34,9 +34,9 @@ class User {
     $edit['name'] = $edit['mail'];
     $edit['pass'] = user_password();
     $edit['status'] = 1;
-    $edit['roles'] = array();
+    $edit['roles'] = [];
     if (!empty($role_names)) {
-      $role_names = is_array($role_names) ? $role_names : array($role_names);
+      $role_names = is_array($role_names) ? $role_names : [$role_names];
       foreach ($role_names as $role_name) {
         $role = user_role_load_by_name($role_name);
         $edit['roles'][$role->rid] = $role->rid;
@@ -50,7 +50,7 @@ class User {
     $account = drupal_anonymous_user();
     foreach (field_info_instances('user', 'user') as $field_name => $info) {
       if (!isset($account->{$field_name})) {
-        $account->{$field_name} = array();
+        $account->{$field_name} = [];
       }
     }
 

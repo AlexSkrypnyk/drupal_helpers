@@ -36,7 +36,7 @@ class Menu {
 
     // If specified, find parent and make sure that it exists.
     if (!empty($new_item['plid'])) {
-      if (!self::findItem($menu_name, array('mlid' => $new_item['plid']))) {
+      if (!self::findItem($menu_name, ['mlid' => $new_item['plid']])) {
         return FALSE;
       }
     }
@@ -48,10 +48,10 @@ class Menu {
       // Search for item and return mlid if it was found.
       // Prepare a stub item to use for search - we are searching by title and
       // path only.
-      $tmp_item = array_intersect_key($new_item, array_flip(array(
+      $tmp_item = array_intersect_key($new_item, array_flip([
         'link_title',
         'link_path',
-      )));
+      ]));
       $mlid = self::findItem($menu_name, $tmp_item);
       if ($mlid) {
         $mlid = self::updateItem($menu_name, $tmp_item, $new_item);
@@ -62,7 +62,6 @@ class Menu {
 
     return menu_link_save($new_item);
   }
-
 
   /**
    * Helper function to update existing menu item.
@@ -81,7 +80,7 @@ class Menu {
    * @return bool
    *   Updated menu link id if update was successful or FALSE otherwise.
    */
-  static public function updateItem($menu_name, array $existing_item, $updates = array()) {
+  static public function updateItem($menu_name, array $existing_item, $updates = []) {
     $mlid = self::findItem($menu_name, $existing_item);
     if (!$mlid) {
       return FALSE;
@@ -150,7 +149,7 @@ class Menu {
   static public function findItem($menu_name, array $existing_item) {
     // Init query.
     $query = db_select('menu_links', 'ml')
-      ->fields('ml', array('mlid'))
+      ->fields('ml', ['mlid'])
       ->condition('menu_name', $menu_name);
 
     // Traverse through fields and add to conditions.

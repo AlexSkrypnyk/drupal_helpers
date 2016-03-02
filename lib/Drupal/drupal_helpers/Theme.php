@@ -41,26 +41,26 @@ class Theme extends \Drupal\drupal_helpers\System {
    */
   public static function enable($theme) {
     if (self::isEnabled($theme, 'theme')) {
-      \Drupal\drupal_helpers\General::messageSet(format_string('Theme "@theme" already exists - Aborting!', array(
+      \Drupal\drupal_helpers\General::messageSet(format_string('Theme "@theme" already exists - Aborting!', [
         '@theme' => $theme,
-      )));
+      ]));
 
       return TRUE;
     }
-    theme_enable(array($theme));
+    theme_enable([$theme]);
 
     // Double check that the theme installed.
     if (self::isEnabled($theme, 'theme')) {
-      \Drupal\drupal_helpers\General::messageSet(format_string('Theme "@theme" was successfully enabled.', array(
+      \Drupal\drupal_helpers\General::messageSet(format_string('Theme "@theme" was successfully enabled.', [
         '@theme' => $theme,
-      )));
+      ]));
 
       return TRUE;
     }
 
-    throw new \DrupalUpdateException(format_string('Theme "@theme" could not enabled.', array(
+    throw new \DrupalUpdateException(format_string('Theme "@theme" could not enabled.', [
       '@theme' => $theme,
-    )));
+    ]));
   }
 
   /**
@@ -78,26 +78,26 @@ class Theme extends \Drupal\drupal_helpers\System {
    */
   public static function disable($theme) {
     if (self::isDisabled($theme, 'theme')) {
-      \Drupal\drupal_helpers\General::messageSet(format_string('Theme "@theme" is already disabled - Aborting!', array(
+      \Drupal\drupal_helpers\General::messageSet(format_string('Theme "@theme" is already disabled - Aborting!', [
         '@theme' => $theme,
-      )));
+      ]));
 
       return TRUE;
     }
 
-    theme_disable(array($theme));
+    theme_disable([$theme]);
 
     if (self::isDisabled($theme, 'theme')) {
-      \Drupal\drupal_helpers\General::messageSet(format_string('Theme "@theme" was successfully disabled.', array(
+      \Drupal\drupal_helpers\General::messageSet(format_string('Theme "@theme" was successfully disabled.', [
         '@theme' => $theme,
-      )));
+      ]));
 
       return TRUE;
     }
 
-    throw new \DrupalUpdateException(format_string('Theme "@theme" could not disabled.', array(
+    throw new \DrupalUpdateException(format_string('Theme "@theme" could not disabled.', [
       '@theme' => $theme,
-    )));
+    ]));
   }
 
 }

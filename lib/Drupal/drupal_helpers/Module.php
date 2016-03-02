@@ -29,27 +29,27 @@ class Module extends \Drupal\drupal_helpers\System {
    */
   public static function enable($module, $enable_dependencies = TRUE) {
     if (self::isEnabled($module)) {
-      \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" already exists - Aborting!', array(
+      \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" already exists - Aborting!', [
         '@module' => $module,
-      )));
+      ]));
 
       return TRUE;
     }
-    $ret = module_enable(array($module), $enable_dependencies);
+    $ret = module_enable([$module], $enable_dependencies);
     if ($ret) {
       // Double check that the installed.
       if (self::isEnabled($module)) {
-        \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" was successfully enabled.', array(
+        \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" was successfully enabled.', [
           '@module' => $module,
-        )));
+        ]));
 
         return TRUE;
       }
     }
 
-    throw new \DrupalUpdateException(format_string('Module "@module" could not enabled.', array(
+    throw new \DrupalUpdateException(format_string('Module "@module" could not enabled.', [
       '@module' => $module,
-    )));
+    ]));
   }
 
   /**
@@ -70,26 +70,26 @@ class Module extends \Drupal\drupal_helpers\System {
    */
   public static function disable($module, $disable_dependents = TRUE) {
     if (self::isDisabled($module)) {
-      \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" is already disabled - Aborting!', array(
+      \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" is already disabled - Aborting!', [
         '@module' => $module,
-      )));
+      ]));
 
       return TRUE;
     }
 
-    module_disable(array($module), $disable_dependents);
+    module_disable([$module], $disable_dependents);
 
     if (self::isDisabled($module)) {
-      \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" was successfully disabled.', array(
+      \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" was successfully disabled.', [
         '@module' => $module,
-      )));
+      ]));
 
       return TRUE;
     }
 
-    throw new \DrupalUpdateException(format_string('Module "@module" could not disabled.', array(
+    throw new \DrupalUpdateException(format_string('Module "@module" could not disabled.', [
       '@module' => $module,
-    )));
+    ]));
   }
 
   /**
@@ -110,19 +110,19 @@ class Module extends \Drupal\drupal_helpers\System {
    */
   public static function uninstall($module, $disable_dependents = TRUE) {
     self::disable($module, $disable_dependents);
-    drupal_uninstall_modules(array($module), TRUE);
+    drupal_uninstall_modules([$module], TRUE);
 
     if (self::isUninstalled($module)) {
-      \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" was successfully uninstalled.', array(
+      \Drupal\drupal_helpers\General::messageSet(format_string('Module "@module" was successfully uninstalled.', [
         '@module' => $module,
-      )));
+      ]));
 
       return TRUE;
     }
 
-    throw new \DrupalUpdateException(format_string('Module "@module" could not uninstalled.', array(
+    throw new \DrupalUpdateException(format_string('Module "@module" could not uninstalled.', [
       '@module' => $module,
-    )));
+    ]));
   }
 
 }

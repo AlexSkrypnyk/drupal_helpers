@@ -24,7 +24,7 @@ class Block {
    */
   public static function render($block_delta, $block_module, $renderable_array = FALSE) {
     $block = block_load($block_module, $block_delta);
-    $render = _block_get_renderable_array(_block_render_blocks(array($block)));
+    $render = _block_get_renderable_array(_block_render_blocks([$block]));
 
     if ($renderable_array) {
       return $render;
@@ -51,22 +51,22 @@ class Block {
   public static function place($block_delta, $block_module, $region, $theme, $weight = 0) {
     _block_rehash($theme);
     db_update('block')
-      ->fields(array(
+      ->fields([
         'status' => 1,
         'weight' => $weight,
         'region' => $region,
-      ))
+      ])
       ->condition('module', $block_module)
       ->condition('delta', $block_delta)
       ->condition('theme', $theme)
       ->execute();
 
-    \Drupal\drupal_helpers\General::messageSet(format_string('Block "@block_module-@block_delta" successfully added to the "@region" region in "@theme" theme.', array(
+    \Drupal\drupal_helpers\General::messageSet(format_string('Block "@block_module-@block_delta" successfully added to the "@region" region in "@theme" theme.', [
       '@block_delta' => $block_delta,
       '@block_module' => $block_module,
       '@region' => $region,
       '@theme' => $theme,
-    )));
+    ]));
 
     drupal_flush_all_caches();
   }
@@ -84,19 +84,19 @@ class Block {
   public static function remove($block_delta, $block_module, $theme) {
     _block_rehash($theme);
     db_update('block')
-      ->fields(array(
+      ->fields([
         'status' => 0,
-      ))
+      ])
       ->condition('module', $block_module)
       ->condition('delta', $block_delta)
       ->condition('theme', $theme)
       ->execute();
 
-    \Drupal\drupal_helpers\General::messageSet(format_string('Block "@block_module-@block_delta" successfully remove from "@theme".', array(
+    \Drupal\drupal_helpers\General::messageSet(format_string('Block "@block_module-@block_delta" successfully remove from "@theme".', [
       '@block_delta' => $block_delta,
       '@block_module' => $block_module,
       '@theme' => $theme,
-    )));
+    ]));
 
     drupal_flush_all_caches();
   }
@@ -120,19 +120,19 @@ class Block {
   public static function visibility($block_delta, $block_module, $theme, $pages, $visibility = BLOCK_VISIBILITY_LISTED) {
     _block_rehash($theme);
     db_update('block')
-      ->fields(array(
+      ->fields([
         'visibility' => $visibility,
         'pages' => $pages,
-      ))
+      ])
       ->condition('module', $block_module)
       ->condition('delta', $block_delta)
       ->condition('theme', $theme)
       ->execute();
 
-    \Drupal\drupal_helpers\General::messageSet(format_string('Block "@block_module-@block_delta" successfully configured with visibility rules.', array(
+    \Drupal\drupal_helpers\General::messageSet(format_string('Block "@block_module-@block_delta" successfully configured with visibility rules.', [
       '@block_delta' => $block_delta,
       '@block_module' => $block_module,
-    )));
+    ]));
 
     drupal_flush_all_caches();
   }

@@ -29,7 +29,7 @@ class Taxonomy {
    *   that support '#options' property.
    */
   public static function formElementOptions($machine_name, $depth_prefix = '-') {
-    $options = array();
+    $options = [];
 
     $vocab = taxonomy_vocabulary_machine_name_load($machine_name);
     $terms = taxonomy_get_tree($vocab->vid);
