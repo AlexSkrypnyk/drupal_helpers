@@ -41,4 +41,28 @@ class Taxonomy {
     return $options;
   }
 
+  /**
+   * Find term by name.
+   *
+   * Retrieve the very first occurrence of the term in the search result set.
+   *
+   * @param string $name
+   *   Term name.
+   * @param string $machine_name
+   *   Vocabulary machine name. Defaults to NULL.
+   *
+   * @return object
+   *   Term object if found, FALSE otherwise.
+   */
+  public static function termByName($name, $machine_name = NULL) {
+    $term = taxonomy_get_term_by_name($name, $machine_name);
+    if (!empty($term)) {
+      $term = reset($term);
+
+      return $term;
+    }
+
+    return FALSE;
+  }
+
 }
