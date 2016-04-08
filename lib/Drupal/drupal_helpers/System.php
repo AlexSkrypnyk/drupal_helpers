@@ -79,7 +79,7 @@ class System {
    *   TRUE if the item is disabled, FALSE otherwise.
    */
   public static function isDisabled($name, $type = 'module') {
-    return self::isEnabled($name, $type);
+    return !self::isEnabled($name, $type);
   }
 
   /**
