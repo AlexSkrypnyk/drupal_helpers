@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Theme helpers.
- */
 
 namespace Drupal\drupal_helpers;
 
@@ -11,7 +7,8 @@ namespace Drupal\drupal_helpers;
  *
  * @package Drupal\drupal_helpers
  */
-class Theme extends \Drupal\drupal_helpers\System {
+class Theme extends System {
+
   /**
    * Sets a theme as the default.
    */
@@ -41,7 +38,7 @@ class Theme extends \Drupal\drupal_helpers\System {
    */
   public static function enable($theme) {
     if (self::isEnabled($theme, 'theme')) {
-      \Drupal\drupal_helpers\General::messageSet(format_string('Theme "@theme" already exists - Aborting!', [
+      General::messageSet(format_string('Theme "@theme" already exists - Aborting!', [
         '@theme' => $theme,
       ]));
 
@@ -51,7 +48,7 @@ class Theme extends \Drupal\drupal_helpers\System {
 
     // Double check that the theme installed.
     if (self::isEnabled($theme, 'theme')) {
-      \Drupal\drupal_helpers\General::messageSet(format_string('Theme "@theme" was successfully enabled.', [
+      General::messageSet(format_string('Theme "@theme" was successfully enabled.', [
         '@theme' => $theme,
       ]));
 
@@ -78,7 +75,7 @@ class Theme extends \Drupal\drupal_helpers\System {
    */
   public static function disable($theme) {
     if (self::isDisabled($theme, 'theme')) {
-      \Drupal\drupal_helpers\General::messageSet(format_string('Theme "@theme" is already disabled - Aborting!', [
+      General::messageSet(format_string('Theme "@theme" is already disabled - Aborting!', [
         '@theme' => $theme,
       ]));
 
@@ -88,7 +85,7 @@ class Theme extends \Drupal\drupal_helpers\System {
     theme_disable([$theme]);
 
     if (self::isDisabled($theme, 'theme')) {
-      \Drupal\drupal_helpers\General::messageSet(format_string('Theme "@theme" was successfully disabled.', [
+      General::messageSet(format_string('Theme "@theme" was successfully disabled.', [
         '@theme' => $theme,
       ]));
 

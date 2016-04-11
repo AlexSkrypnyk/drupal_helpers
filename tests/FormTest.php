@@ -1,12 +1,6 @@
 <?php
-/**
- * @file
- * Test for Form methods.
- */
 
 namespace Drupal\drupal_helpers\Tests;
-
-use Drupal\drupal_helpers\Form;
 
 /**
  * Class FormTest.
@@ -14,6 +8,7 @@ use Drupal\drupal_helpers\Form;
  * @package Drupal\drupal_helpers\Tests
  */
 class FormTestCase extends \PHPUnit_Framework_TestCase {
+
   /**
    * Test that formGetDefaults() works correctly.
    */

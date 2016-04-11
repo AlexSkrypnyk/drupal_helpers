@@ -1,12 +1,6 @@
 <?php
-/**
- * @file
- * Test for Utility methods.
- */
 
 namespace Drupal\drupal_helpers\Tests;
-
-use Drupal\drupal_helpers\Utility;
 
 /**
  * Class ArrayRemoveEmptyUtilityTestCase.
@@ -14,6 +8,7 @@ use Drupal\drupal_helpers\Utility;
  * @package Drupal\drupal_helpers\Tests
  */
 class ArrayRemoveEmptyUtilityTestCase extends \PHPUnit_Framework_TestCase {
+
   /**
    * Test that arrayRemoveEmpty() works correctly.
    */
@@ -84,6 +79,7 @@ class ArrayRemoveEmptyUtilityTestCase extends \PHPUnit_Framework_TestCase {
  * @package Drupal\drupal_helpers\Tests
  */
 class ArrayGetColumnUtilityTestCase extends \PHPUnit_Framework_TestCase {
+
   /**
    * Test valid values.
    */

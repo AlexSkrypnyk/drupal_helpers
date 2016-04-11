@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * System helpers.
- */
 
 namespace Drupal\drupal_helpers;
 
@@ -12,6 +8,7 @@ namespace Drupal\drupal_helpers;
  * @package Drupal\drupal_helpers
  */
 class System {
+
   /**
    * Retrieves the weight of a module, theme or profile from the system table.
    *

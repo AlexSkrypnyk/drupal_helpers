@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Test for Random methods.
- */
 
 namespace Drupal\drupal_helpers\Tests;
 
