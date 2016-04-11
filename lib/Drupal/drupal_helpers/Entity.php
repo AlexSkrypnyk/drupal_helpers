@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Entity-related helpers.
- */
 
 namespace Drupal\drupal_helpers;
 
@@ -12,6 +8,7 @@ namespace Drupal\drupal_helpers;
  * @package Drupal\drupal_helpers
  */
 class Entity {
+
   /**
    * Get label for entity bundle.
    *

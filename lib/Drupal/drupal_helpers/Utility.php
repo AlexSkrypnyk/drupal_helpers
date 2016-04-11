@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Utility functionality not related to Drupal.
- */
 
 namespace Drupal\drupal_helpers;
 
@@ -12,6 +8,7 @@ namespace Drupal\drupal_helpers;
  * @package Drupal\drupal_helpers.
  */
 class Utility {
+
   /**
    * Recursively remove empty elements from array.
    *

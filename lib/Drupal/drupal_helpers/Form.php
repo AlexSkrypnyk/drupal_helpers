@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Form helpers.
- */
 
 namespace Drupal\drupal_helpers;
 
@@ -12,6 +8,7 @@ namespace Drupal\drupal_helpers;
  * @package Drupal\drupal_helpers
  */
 class Form {
+
   /**
    * Get default values from the form.
    *

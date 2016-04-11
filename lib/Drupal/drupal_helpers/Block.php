@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Block helpers.
- */
 
 namespace Drupal\drupal_helpers;
 
@@ -12,6 +8,7 @@ namespace Drupal\drupal_helpers;
  * @package Drupal\drupal_helpers
  */
 class Block {
+
   /**
    * Renders a block.
    *
@@ -61,7 +58,7 @@ class Block {
       ->condition('theme', $theme)
       ->execute();
 
-    \Drupal\drupal_helpers\General::messageSet(format_string('Block "@block_module-@block_delta" successfully added to the "@region" region in "@theme" theme.', [
+    General::messageSet(format_string('Block "@block_module-@block_delta" successfully added to the "@region" region in "@theme" theme.', [
       '@block_delta' => $block_delta,
       '@block_module' => $block_module,
       '@region' => $region,
@@ -92,7 +89,7 @@ class Block {
       ->condition('theme', $theme)
       ->execute();
 
-    \Drupal\drupal_helpers\General::messageSet(format_string('Block "@block_module-@block_delta" successfully remove from "@theme".', [
+    General::messageSet(format_string('Block "@block_module-@block_delta" successfully remove from "@theme".', [
       '@block_delta' => $block_delta,
       '@block_module' => $block_module,
       '@theme' => $theme,
@@ -129,7 +126,7 @@ class Block {
       ->condition('theme', $theme)
       ->execute();
 
-    \Drupal\drupal_helpers\General::messageSet(format_string('Block "@block_module-@block_delta" successfully configured with visibility rules.', [
+    General::messageSet(format_string('Block "@block_module-@block_delta" successfully configured with visibility rules.', [
       '@block_delta' => $block_delta,
       '@block_module' => $block_module,
     ]));

@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Features helpers.
- */
 
 namespace Drupal\drupal_helpers;
 
@@ -11,7 +7,8 @@ namespace Drupal\drupal_helpers;
  *
  * @package Drupal\drupal_helpers
  */
-class Feature extends \Drupal\drupal_helpers\Module {
+class Feature extends Module {
+
   /**
    * Reverts a feature.
    *
@@ -44,13 +41,13 @@ class Feature extends \Drupal\drupal_helpers\Module {
         features_revert([$module => [$component]]);
       }
 
-      \Drupal\drupal_helpers\General::messageSet(t('Reverted "!module" feature components !components.', [
+      General::messageSet(t('Reverted "!module" feature components !components.', [
         '!module' => $module,
         '!components' => implode(', ', $components),
       ]));
     }
     else {
-      \Drupal\drupal_helpers\General::messageSet(t('Unable to revert "!module" feature.', ['!module' => $module]));
+      General::messageSet(t('Unable to revert "!module" feature.', ['!module' => $module]));
     }
   }
 

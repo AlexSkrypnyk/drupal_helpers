@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Taxonomy-related helpers.
- */
 
 namespace Drupal\drupal_helpers;
 
@@ -16,6 +12,7 @@ if (!module_exists('taxonomy')) {
  * @package Drupal\drupal_helpers
  */
 class Taxonomy {
+
   /**
    * Create form element options from terms in provided vocabulary.
    *

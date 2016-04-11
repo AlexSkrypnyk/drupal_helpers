@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Bean helpers.
- */
 
 namespace Drupal\drupal_helpers;
 
@@ -16,6 +12,7 @@ if (!module_exists('bean')) {
  * @package Drupal\drupal_helpers
  */
 class Bean {
+
   /**
    * Load or create bean.
    *

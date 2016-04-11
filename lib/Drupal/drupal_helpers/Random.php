@@ -1,11 +1,4 @@
 <?php
-/**
- * @file
- * Random data generators.
- *
- * Functions from this file may be used in hook_update_N() implementations and
- * test cases.
- */
 
 namespace Drupal\drupal_helpers;
 
@@ -15,6 +8,7 @@ namespace Drupal\drupal_helpers;
  * @package Drupal\drupal_helpers
  */
 class Random {
+
   /**
    * Generate a random string containing letters.
    *

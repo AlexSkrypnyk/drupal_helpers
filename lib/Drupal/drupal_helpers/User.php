@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * User helpers.
- */
 
 namespace Drupal\drupal_helpers;
 
@@ -12,6 +8,7 @@ namespace Drupal\drupal_helpers;
  * @package Drupal\drupal_helpers
  */
 class User {
+
   /**
    * Helper to create user with specified fields and roles.
    *
