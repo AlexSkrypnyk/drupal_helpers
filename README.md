@@ -46,19 +46,33 @@ Functionality
 Usage
 -----
 
-**Enable a module**
-```php
-\Drupal\drupal_helpers\Module::enable('views');
-```
+Use the Drupal helpers classes to perform common tasks during your Drupal module updates.
 
-**Revert a feature**
 ```php
-\Drupal\drupal_helpers\Feature::revert('mysite_feature');
-```
+<?php
 
-**Set message**
-```php
-\Drupal\drupal_helpers\General::messageSet('My message');
+/**
+ * @file
+ * example.install uninstall and update implementations.
+ */
+
+use Drupal\drupal_helpers\Module;
+use Drupal\drupal_helpers\Feature;
+use Drupal\drupal_helpers\General;
+
+/**
+ * Enable Views and Revert 'mysite' features.
+ */
+function example_update_7001 () {
+  // Enable views.
+  Module::enable('views');
+
+  // Revert mysite features.
+  Feature::revert('mysite_features');
+
+  // Print My message.
+  General::messageSet('My message');
+}
 ```
 
 Dependencies
