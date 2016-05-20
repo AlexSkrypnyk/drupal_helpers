@@ -1,10 +1,12 @@
-# Drupal Helpers
+Drupal Helpers
+==============
 
 A library of Drupal-related PHP helpers for Drupal 7 core and contrib modules.
 
 [![Circle CI](https://circleci.com/gh/nicksantamaria/drupal_helpers.svg?style=svg)](https://circleci.com/gh/nicksantamaria/drupal_helpers)
 
-## Functionality Provided
+Functionality
+-------------
 
 * Bean
   * Create or load a bean.
@@ -41,7 +43,8 @@ A library of Drupal-related PHP helpers for Drupal 7 core and contrib modules.
 	* Recursively remove empty elements from array.
 	* Retrieve array column.
 
-## Examples
+Usage
+-----
 
 **Enable a module**
 ```php
@@ -58,6 +61,7 @@ A library of Drupal-related PHP helpers for Drupal 7 core and contrib modules.
 \Drupal\drupal_helpers\General::messageSet('My message');
 ```
 
-## Dependencies
+Dependencies
+------------
 
 - [X Autoload ](https://www.drupal.org/project/xautoload)
