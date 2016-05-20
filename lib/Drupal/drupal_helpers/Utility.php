@@ -73,7 +73,7 @@ class Utility {
           }
           // Column is set, but does not exist.
           else {
-            throw new Exception(format_string('Column @column does not exist', [
+            throw new \Exception(format_string('Column @column does not exist', [
               '@column' => $column,
             ]));
           }
