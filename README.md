@@ -64,4 +64,4 @@ Usage
 Dependencies
 ------------
 
-- [X Autoload ](https://www.drupal.org/project/xautoload)
+- [X Autoload](https://www.drupal.org/project/xautoload)
