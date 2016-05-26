@@ -1,10 +1,12 @@
-# Drupal Helpers
+Drupal Helpers
+==============
 
 A library of Drupal-related PHP helpers for Drupal 7 core and contrib modules.
 
 [![Circle CI](https://circleci.com/gh/nicksantamaria/drupal_helpers.svg?style=svg)](https://circleci.com/gh/nicksantamaria/drupal_helpers)
 
-## Functionality Provided
+Functionality
+-------------
 
 * Bean
   * Create or load a bean.
@@ -41,23 +43,39 @@ A library of Drupal-related PHP helpers for Drupal 7 core and contrib modules.
 	* Recursively remove empty elements from array.
 	* Retrieve array column.
 
-## Examples
+Usage
+-----
 
-**Enable a module**
+Use the Drupal helpers classes to perform common tasks during your Drupal module updates.
+
 ```php
-\Drupal\drupal_helpers\Module::enable('views');
+<?php
+
+/**
+ * @file
+ * example.install uninstall and update implementations.
+ */
+
+use Drupal\drupal_helpers\Module;
+use Drupal\drupal_helpers\Feature;
+use Drupal\drupal_helpers\General;
+
+/**
+ * Enable Views and Revert 'mysite' features.
+ */
+function example_update_7001 () {
+  // Enable views.
+  Module::enable('views');
+
+  // Revert mysite features.
+  Feature::revert('mysite_features');
+
+  // Print My message.
+  General::messageSet('My message');
+}
 ```
 
-**Revert a feature**
-```php
-\Drupal\drupal_helpers\Feature::revert('mysite_feature');
-```
+Dependencies
+------------
 
-**Set message**
-```php
-\Drupal\drupal_helpers\General::messageSet('My message');
-```
-
-## Dependencies
-
-- [X Autoload ](https://www.drupal.org/project/xautoload)
+- [X Autoload](https://www.drupal.org/project/xautoload)
