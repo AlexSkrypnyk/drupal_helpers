@@ -122,4 +122,29 @@ class Module extends System {
     ]));
   }
 
+  /**
+   * Removes already uninstalled module.
+   *
+   * @param string $module
+   *   Module name to remove.
+   */
+  public static function remove($module) {
+    db_update('system')
+      ->fields(['status' => '0'])
+      ->condition('name', $module)
+      ->execute();
+
+    db_delete('cache_bootstrap')
+      ->condition('cid', 'system_list')
+      ->execute();
+
+    db_delete('system')
+      ->condition('name', $module)
+      ->execute();
+
+    General::messageSet(format_string('Removed traces of module "@module".', [
+      '@module' => $module,
+    ]));
+  }
+
 }
