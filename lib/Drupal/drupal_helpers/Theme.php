@@ -20,7 +20,7 @@ class Theme extends System {
    * Gets default theme.
    */
   public static function getDefault() {
-    variable_get('theme_default', 'bartik');
+    return variable_get('theme_default', 'bartik');
   }
 
   /**
@@ -34,7 +34,7 @@ class Theme extends System {
    * Gets admin theme.
    */
   public static function getAdmin() {
-    variable_get('admin_theme', 'seven');
+    return variable_get('admin_theme', 'seven');
   }
 
   /**
