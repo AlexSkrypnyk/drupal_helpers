@@ -17,10 +17,24 @@ class Theme extends System {
   }
 
   /**
+   * Gets default theme.
+   */
+  public static function getDefault() {
+    variable_get('theme_default', 'bartik');
+  }
+
+  /**
    * Sets a theme as the admin theme.
    */
   public static function setAdmin($theme) {
     variable_set('admin_theme', $theme);
+  }
+
+  /**
+   * Gets admin theme.
+   */
+  public static function getAdmin() {
+    variable_get('admin_theme', 'seven');
   }
 
   /**
