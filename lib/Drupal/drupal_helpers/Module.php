@@ -121,7 +121,7 @@ class Module extends System {
       '@module' => $module,
     ]));
   }
-  
+
   /**
    * Removes already uninstalled module.
    *
