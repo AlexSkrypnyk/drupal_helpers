@@ -94,9 +94,9 @@ class Module extends System {
    *
    * @param string $module
    *   Module name to uninstall.
-   * @param bool $disable_dependents
-   *   If TRUE, dependent modules will automatically be added and disabled in
-   *   the correct order.
+   * @param bool $uninstall_dependents
+   *   If TRUE, dependent modules will automatically be disabled and uninstalled
+   *   in the correct order.
    *
    * @return bool
    *   Returns TRUE if module was uninstalled successfully,
@@ -105,9 +105,9 @@ class Module extends System {
    * @throws \DrupalUpdateException
    *   Throws exception if module was not uninstalled.
    */
-  public static function uninstall($module, $disable_dependents = TRUE) {
-    self::disable($module, $disable_dependents);
-    drupal_uninstall_modules([$module], TRUE);
+  public static function uninstall($module, $uninstall_dependents = TRUE) {
+    self::disable($module, $uninstall_dependents);
+    drupal_uninstall_modules([$module], $uninstall_dependents);
 
     if (self::isUninstalled($module)) {
       General::messageSet(format_string('Module "@module" was successfully uninstalled.', [
@@ -121,7 +121,7 @@ class Module extends System {
       '@module' => $module,
     ]));
   }
-
+  
   /**
    * Removes already uninstalled module.
    *
