@@ -2,12 +2,35 @@
 
 namespace Drupal\drupal_helpers;
 
+use Drupal\drupal_helpers\Message;
+use Drupal\drupal_helpers\Message\MessageInterface;
+
 /**
  * Class General.
  *
  * @package Drupal\drupal_helpers
  */
 class General {
+
+  /**
+   * @var MessageInterface
+   */
+  private static $messageInstance;
+
+  /**
+   * Get a Message class.
+   *
+   * Singleton Factory for getting a common instance of the Message Interface.
+   *
+   * @return MessageInterface
+   */
+  private static function getMessageInstance() {
+    if (!self::$messageInstance instanceof MessageInterface) {
+      self::$messageInstance = new Message;
+    }
+
+    return self::$messageInstance;
+  }
 
   /**
    * Helper to print messages.
@@ -23,12 +46,11 @@ class General {
    *   Indent for messages. Defaults to 2.
    */
   public static function messageSet($message, $prefix = '-- ', $indent = 2) {
-    if (function_exists('drush_print')) {
-      drush_print(((string) $prefix) . html_entity_decode($message), $indent);
-    }
-    else {
-      drupal_set_message($message);
-    }
+    self::getMessageInstance()
+      ->setText($message)
+      ->setPrefix($prefix)
+      ->setIndent($indent)
+      ->printOut();
   }
 
 }
