@@ -18,6 +18,9 @@ Functionality
   * Get label for entity bundle.
 * Feature
   * Revert a feature.
+* Field
+  * Delete a field.
+  * Delete an instance of a field.
 * Form
   * Get default values from the form.
 * General
