@@ -1,6 +1,6 @@
 {
     "require-dev": {
-        "alexdesignworks/dcr": "0.0.*",
+        "alexdesignworks/dcr": "0.1.*",
         "phpunit/phpunit": "4.8.*"
     },
     "autoload": {
