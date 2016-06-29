@@ -14,21 +14,18 @@ class Field {
   /**
    * Delete a field.
    *
-   * Removes all instances of a field from all the entity bundles it has been
-   * attached to and then deletes and purges its data from the database.
+   * Remove all instances of a field from all the entity bundles it has been
+   * attached to and then delete and purge field's data from the database.
    *
    * @param string $field_name
-   *  Machine name of the Field.
-   *
-   * @throws Exception
+   *   Machine name of the Field.
    */
   public static function delete($field_name) {
-    // Get the message localization function.
     $t = get_t();
 
     try {
       $field = field_info_field($field_name);
-      $replacements = array('!field' => $field_name);
+      $replacements = ['!field' => $field_name];
       if (!$field) {
         General::messageSet($t('Skipped: !field was not found', $replacements));
 
@@ -64,20 +61,17 @@ class Field {
   /**
    * Delete an Instance of a Field.
    *
-   * Deletes a specific field instance attached to one entity type without
+   * Delete a specific field instance attached to one entity type without
    * deleting the field itself.
    *
-   * @param $field_name
-   *  Machine name of the Field.
-   * @param $entity_type
-   *  Machine name of the Entity type.
-   * @param $entity_bundle
-   *  Machine name of the Entity Bundle.
-   *
-   * @throws Exception
+   * @param string $field_name
+   *   Machine name of the Field.
+   * @param string $entity_type
+   *   Machine name of the Entity type.
+   * @param string $entity_bundle
+   *   Machine name of the Entity Bundle.
    */
   public static function deleteInstance($field_name, $entity_type, $entity_bundle) {
-    // Get the message localization function.
     $t = get_t();
     $replacements = [
       '!field' => $field_name,
@@ -101,7 +95,7 @@ class Field {
 
       throw new Exception($t($message, $replacements), $e->getCode(), $e);
     }
-    
+
     General::messageSet($t($message, $replacements));
   }
 
