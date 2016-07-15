@@ -19,6 +19,8 @@ class Field {
    *
    * @param string $field_name
    *   Machine name of the Field.
+   *
+   * @throws \Exception
    */
   public static function delete($field_name) {
     $t = get_t();
@@ -70,6 +72,8 @@ class Field {
    *   Machine name of the Entity type.
    * @param string $entity_bundle
    *   Machine name of the Entity Bundle.
+   *
+   * @throws \Exception
    */
   public static function deleteInstance($field_name, $entity_type, $entity_bundle) {
     $t = get_t();
