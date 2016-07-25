@@ -2,6 +2,7 @@
 
 namespace Drupal\drupal_helpers;
 
+use DrupalUpdateException;
 use Exception;
 
 /**
@@ -11,72 +12,118 @@ use Exception;
  */
 class Rules {
 
-  /**
-   * Set Active.
-   *
-   * Set the active property for a rules configuration.
-   *
-   * @param string $rule_name
-   *   Machine name of the Rule.
-   * @param bool $value
-   *   Set rule active property to value.
-   *
-   * @throws \Exception
-   */
-  public static function setActive($rule_name, $value) {
-    $t = get_t();
+    /**
+     * Load a rules configuration.
+     *
+     * @param $rule_name
+     * @return bool|\RulesPlugin
+     */
+    protected static function load($rule_name) {
+        $t = get_t();
 
-    $action = $value ? 'enable' : 'disable';
-    $actioned = $action . 'd';
-    $replacements = [
-      '!rule' => $rule_name,
-      '!action' => $action,
-      '!actioned' => $actioned,
-    ];
+        $replacements = ['!rule_name' => $rule_name];
 
-    try {
-      $rules_config = rules_config_load($rule_name);
-      if (!$rules_config) {
-        General::messageSet($t('Skipped: !rule was not found', $replacements));
+        $rules_config = rules_config_load($rule_name);
 
-        return;
-      }
+        if (!$rules_config) {
+            General::messageSet($t('Skipped: rules !rule_name was not found', $replacements));
 
-      $rules_config->active = (bool) $value;
-      $rules_config->save();
+            return FALSE;
+        }
 
-      General::messageSet($t('The rule !rule has been !actioned.', $replacements));
+        return $rules_config;
     }
-    catch (Exception $e) {
-      $replacements['@error_message'] = $e->getMessage();
-      $message = 'Failed to !action !rule: @error_message';
 
-      throw new Exception($t($message, $replacements), $e->getCode(), $e);
+    /**
+     * Set Active.
+     *
+     * Set the active property for a rules configuration.
+     *
+     * @param string $rule_name
+     *   Machine name of the Rule.
+     * @param bool $value
+     *   Set rule active property to value.
+     *
+     * @throws DrupalUpdateException
+     */
+    public static function setActive($rule_name, $value) {
+        $t = get_t();
+
+        $action = $value ? 'enable' : 'disable';
+        $actioned = $action . 'd';
+        $replacements = [
+            '!rule_name' => $rule_name,
+            '!action' => $action,
+            '!actioned' => $actioned,
+        ];
+
+        try {
+            $rules_config = self::load($rule_name);
+            if ($rules_config) {
+                $rules_config->active = (bool) $value;
+                $rules_config->save();
+
+                General::messageSet($t('The rules !rule_name has been !actioned.', $replacements));
+            }
+        }
+        catch (Exception $e) {
+            $replacements['@error_message'] = $e->getMessage();
+            $message = 'Failed to !action rules !rule_name: @error_message';
+
+            throw new DrupalUpdateException($t($message, $replacements), $e->getCode(), $e);
+        }
     }
-  }
 
-  /**
-   * Disable a rules configuration.
-   *
-   * @param string $rule_name
-   *   Machine name of the Rule.
-   *
-   * @throws \Exception
-   */
-  public static function disable($rule_name) {
-    self::setActive($rule_name, FALSE);
-  }
+    /**
+     * Disable a rules configuration.
+     *
+     * @param string $rule_name
+     *   Machine name of the Rule.
+     *
+     * @throws \DrupalUpdateException
+     */
+    public static function disable($rule_name) {
+        self::setActive($rule_name, FALSE);
+    }
 
-  /**
-   * Enable a rules configuration.
-   *
-   * @param string $rule_name
-   *   Machine name of the Rule.
-   *
-   * @throws \Exception
-   */
-  public static function enable($rule_name) {
-    self::setActive($rule_name, TRUE);
-  }
+    /**
+     * Enable a rules configuration.
+     *
+     * @param string $rule_name
+     *   Machine name of the Rule.
+     *
+     * @throws \DrupalUpdateException
+     */
+    public static function enable($rule_name) {
+        self::setActive($rule_name, TRUE);
+    }
 
+    /**
+     * Delete a rules configuration.
+     *
+     * @param $rule_name
+     * @throws \DrupalUpdateException
+     */
+    public static function delete($rule_name) {
+        $t = get_t();
+
+        $replacements = [
+            '!rule_name' => $rule_name,
+        ];
+
+        try {
+            $rules_config = self::load($rule_name);
+            if ($rules_config) {
+                $rules_config->delete();
+
+                General::messageSet($t('The rules !rule_name has been deleted.', $replacements));
+            }
+        }
+        catch (Exception $e) {
+            $replacements['@error_message'] = $e->getMessage();
+            $message = 'Failed to delete rules !rule_name: @error_message';
+
+            throw new DrupalUpdateException($t($message, $replacements), $e->getCode(), $e);
+        }
+    }
 }
