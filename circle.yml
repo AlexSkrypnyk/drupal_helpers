@@ -14,9 +14,19 @@ dependencies:
   - "if [ \"$GITHUB_TOKEN\" != \"\" ]; then composer config -g github-oauth.github.com $GITHUB_TOKEN; fi"
   - cd $APPROOT && composer install --no-progress --no-interaction
   - cd $APPROOT && bash vendor/bin/dcr install
+
 test:
   override:
   # Lint code.
   - source ~/.profile && cd $APPROOT && dcr
   # Run tests.
   - source ~/.profile && cd $APPROOT && phpunit
+
+deployment:
+  # Mirror repo to Drupal.org.
+  drupalorg:
+    branch: master
+    commands:
+      - git fetch --unshallow
+      - git remote add drupalorg nickurbits@git.drupal.org:project/drupal_helpers.git
+      - git push --tags drupalorg $CIRCLE_BRANCH
