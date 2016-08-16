@@ -25,8 +25,7 @@ test:
 deployment:
   # Mirror repo to Drupal.org.
   drupalorg:
-    branch: /.*/
+    branch: master
     commands:
-      - cd $HOME && git clone --mirror $CIRCLE_REPOSITORY_URL ${CIRCLE_PROJECT_REPONAME}_mirror
-      - cd $HOME/${CIRCLE_PROJECT_REPONAME}_mirror && git remote add --mirror drupalorg nickurbits@git.drupal.org:project/drupal_helpers.git
-      - cd $HOME/${CIRCLE_PROJECT_REPONAME}_mirror && git push --mirror --force drupalorg && git remote prune drupalorg
+      - git remote add drupalorg nickurbits@git.drupal.org:project/drupal_helpers.git
+      - git push --tags drupalorg $CIRCLE_BRANCH
