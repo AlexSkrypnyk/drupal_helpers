@@ -27,5 +27,6 @@ deployment:
   drupalorg:
     branch: master
     commands:
+      - git fetch --unshallow
       - git remote add drupalorg nickurbits@git.drupal.org:project/drupal_helpers.git
       - git push --tags drupalorg $CIRCLE_BRANCH
