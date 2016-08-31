@@ -89,7 +89,7 @@ class Block {
       ->condition('theme', $theme)
       ->execute();
 
-    General::messageSet(format_string('Block "@block_module-@block_delta" successfully remove from "@theme".', [
+    General::messageSet(format_string('Block "@block_module-@block_delta" successfully removed from "@theme" theme.', [
       '@block_delta' => $block_delta,
       '@block_module' => $block_module,
       '@theme' => $theme,
