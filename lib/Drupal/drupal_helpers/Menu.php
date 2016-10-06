@@ -190,11 +190,16 @@ class Menu {
    */
   static public function import($menu_name, $tree, $plid = 0) {
     $created_mlids = [];
+    $weight = 0;
     foreach ($tree as $title => $leaf) {
       $leaf = is_array($leaf) ? $leaf : [
         'link_path' => $leaf,
       ];
-      $leaf += ['link_title' => $title, 'plid' => $plid];
+      $leaf += [
+        'link_title' => $title,
+        'plid' => $plid,
+        'weight' => $weight,
+      ];
 
       $children = isset($leaf['children']) ? $leaf['children'] : [];
       unset($leaf['children']);
@@ -204,7 +209,11 @@ class Menu {
       }
 
       $mlid = self::addItem($menu_name, $leaf);
+      if (!$mlid) {
+        continue;
+      }
       $created_mlids[] = $mlid;
+      $weight++;
       if ($children) {
         $created_mlids = array_merge($created_mlids, self::import($menu_name, $children, $mlid));
       }
