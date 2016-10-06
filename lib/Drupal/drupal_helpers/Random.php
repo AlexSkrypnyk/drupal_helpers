@@ -130,7 +130,7 @@ class Random {
    * @param string $domain
    *   Optional email domain. Defaults to 'example.com'.
    *
-   * @return string Random email address.
+   * @return string
    *   Random email address.
    */
   public static function email($domain = 'example.com') {
