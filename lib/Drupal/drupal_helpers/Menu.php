@@ -160,4 +160,57 @@ class Menu {
     return (isset($item['mlid']) && $item['mlid']) ? $item['mlid'] : FALSE;
   }
 
+  /**
+   * Import links from the provided tree.
+   *
+   * @code
+   * $tree = [
+   *   'Item1' => [
+   *     'link_path' => 'path-to-item1',
+   *     'children' => [
+   *       'Subitem 1' => 'path-to-subitem1',
+   *       'Subitem 2' => 'path-to-subitem2',
+   *     ],
+   *   'Item2' => 'path-to-item2',
+   * ];
+   * Menu::import('main-menu', $tree);
+   * @endcode
+   *
+   * @param string $menu_name
+   *   String machine menu name.
+   * @param array $tree
+   *   Array of links with keys as titles and values as paths or full link
+   *   item array definitions. 'children' key is used to specify children menu
+   *   levels.
+   * @param int $plid
+   *   Optional parent mlid. Defaults to 0.
+   *
+   * @return array
+   *   Array of created mlids.
+   */
+  static public function import($menu_name, $tree, $plid = 0) {
+    $created_mlids = [];
+    foreach ($tree as $title => $leaf) {
+      $leaf = is_array($leaf) ? $leaf : [
+        'link_path' => $leaf,
+      ];
+      $leaf += ['link_title' => $title, 'plid' => $plid];
+
+      $children = isset($leaf['children']) ? $leaf['children'] : [];
+      unset($leaf['children']);
+
+      if ($children) {
+        $leaf += ['expanded' => TRUE];
+      }
+
+      $mlid = self::addItem($menu_name, $leaf);
+      $created_mlids[] = $mlid;
+      if ($children) {
+        $created_mlids = array_merge($created_mlids, self::import($menu_name, $children, $mlid));
+      }
+    }
+
+    return $created_mlids;
+  }
+
 }
