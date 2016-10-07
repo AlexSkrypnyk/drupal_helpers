@@ -208,7 +208,7 @@ class Menu {
         $leaf += ['expanded' => TRUE];
       }
 
-      $mlid = self::addItem($menu_name, $leaf);
+      $mlid = self::addItem($menu_name, $leaf, FALSE);
       if (!$mlid) {
         continue;
       }
