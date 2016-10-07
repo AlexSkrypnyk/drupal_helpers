@@ -27,6 +27,8 @@ Functionality
   * Print CLI and web messages.
 * Menu
   * Add, update, delete and find menu items in specified menu.
+  * Find children and siblings of a menu item.
+  * Import menu from the array-like tree.
 * Module
 	* Enable, disable or uninstall a module.
 * Random
