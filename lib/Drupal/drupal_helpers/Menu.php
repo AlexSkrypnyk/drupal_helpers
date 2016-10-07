@@ -161,6 +161,92 @@ class Menu {
   }
 
   /**
+   * Find item children.
+   *
+   * @param string $menu_name
+   *   String machine menu name.
+   * @param array $existing_item
+   *   Array of menu item fields to search item. Items keys used in
+   *   menu_link_save().
+   * @param int $depth
+   *   Optional children tree depth. Defaults to 1, meaning that only immediate
+   *   children will be returned.
+   *
+   * @return array
+   *   Array of children menu items.
+   */
+  static public function findItemChildren($menu_name, array $existing_item, $depth = 1) {
+    $cid = __FUNCTION__ . '_' . $menu_name . '_' . hash('sha256', serialize($existing_item));
+    $children = &drupal_static($cid);
+
+    if (is_null($children)) {
+      $mlid = isset($existing_item['mlid']) ? $existing_item['mlid'] : self::findItem($menu_name, $existing_item);
+      if ($mlid) {
+        $current_item = menu_link_load($mlid);
+        $parameters = [
+          'active_trail' => [$current_item['mlid']],
+          'only_active_trail' => FALSE,
+          'min_depth' => $current_item['depth'] + 1,
+          'conditions' => ['plid' => $current_item['mlid']],
+        ];
+
+        if (!is_null($depth)) {
+          $parameters['max_depth'] = $current_item['depth'] + $depth;
+        }
+
+        $children = menu_build_tree($menu_name, $parameters);
+      }
+      else {
+        // Prevent cache invalidation if invalid mlid is provided.
+        $children = [];
+      }
+    }
+
+    return $children;
+  }
+
+  /**
+   * Find item siblings.
+   *
+   * @param string $menu_name
+   *   String machine menu name.
+   * @param array $existing_item
+   *   Array of menu item fields to search item. Items keys used in
+   *   menu_link_save().
+   * @param bool $include_current
+   *   Optional flag to include current item into set of returned siblings.
+   *   Defaults to FALSE.
+   *
+   * @return array
+   *   Array of sibling menu items.
+   */
+  static public function findItemSiblings($menu_name, array $existing_item, $include_current = FALSE) {
+    $cid = __FUNCTION__ . '_' . $menu_name . '_' . hash('sha256', serialize($existing_item)) . '_' . intval($include_current);
+    $siblings = &drupal_static($cid, []);
+
+    if (empty($siblings)) {
+      $current_mlid = isset($existing_item['mlid']) ? $existing_item['mlid'] : self::findItem($menu_name, $existing_item);
+      if ($current_mlid) {
+        $current_item = menu_link_load($current_mlid);
+
+        $plid = isset($current_item['plid']) ? $current_item['plid'] : 0;
+        $siblings = self::findItemChildren($menu_name, ['mlid' => $plid]);
+
+        if (!$include_current) {
+          foreach ($siblings as $k => $leaf) {
+            if (isset($leaf['link']['mlid']) && $leaf['link']['mlid'] == $current_mlid) {
+              unset($siblings[$k]);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    return $siblings;
+  }
+
+  /**
    * Import links from the provided tree.
    *
    * @code
