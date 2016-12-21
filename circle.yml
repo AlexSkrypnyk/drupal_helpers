@@ -5,8 +5,7 @@ machine:
   php:
     version: 5.6.2
   environment:
-    TEST_RESULTS: "$CIRCLE_TEST_REPORTS"
-    PATH: "$HOME/.config/composer/vendor/bin:$PATH"
+    PATH: "$HOME/.config/composer/vendor/bin:$HOME/$CIRCLE_PROJECT_REPONAME/vendor/bin:$PATH"
 
 dependencies:
   override:
@@ -14,9 +13,10 @@ dependencies:
   - rm -rf ~/.composer
   - composer global clear-cache
   - "if [ \"$GITHUB_TOKEN\" != \"\" ]; then composer config -g github-oauth.github.com $GITHUB_TOKEN; fi"
-  - composer install --no-progress --no-interaction
   # Install DCR.
   - composer global require --no-interaction alexdesignworks/dcr
+  # Install project-based dependencies.
+  - composer install --no-progress --no-interaction
 
 test:
   override:
