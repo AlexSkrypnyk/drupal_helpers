@@ -77,7 +77,7 @@ class Menu {
    * @return bool
    *   Updated menu link id if update was successful or FALSE otherwise.
    */
-  static public function updateItem($menu_name, array $existing_item, $updates = []) {
+  static public function updateItem($menu_name, array $existing_item, array $updates = []) {
     $mlid = self::findItem($menu_name, $existing_item);
     if (!$mlid) {
       return FALSE;
@@ -274,7 +274,7 @@ class Menu {
    * @return array
    *   Array of created mlids.
    */
-  static public function import($menu_name, $tree, $plid = 0) {
+  static public function import($menu_name, array $tree, $plid = 0) {
     $created_mlids = [];
     $weight = 0;
     foreach ($tree as $title => $leaf) {
