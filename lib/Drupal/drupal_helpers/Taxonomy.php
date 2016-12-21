@@ -48,7 +48,7 @@ class Taxonomy {
    * @param string $machine_name
    *   Vocabulary machine name. Defaults to NULL.
    *
-   * @return object
+   * @return object|bool
    *   Term object if found, FALSE otherwise.
    */
   public static function termByName($name, $machine_name = NULL) {
@@ -60,6 +60,55 @@ class Taxonomy {
     }
 
     return FALSE;
+  }
+
+  /**
+   * Save terms, specified as simplified term tree.
+   *
+   * @param string $vocabulary_name
+   *   Vocabulary machine name.
+   * @param array $tree
+   *   Array of tree items, where keys with array values are considered parent
+   *   terms.
+   * @param bool $verbose
+   *   Flag to output term creation progress information. Defaults to TRUE.
+   * @param bool|int $parent_tid
+   *   Internal parameter used for recursive calls.
+   *
+   * @return array
+   *   Array of saved terms, keyed by term id.
+   */
+  public static function saveTermTree($vocabulary_name, array $tree, $verbose = TRUE, $parent_tid = FALSE) {
+    $vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary_name);
+    $terms = [];
+
+    $weight = 0;
+    foreach ($tree as $parent => $subtree) {
+      $term = (object) [
+        'name' => is_array($subtree) ? $parent : $subtree,
+        'vid' => $vocabulary->vid,
+        'vocabulary_machine_name' => $vocabulary->machine_name,
+        'weight' => $weight,
+        'parent' => $parent_tid !== FALSE ? $parent_tid : 0,
+      ];
+
+      taxonomy_term_save($term);
+      if ($verbose) {
+        General::messageSet(format_string('Created term "@name" (tid: @tid)', [
+          '@name' => $term->name,
+          '@tid' => $term->tid,
+        ]));
+      }
+      $terms[$term->tid] = $term;
+
+      if (is_array($subtree)) {
+        $terms += self::saveTermTree($vocabulary_name, $subtree, $verbose, $term->tid);
+      }
+
+      $weight++;
+    }
+
+    return $terms;
   }
 
 }
