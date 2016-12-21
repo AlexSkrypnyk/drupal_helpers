@@ -21,7 +21,7 @@ class User {
    * @return bool|Object
    *   User account object or FALSE if user was not created.
    */
-  public static function create(array $edit_overrides, $role_names = []) {
+  public static function create(array $edit_overrides, array $role_names = []) {
     // Mail is an absolute minimum that we require.
     if (!isset($edit_overrides['mail'])) {
       return FALSE;
