@@ -39,6 +39,8 @@ Functionality
 	* Check the status of the module, theme or profile.
 * Taxonomy
 	* Create form element options from terms in provided vocabulary.
+	* Find single term by name.
+	* Create terms hierarchy from simple tree.
 * Theme
 	* Set a theme as the default or admin theme.
 	* Enable or disable a theme.
