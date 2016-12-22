@@ -13,6 +13,7 @@ Functionality
 * Block
   * Render a block.
   * Place or remove a block in/from a region using core block module.
+  * Remove all blocks from all regions oin a specified theme.
   * Set the block visibility.
 * Entity
   * Get label for entity bundle.

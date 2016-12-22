@@ -99,6 +99,28 @@ class Block {
   }
 
   /**
+   * Remove all blocks from all regions for specified theme.
+   *
+   * @param string $theme
+   *   Theme machine name.
+   */
+  public static function removeAll($theme) {
+    _block_rehash($theme);
+    db_update('block')
+      ->fields([
+        'status' => 0,
+      ])
+      ->condition('theme', $theme)
+      ->execute();
+
+    General::messageSet(format_string('All blocks successfully removed from all regions in "@theme" theme.', [
+      '@theme' => $theme,
+    ]));
+
+    drupal_flush_all_caches();
+  }
+
+  /**
    * Set the block visibility in the core block admin page.
    *
    * @param string $block_delta
