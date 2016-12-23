@@ -111,4 +111,38 @@ class Taxonomy {
     return $terms;
   }
 
+  /**
+   * Remove all terms for a vocabulary.
+   *
+   * @param string $vocabulary_name
+   *   Vocabulary machine name.
+   *
+   * @throws \DrupalUpdateException
+   *   If after removal vocabulary still has terms.
+   */
+  public static function removeAllTerms($vocabulary_name) {
+    $vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary_name);
+
+    if (!$vocabulary) {
+      throw new \DrupalUpdateException(format_string('Vocabulary @name does not exist', [
+        '@name' => $vocabulary_name,
+      ]));
+    }
+
+    foreach (taxonomy_get_tree($vocabulary->vid) as $term) {
+      taxonomy_term_delete($term->tid);
+    }
+
+    if (count(taxonomy_get_tree($vocabulary->vid)) == 0) {
+      General::messageSet(format_string('Removed all terms from vocabulary @name', [
+        '@name' => $vocabulary_name,
+      ]));
+    }
+    else {
+      throw new \DrupalUpdateException(format_string('Unable to remove all terms from vocabulary @name', [
+        '@name' => $vocabulary_name,
+      ]));
+    }
+  }
+
 }

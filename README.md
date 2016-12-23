@@ -42,6 +42,7 @@ Functionality
 	* Create form element options from terms in provided vocabulary.
 	* Find single term by name.
 	* Create terms hierarchy from simple tree.
+	* Remove all terms from vocabulary.
 * Theme
 	* Set a theme as the default or admin theme.
 	* Enable or disable a theme.
