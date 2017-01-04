@@ -64,8 +64,6 @@ class Block {
       '@region' => $region,
       '@theme' => $theme,
     ]));
-
-    drupal_flush_all_caches();
   }
 
   /**
@@ -94,8 +92,6 @@ class Block {
       '@block_module' => $block_module,
       '@theme' => $theme,
     ]));
-
-    drupal_flush_all_caches();
   }
 
   /**
@@ -116,8 +112,6 @@ class Block {
     General::messageSet(format_string('All blocks successfully removed from all regions in "@theme" theme.', [
       '@theme' => $theme,
     ]));
-
-    drupal_flush_all_caches();
   }
 
   /**
@@ -152,8 +146,6 @@ class Block {
       '@block_delta' => $block_delta,
       '@block_module' => $block_module,
     ]));
-
-    drupal_flush_all_caches();
   }
 
 }
