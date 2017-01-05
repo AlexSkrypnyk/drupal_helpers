@@ -69,6 +69,56 @@ class Random {
   }
 
   /**
+   * Helper to generate LoremIpsum content.
+   *
+   * @param int $count
+   *   Number of pieces to generate. Defaults to 10.
+   * @param string $type
+   *   Piece type" words or paragraphs. Defaults to 'words'.
+   * @param bool $html
+   *   Flag to generate content with HTML. Defaults to FALSE.
+   * @param bool $headers
+   *   Flag to add headers to content. Defaults to FALSE.
+   * @param bool $start_lorem
+   *   Flag to start with 'Lorem Ipsum..' words. Defaults to FALSE.
+   *
+   * @return string
+   *   Generated text.
+   */
+  public static function lipsum($count = 10, $type = 'words', $html = FALSE, $headers = FALSE, $start_lorem = FALSE) {
+    $options = [];
+    if (!$html) {
+      $options[] = 'plaintext';
+    }
+
+    if ($headers) {
+      $options[] = $headers;
+    }
+
+    if ($type == 'words') {
+      $options[] = 'long';
+    }
+
+    $text = file_get_contents('http://loripsum.net/api/' . implode('/', $options));
+
+    if (!$text) {
+      return '';
+    }
+
+    if ($type == 'words') {
+      $text = preg_replace('/[^\w]+/', ' ', $text);
+      $words = preg_split('/\s+/', $text);
+      if (!$start_lorem) {
+        shuffle($words);
+      }
+      $text = implode(' ', array_slice($words, 0, $count));
+      $text = ucfirst($text);
+    }
+
+    return $text;
+  }
+
+  /**
    * Helper to get random ip address.
    */
   public static function ip() {
