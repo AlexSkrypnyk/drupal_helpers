@@ -111,4 +111,22 @@ class Theme extends System {
     ]));
   }
 
+  /**
+   * Set theme setting.
+   *
+   * @param string $name
+   *   Setting key.
+   * @param mixed $value
+   *   Setting value.
+   * @param string|null $theme
+   *   Optional theme name. Defaults to default theme.
+   */
+  public static function setSetting($name, $value, $theme = NULL) {
+    $theme = $theme ? $theme : variable_get('theme_default');
+    $variable_name = 'theme_' . $theme . '_settings';
+    $theme_settings = variable_get($variable_name, []);
+    $theme_settings[$name] = $value;
+    variable_set($variable_name, $theme_settings);
+  }
+
 }
