@@ -46,6 +46,7 @@ Functionality
 * Theme
 	* Set a theme as the default or admin theme.
 	* Enable or disable a theme.
+	* Set theme setting.
 * User
 	* Create user with specified fields and roles.
 * Utility
