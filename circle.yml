@@ -21,7 +21,7 @@ dependencies:
 test:
   override:
   # Lint code.
-  - dcr init && dcr
+  - dcr --no-js init && dcr
   # Run tests.
   - phpunit
 
