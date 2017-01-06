@@ -28,7 +28,7 @@ test:
 deployment:
   # Mirror repo to Drupal.org.
   drupalorg:
-    branch: 7.x
+    branch: 7.x-1.x
     commands:
       - git fetch --unshallow
       - git remote add drupalorg alex.designworks@git.drupal.org:project/drupal_helpers.git
