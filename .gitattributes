@@ -4,3 +4,4 @@
 .gitignore                export-ignore
 .circle.yml               export-ignore
 .dcr.yml                  export-ignore
+.github                   export-ignore
