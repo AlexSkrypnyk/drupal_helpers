@@ -140,4 +140,37 @@ class Field {
     return FALSE;
   }
 
+  /**
+   * Set Field Configuration Data.
+   *
+   * @param string $field_name
+   *   Field name.
+   * @param array $config
+   *   Field configuration array.
+   *
+   * @return bool
+   *   Success TRUE else FALSE.
+   *
+   * @throws \Exception
+   */
+  public static function setFieldConfigData($field_name, array $config) {
+    try {
+      $data = serialize($config);
+      $result = db_update('field_config')
+        ->fields(['data' => $data])
+        ->condition('field_name', $field_name)
+        ->execute();
+    }
+    catch (Exception $e) {
+      // Pass on the exception with an explanation.
+      $message = sprintf(
+        'Failed to set field config data for %s : %s',
+        $field_name, $e->getMessage()
+      );
+      throw new Exception($message, $e->getCode(), $e);
+    }
+
+    return ($result->rowCount() > 0);
+  }
+
 }
