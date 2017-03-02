@@ -22,6 +22,8 @@ Functionality
 * Field
   * Delete a field.
   * Delete an instance of a field.
+  * Get and Set field configurations.
+  * Change the max length of a Text field that contains content.
 * Form
   * Get default values from the form.
 * General
