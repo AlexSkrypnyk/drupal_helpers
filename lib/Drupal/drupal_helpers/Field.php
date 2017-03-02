@@ -103,4 +103,41 @@ class Field {
     General::messageSet($t($message, $replacements));
   }
 
+  /**
+   * Get Field Configuration Data.
+   *
+   * @param string $field_name
+   *   Field name.
+   *
+   * @return array|bool
+   *   Field configuration array else FALSE.
+   *
+   * @throws \Exception
+   */
+  public static function getFieldConfigData($field_name) {
+    try {
+      $query = '
+        SELECT CAST(data AS CHAR(10000) CHARACTER SET utf8)
+        FROM {field_config}
+        WHERE field_name = :field_name
+      ';
+      $result = db_query($query, [':field_name' => $field_name]);
+      $config = $result->fetchField();
+    }
+    catch (Exception $e) {
+      // Pass on the exception with an explanation.
+      $message = sprintf(
+        'Failed to get field config data for %s : %s',
+        $field_name, $e->getMessage()
+      );
+      throw new Exception($message, $e->getCode(), $e);
+    }
+
+    if ($config) {
+      return unserialize($config);
+    }
+
+    return FALSE;
+  }
+
 }
