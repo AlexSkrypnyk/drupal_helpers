@@ -1,0 +1,7 @@
+# Ignore files for distribution archives.
+
+.gitattributes            export-ignore
+.gitignore                export-ignore
+.circle.yml               export-ignore
+.dcr.yml                  export-ignore
+.github                   export-ignore
