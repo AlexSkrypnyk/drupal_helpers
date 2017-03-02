@@ -210,6 +210,8 @@ class Field {
       );
       throw new Exception($message, $e->getCode(), $e);
     }
+
+    General::messageSet(sprintf('Text field %s max length changed to %d', $field_name, $max_length));
   }
 
   /**
