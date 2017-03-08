@@ -26,7 +26,7 @@ class Menu {
    *
    * @see menu_link_save()
    */
-  static public function addItem($menu_name, array $new_item, $unique = TRUE) {
+  public static function addItem($menu_name, array $new_item, $unique = TRUE) {
     if (!isset($new_item['link_title']) || !isset($new_item['link_path'])) {
       return FALSE;
     }
@@ -77,7 +77,7 @@ class Menu {
    * @return bool
    *   Updated menu link id if update was successful or FALSE otherwise.
    */
-  static public function updateItem($menu_name, array $existing_item, array $updates = []) {
+  public static function updateItem($menu_name, array $existing_item, array $updates = []) {
     $mlid = self::findItem($menu_name, $existing_item);
     if (!$mlid) {
       return FALSE;
@@ -113,7 +113,7 @@ class Menu {
    *
    * @see menu_link_save()
    */
-  static public function deleteItem($menu_name, array $existing_item) {
+  public static function deleteItem($menu_name, array $existing_item) {
     $mlid = self::findItem($menu_name, $existing_item);
     if (!$mlid) {
       return FALSE;
@@ -143,7 +143,7 @@ class Menu {
    * @return int|bool
    *   Integer mlid if item was found ot FALSE otherwise.
    */
-  static public function findItem($menu_name, array $existing_item) {
+  public static function findItem($menu_name, array $existing_item) {
     // Init query.
     $query = db_select('menu_links', 'ml')
       ->fields('ml', ['mlid'])
@@ -175,7 +175,7 @@ class Menu {
    * @return array
    *   Array of children menu items.
    */
-  static public function findItemChildren($menu_name, array $existing_item, $depth = 1) {
+  public static function findItemChildren($menu_name, array $existing_item, $depth = 1) {
     $cid = __FUNCTION__ . '_' . $menu_name . '_' . hash('sha256', serialize($existing_item));
     $children = &drupal_static($cid);
 
@@ -220,7 +220,7 @@ class Menu {
    * @return array
    *   Array of sibling menu items.
    */
-  static public function findItemSiblings($menu_name, array $existing_item, $include_current = FALSE) {
+  public static function findItemSiblings($menu_name, array $existing_item, $include_current = FALSE) {
     $cid = __FUNCTION__ . '_' . $menu_name . '_' . hash('sha256', serialize($existing_item)) . '_' . intval($include_current);
     $siblings = &drupal_static($cid, []);
 
@@ -274,7 +274,7 @@ class Menu {
    * @return array
    *   Array of created mlids.
    */
-  static public function import($menu_name, array $tree, $plid = 0) {
+  public static function import($menu_name, array $tree, $plid = 0) {
     $created_mlids = [];
     $weight = 0;
     foreach ($tree as $title => $leaf) {

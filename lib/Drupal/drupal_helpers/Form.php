@@ -27,7 +27,7 @@ class Form {
    *   - NULL: If this function was called with insufficient number of
    *     arguments.
    */
-  static public function formGetDefaults() {
+  public static function formGetDefaults() {
     $args = func_get_args();
 
     if (count($args) < 3) {
