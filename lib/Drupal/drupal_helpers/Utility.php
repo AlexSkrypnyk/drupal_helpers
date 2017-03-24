@@ -18,7 +18,7 @@ class Utility {
    * @return array
    *   Array with removed elements.
    */
-  static public function arrayRemoveEmpty(array $haystack) {
+  public static function arrayRemoveEmpty(array $haystack) {
     foreach ($haystack as $key => $value) {
       if (is_array($haystack[$key])) {
         $haystack[$key] = call_user_func([
@@ -55,7 +55,7 @@ class Utility {
    * @throws \Exception
    *   Exception if specified $column does not exist in array.
    */
-  static public function arrayGetColumn($value, $column = NULL, $getter = NULL) {
+  public static function arrayGetColumn($value, $column = NULL, $getter = NULL) {
     $result = $value;
 
     if (is_array($value)) {
