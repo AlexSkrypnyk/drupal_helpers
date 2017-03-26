@@ -54,6 +54,9 @@ Functionality
 * Utility
 	* Recursively remove empty elements from array.
 	* Retrieve array column.
+* Variable
+	* Set and get variable values using strict match, wildcard or regexp.
+	* Variable value storage - store/restore variable values in bulk.
 
 Usage
 -----
