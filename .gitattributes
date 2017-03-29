@@ -4,7 +4,8 @@
 .gitignore                export-ignore
 .dcr.yml                  export-ignore
 .github                   export-ignore
-circle.yml               export-ignore
+tests                     export-ignore
+circle.yml                export-ignore
 composer.json             export-ignore
 composer.lock             export-ignore
 phpcs.xml.dist            export-ignore
