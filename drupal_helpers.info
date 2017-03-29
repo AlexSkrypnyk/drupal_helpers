@@ -1,5 +1,5 @@
 name = Drupal Helpers
-description = Collection of helper functions and classes.
+description = Collection of Drupal helper functions and classes.
 php = 5.4
 core = 7.x
 

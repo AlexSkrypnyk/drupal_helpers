@@ -23,11 +23,17 @@
     "source": "https://github.com/alexdesignworks/drupal_helpers"
   },
   "require-dev": {
-    "phpunit/phpunit": "4.8.*"
+    "phpunit/phpunit": "4.8.*",
+    "drupal/coder": "*"
   },
   "autoload": {
     "psr-0": {
       "Drupal\\drupal_helpers\\": "lib/"
     }
+  },
+  "scripts": {
+    "cs": "vendor/bin/phpcs --runtime-set installed_paths $(pwd)/vendor/drupal/coder/coder_sniffer --colors -s -p",
+    "cbf": "vendor/bin/phpcbf --runtime-set installed_paths $(pwd)/vendor/drupal/coder/coder_sniffer --colors",
+    "test": "vendor/bin/phpunit"
   }
 }
