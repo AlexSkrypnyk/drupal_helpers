@@ -13,17 +13,15 @@ dependencies:
   - rm -rf ~/.composer
   - composer global clear-cache
   - "if [ \"$GITHUB_TOKEN\" != \"\" ]; then composer config -g github-oauth.github.com $GITHUB_TOKEN; fi"
-  # Install DCR.
-  - composer global require --no-interaction alexdesignworks/dcr
   # Install project-based dependencies.
   - composer install --no-progress --no-interaction
 
 test:
   override:
   # Lint code.
-  - dcr --no-js init && dcr
+  - composer cs
   # Run tests.
-  - phpunit
+  - composer test
 
 deployment:
   # Mirror repo to Drupal.org.
