@@ -71,13 +71,16 @@ class Menu {
    * @param array $updates
    *   Array of menu item fields to be updated. Items keys used in
    *   menu_link_save().
-   *
-   * @see menu_link_save()
+   * @param bool $normalise_path
+   *   Flag to normalise new link path. Defaults to TRUE. Useful to set to FALSE
+   *   if replacing aliased path with exact path.
    *
    * @return bool
    *   Updated menu link id if update was successful or FALSE otherwise.
+   *
+   * @see menu_link_save()
    */
-  public static function updateItem($menu_name, array $existing_item, array $updates = []) {
+  public static function updateItem($menu_name, array $existing_item, array $updates, $normalise_path = TRUE) {
     $mlid = self::findItem($menu_name, $existing_item);
     if (!$mlid) {
       return FALSE;
@@ -91,7 +94,7 @@ class Menu {
         continue;
       }
       if ($k == 'link_path') {
-        $v = drupal_get_normal_path($v);
+        $v = $normalise_path ? drupal_get_normal_path($v) : $v;
       }
       $item[$k] = $v;
     }
