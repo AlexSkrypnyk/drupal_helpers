@@ -112,6 +112,23 @@ class VariableTestCase extends \PHPUnit_Framework_TestCase {
           'prefixnamesuffix',
         ],
       ],
+
+      [
+        'othername',
+        $data,
+        [
+          'othername',
+        ],
+      ],
+
+      [
+        ['othername', 'secondothername'],
+        $data,
+        [
+          'othername',
+          'secondothername',
+        ],
+      ],
     ];
   }
 

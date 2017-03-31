@@ -73,7 +73,12 @@ class Variable {
 
     $storage_values = variable_get($storage_key, []);
     foreach ($storage_values as $name => $value) {
-      variable_set($name, $value);
+      if (is_null($value)) {
+        variable_del($name);
+      }
+      else {
+        variable_set($name, $value);
+      }
     }
 
     variable_del($storage_key);
@@ -100,6 +105,10 @@ class Variable {
     foreach ($names as $name) {
       $all_names = array_merge($all_names, static::getNameWildcard($name, $variables));
     }
+
+    // If names where not found in DB - the variables have not been set, but
+    // we are still expecting provided names to be returned.
+    $all_names = !empty($all_names) ? $all_names : $names;
 
     return $all_names;
   }
