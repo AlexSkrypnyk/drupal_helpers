@@ -9,6 +9,14 @@ namespace Drupal\drupal_helpers;
  */
 class Random {
 
+  protected static $loremText = <<<EOT
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam iaculis, velit gravida convallis tincidunt, felis enim venenatis lorem, nec lobortis nisl urna et mi. Pellentesque ac dictum ante. Fusce dignissim tempor elementum. Ut dignissim convallis eros, viverra luctus lacus consequat ac. Sed feugiat velit sed magna aliquam accumsan. Nam vitae porta tortor. Nam auctor dui a neque iaculis in aliquam erat viverra. Duis orci nunc, lacinia in malesuada et, euismod id turpis. Cras mattis vulputate erat, eget tempor magna egestas eu. Vestibulum sit amet massa est.
+Vivamus pretium placerat lorem, in tempor massa convallis sit amet. Aliquam sed quam eget ligula luctus aliquam sed vitae nulla. Aliquam dui dolor, ullamcorper eget rutrum ut, hendrerit ac lorem. Donec magna est, sollicitudin vel ultrices vel, mattis ut odio. Integer vel felis laoreet purus sollicitudin varius sed id ipsum. Suspendisse potenti. Praesent ut justo vitae metus luctus vehicula a et purus. Suspendisse potenti. Sed viverra, quam non hendrerit laoreet, massa odio blandit arcu, ac molestie metus diam eu tortor. Donec erat arcu, ultrices sit amet placerat non, feugiat in arcu. Mauris eros quam, varius eget volutpat vel, tristique sed est. In faucibus feugiat urna sit amet elementum. Integer consequat rhoncus libero, in molestie augue posuere et. Phasellus ac eleifend magna. Proin vulputate dui ac justo pharetra consequat. In vel iaculis ligula.
+Cras vestibulum lacus sit amet sem commodo ullamcorper aliquet eros vestibulum. Sed fermentum nulla quis risus suscipit dapibus. Sed vitae velit ut dolor varius semper at id lectus. Aenean quis leo sit amet tellus tempus cursus. Vivamus semper vehicula ante eget semper. In ac ipsum erat. Suspendisse lectus erat, commodo nec fringilla quis, interdum non leo. Vivamus et lectus vitae risus porta sollicitudin luctus eget est. Etiam quis elit vel est suscipit tristique. Nullam fringilla purus ac velit gravida ullamcorper. Praesent porttitor ante non lacus suscipit porta. Nunc fermentum sem et metus aliquam ultricies non sollicitudin nibh. Vestibulum ut ligula dolor, in placerat tortor. Sed nec lacus sed nibh iaculis luctus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur rutrum, diam vel tempor commodo, augue nunc viverra risus, in pellentesque neque justo eget dolor. Maecenas quis odio leo, a auctor lorem.
+Curabitur dapibus odio quis enim hendrerit eu placerat lorem accumsan. Phasellus sagittis, orci vel laoreet molestie, urna orci imperdiet elit, quis ultricies orci mauris vel ante. Cras pharetra, nisl a sagittis feugiat, turpis magna placerat sem, sed euismod erat elit in magna. Phasellus blandit ullamcorper diam vel porta. Vivamus mollis, metus nec tincidunt venenatis, risus odio sodales risus, vitae ultrices est nisi eget ante. Aenean eget nisi mi. Nulla non nulla nec metus rhoncus congue. Curabitur quis nunc nibh. Cras metus lorem, euismod ornare mattis sagittis, ultrices eget turpis. Integer quis dui tellus. Morbi vel dolor sit amet metus eleifend fringilla. Fusce nunc neque, ultricies et commodo semper, dignissim vitae tortor. Phasellus et ipsum quis sapien accumsan auctor. Morbi congue nulla vel tortor aliquet imperdiet. Morbi eget odio elit, et cursus odio. Quisque a velit diam. Duis urna libero, tempus non mattis a, convallis ac erat. Etiam vel dui posuere lectus auctor viverra vitae id eros. Maecenas mollis eros non elit sollicitudin quis fermentum diam lacinia. Quisque at ante nibh, a molestie ligula.
+Sed et enim nunc, nec vehicula sem. Sed risus orci, auctor et dictum at, hendrerit eu augue. Curabitur sed ante non quam fermentum vehicula. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam tincidunt dictum molestie. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Phasellus nec urna ut lorem tempus aliquet eget nec lectus. Phasellus quis venenatis tortor. Integer elementum, sapien at feugiat cursus, tortor sapien adipiscing massa, non molestie elit lacus vel velit. Suspendisse sit amet sem id libero auctor pharetra sit amet ut dui. Aenean sit amet tellus sit amet ante congue faucibus. Nullam hendrerit, justo et iaculis tristique, ligula risus pretium erat, sed tempus lacus felis ut nulla.
+EOT;
+
   /**
    * Generate a random string containing letters.
    *
@@ -74,7 +82,7 @@ class Random {
    * @param int $count
    *   Number of pieces to generate. Defaults to 10.
    * @param string $type
-   *   Piece type" words or paragraphs. Defaults to 'words'.
+   *   Piece type: 'words' or 'paragraphs'. Defaults to 'words'.
    * @param bool $html
    *   Flag to generate content with HTML. Defaults to FALSE.
    * @param bool $headers
@@ -86,36 +94,74 @@ class Random {
    *   Generated text.
    */
   public static function lipsum($count = 10, $type = 'words', $html = FALSE, $headers = FALSE, $start_lorem = FALSE) {
-    $options = [];
-    if (!$html) {
-      $options[] = 'plaintext';
-    }
+    $text = self::$loremText;
 
-    if ($headers) {
-      $options[] = $headers;
-    }
+    $inline_tags = ['i', 'b', 'span'];
+    $block_tags = ['p', 'div'];
+    $heading_tags = ['h1', 'h2', 'h3'];
 
-    if ($type == 'words') {
-      $options[] = 'long';
-    }
-
-    $text = file_get_contents('http://loripsum.net/api/' . implode('/', $options));
-
-    if (!$text) {
-      return '';
-    }
+    $paragraphs = preg_split('/\R/', $text);
+    $words = explode(' ', $text);
+    array_walk($words, function (&$word) {
+      $word = preg_replace('/[[:punct:]]/', '', $word);
+      $word = preg_replace('/\s*/', '', $word);
+      $word = strtolower($word);
+    });
 
     if ($type == 'words') {
-      $text = preg_replace('/[^\w]+/', ' ', $text);
-      $words = preg_split('/\s+/', $text);
-      if (!$start_lorem) {
-        shuffle($words);
+      if ($start_lorem) {
+        $words = array_slice($words, 0, $count);
       }
-      $text = implode(' ', array_slice($words, 0, $count));
-      $text = ucfirst($text);
+      else {
+        $words = self::arrayItems($words, $count);
+      }
+
+      // Wrap words in random html tags.
+      if ($html) {
+        $html_words = self::arrayItems($words, rand(1, count($words)));
+        array_walk($words, function (&$word) use ($html_words, $inline_tags) {
+          $tags = self::arrayItems($inline_tags, 1);
+          $tag = reset($tags);
+          if (in_array($word, $html_words)) {
+            $word = "<$tag>$word</$tag>";
+          }
+        });
+      }
+
+      $output = implode(' ', $words);
+    }
+    else {
+      if ($start_lorem) {
+        $paragraphs = array_slice($paragraphs, 0, $count);
+      }
+      else {
+        $paragraphs = self::arrayItems($paragraphs, $count);
+      }
+
+      if ($html) {
+        array_walk($paragraphs, function (&$paragraph) use ($block_tags) {
+          $tags = self::arrayItems($block_tags, 1);
+          $tag = reset($tags);
+          $paragraph = "<$tag>$paragraph</$tag>";
+        });
+      }
+
+      if ($html && $headers) {
+        $lines_with_headings = [];
+        // Insert a header before each line.
+        foreach ($paragraphs as $paragraph) {
+          $tags = self::arrayItems($heading_tags, 1);
+          $tag = reset($tags);
+          $lines_with_headings[] = "<$tag>" . self::lipsum(rand(2, 10)) . "</$tag>";
+          $lines_with_headings[] = $paragraph;
+        }
+        $paragraphs = $lines_with_headings;
+      }
+
+      $output = implode(PHP_EOL, $paragraphs);
     }
 
-    return $text;
+    return $output;
   }
 
   /**
