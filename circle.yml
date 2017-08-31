@@ -30,4 +30,3 @@ deployment:
     commands:
       - git fetch --unshallow
       - git remote add drupalorg alex.designworks@git.drupal.org:project/drupal_helpers.git
-      - git push --tags drupalorg $CIRCLE_BRANCH
