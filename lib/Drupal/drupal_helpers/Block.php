@@ -149,4 +149,36 @@ class Block {
     ]));
   }
 
+  /**
+   * Set the block title in the core block admin page.
+   *
+   * @param string $block_delta
+   *   Block delta.
+   * @param string $block_module
+   *   Block module machine name.
+   * @param string $theme
+   *   Theme machine name.
+   * @param string $title
+   *   The value to set the block title.
+   *   - Specify "<none>" to remove the title entirely.
+   *   - Specify empty string to use the default block title.
+   */
+  public static function title($block_delta, $block_module, $theme, $title) {
+    _block_rehash($theme);
+    db_update('block')
+      ->fields([
+        'title' => $title,
+      ])
+      ->condition('module', $block_module)
+      ->condition('delta', $block_delta)
+      ->condition('theme', $theme)
+      ->execute();
+
+    General::messageSet(format_string('Block "@block_module-@block_delta" successfully configured with title "@title".', [
+      '@block_delta' => $block_delta,
+      '@block_module' => $block_module,
+      '@title' => $title,
+    ]));
+  }
+
 }
