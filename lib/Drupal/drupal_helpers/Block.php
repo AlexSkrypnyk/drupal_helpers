@@ -124,7 +124,7 @@ class Block {
    * @param string $theme
    *   Theme machine name.
    * @param string $pages
-   *   List of paths to evaluate against the visibility rule. Multiple values 
+   *   List of paths to evaluate against the visibility rule. Multiple values
    *   should be delimited with new line character.
    * @param int $visibility
    *   One of the pre-defined block visibility constants:
