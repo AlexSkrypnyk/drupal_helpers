@@ -3,4 +3,4 @@ description = Collection of Drupal helper functions and classes.
 php = 5.4
 core = 7.x
 
-dependencies[] = xautoload (>= 7.x-4.0)
+dependencies[] = xautoload (>= 7.x-4.0, >= 7.x-5.0)
