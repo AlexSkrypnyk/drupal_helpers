@@ -194,7 +194,9 @@ class Field {
     try {
       // Modify field data and revisions.
       foreach (['field_data', 'field_revision'] as $prefix) {
-        self::modifyTextFieldValueLength("{$prefix}_{$field_name}", $max_length);
+        $table_name = "{$prefix}_{$field_name}";
+
+        self::modifyTextFieldValueLength($table_name, $field_name, $max_length);
       }
       // Update field config.
       self::updateTextFieldConfigMaxLength($field_name, $max_length);
@@ -217,16 +219,20 @@ class Field {
   /**
    * Modify a Text Field Table Value Column Length.
    *
-   * @param string $field_table
-   *   Drupal field table name (ie. field_data_field_textfield).
+   * @param string $table_name
+   *   The name of the table that contains the field.
+   * @param string $field_name
+   *   The name of the field being resized.
    * @param int $value_length
    *   Length in characters.
    */
-  private static function modifyTextFieldValueLength($field_table, $value_length) {
-    $field_value_column = $field_table . '_value';
+  private static function modifyTextFieldValueLength($table_name,
+                                                     $field_name,
+                                                     $value_length) {
+    $field_value_column = $field_name . '_value';
     $query_alter = sprintf(
       'ALTER TABLE {%s} MODIFY %s VARCHAR(%d)',
-      $field_table, $field_value_column, $value_length
+      $table_name, $field_value_column, $value_length
     );
     db_query($query_alter);
   }
