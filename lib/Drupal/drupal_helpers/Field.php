@@ -148,15 +148,14 @@ class Field {
    * @param array $config
    *   Field configuration array.
    *
-   * @return bool
-   *   Success TRUE else FALSE.
-   *
    * @throws \Exception
+   *   If the update request fails.
    */
   public static function setFieldConfigData($field_name, array $config) {
     try {
       $data = serialize($config);
-      $result = db_update('field_config')
+
+      db_update('field_config')
         ->fields(['data' => $data])
         ->condition('field_name', $field_name)
         ->execute();
@@ -169,8 +168,6 @@ class Field {
       );
       throw new Exception($message, $e->getCode(), $e);
     }
-
-    return ($result->rowCount() > 0);
   }
 
   /**
