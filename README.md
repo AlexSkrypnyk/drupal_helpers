@@ -3,7 +3,7 @@ Drupal Helpers
 
 A library of Drupal-related PHP helpers for Drupal 7 core and contrib modules.
 
-[![Circle CI](https://circleci.com/gh/alexdesignworks/drupal_helpers.svg?style=shield)](https://circleci.com/gh/alexdesignworks/drupal_helpers)
+[![CircleCI](https://circleci.com/gh/integratedexperts/drupal_helpers.svg?style=svg)](https://circleci.com/gh/integratedexperts/drupal_helpers)
 
 Functionality
 -------------
