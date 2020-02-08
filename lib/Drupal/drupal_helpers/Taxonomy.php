@@ -3,7 +3,7 @@
 namespace Drupal\drupal_helpers;
 
 if (!module_exists('taxonomy')) {
-  throw new Exception('Taxonomy module is not present.');
+  throw new \Exception('Taxonomy module is not present.');
 }
 
 /**

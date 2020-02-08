@@ -17,7 +17,7 @@ class Database {
     $fp = fopen($filename, 'r');
 
     if (!$fp) {
-      throw new \Exception(strtr('Unable to open file @filename', ['@filename' => $filename]));
+      throw new \Exception(sprintf('Unable to open file %s', $filename));
     }
 
     $query = '';

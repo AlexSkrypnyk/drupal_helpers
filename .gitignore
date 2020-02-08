@@ -1,11 +1,2 @@
-#
-# Dev tools.
-#
-.vagrant
-.beetbox
-Vagrantfile
-
-#
-# Composer packeges.
-#
-vendor
+composer.lock
+build
