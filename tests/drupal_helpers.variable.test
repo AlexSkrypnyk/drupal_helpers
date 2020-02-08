@@ -1,27 +1,39 @@
 <?php
 
-namespace Drupal\drupal_helpers\Tests;
+/**
+ * @file
+ * Tests Drupal Helpers Variable functions.
+ */
 
 use Drupal\drupal_helpers\Variable;
 
 /**
- * Class VariableTestCase.
- *
- * @package Drupal\drupal_helpers\Tests
+ * Class DrupalHelpersVariableTestCase.
  */
-class VariableTestCase extends \PHPUnit_Framework_TestCase {
+class DrupalHelpersVariableTestCase extends DrupalHelpersTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return [
+      'name' => 'Variable',
+      'description' => 'Tests Drupal Helpers Variable functions.',
+      'group' => 'Helpers',
+    ];
+  }
 
   /**
    * Test functionality of extractNames() method.
-   *
-   * @dataProvider providerExtractNames
    */
-  public function testExtractNames($names, $variables, $expected_names) {
-    $obj = new Variable();
-    $method = self::getMethod($obj, 'extractNames');
-    $actual_names = $method->invokeArgs($obj, [$names, $variables]);
+  public function testExtractNames() {
+    $this->invokeDataProvider('providerExtractNames', function ($names, $variables, $expected_names) {
+      $obj = new Variable();
+      $method = self::getMethod($obj, 'extractNames');
+      $actual_names = $method->invokeArgs($obj, [$names, $variables]);
 
-    $this->assertEquals($expected_names, $actual_names);
+      $this->assertEqual($expected_names, $actual_names);
+    });
   }
 
   /**

@@ -2,8 +2,6 @@
 
 namespace Drupal\drupal_helpers;
 
-use Exception;
-
 /**
  * Class Field.
  *
@@ -52,11 +50,11 @@ class Field {
 
       General::messageSet($t('The field !field has been deleted.', $replacements));
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       $replacements['@error_message'] = $e->getMessage();
       $message = 'Failed to delete !field: @error_message';
 
-      throw new Exception($t($message, $replacements), $e->getCode(), $e);
+      throw new \Exception($t($message, $replacements), $e->getCode(), $e);
     }
   }
 
@@ -93,11 +91,11 @@ class Field {
         $message = 'Skipped: the !field was not found for the !entity !bundle content type.';
       }
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       $replacements['@error_message'] = $e->getMessage();
       $message = 'Problem removing the field !field from the !entity !bundle content type - @error_message';
 
-      throw new Exception($t($message, $replacements), $e->getCode(), $e);
+      throw new \Exception($t($message, $replacements), $e->getCode(), $e);
     }
 
     General::messageSet($t($message, $replacements));
@@ -124,13 +122,13 @@ class Field {
       $result = db_query($query, [':field_name' => $field_name]);
       $config = $result->fetchField();
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       // Pass on the exception with an explanation.
       $message = sprintf(
         'Failed to get field config data for %s : %s',
         $field_name, $e->getMessage()
       );
-      throw new Exception($message, $e->getCode(), $e);
+      throw new \Exception($message, $e->getCode(), $e);
     }
 
     if ($config) {
@@ -160,13 +158,13 @@ class Field {
         ->condition('field_name', $field_name)
         ->execute();
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       // Pass on the exception with an explanation.
       $message = sprintf(
         'Failed to set field config data for %s : %s',
         $field_name, $e->getMessage()
       );
-      throw new Exception($message, $e->getCode(), $e);
+      throw new \Exception($message, $e->getCode(), $e);
     }
   }
 
@@ -198,7 +196,7 @@ class Field {
       // Update field config.
       self::updateTextFieldConfigMaxLength($field_name, $max_length);
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       // Something went wrong, so roll back all changes.
       $db_txn->rollback();
 
@@ -207,7 +205,7 @@ class Field {
         'Failed to change field %s max length to %d : %s',
         $field_name, $max_length, $e->getMessage()
       );
-      throw new Exception($message, $e->getCode(), $e);
+      throw new \Exception($message, $e->getCode(), $e);
     }
 
     General::messageSet(sprintf('Text field %s max length changed to %d', $field_name, $max_length));
@@ -251,7 +249,7 @@ class Field {
       self::setFieldConfigData($field_name, $config);
     }
     else {
-      throw new Exception(sprintf('No config data found for field %s', $field_name));
+      throw new \Exception(sprintf('No config data found for field %s', $field_name));
     }
   }
 

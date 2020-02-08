@@ -2,9 +2,6 @@
 
 namespace Drupal\drupal_helpers;
 
-use DrupalUpdateException;
-use Exception;
-
 /**
  * Class Rules.
  *
@@ -65,9 +62,9 @@ class Rules {
         General::messageSet($t('The rules !rule_name has been !actioned.', $replacements));
       }
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       $replacements['@error_message'] = $e->getMessage();
-      throw new DrupalUpdateException($t('Failed to !action rules !rule_name: @error_message', $replacements), $e->getCode(), $e);
+      throw new \DrupalUpdateException($t('Failed to !action rules !rule_name: @error_message', $replacements), $e->getCode(), $e);
     }
   }
 
@@ -101,7 +98,7 @@ class Rules {
    * @param string $rule_name
    *   Machine name of the Rule.
    *
-   * @throws \DrupalUpdateException
+   * @throws \Exception
    */
   public static function delete($rule_name) {
     $t = get_t();
@@ -118,9 +115,9 @@ class Rules {
         General::messageSet($t('The rules !rule_name has been deleted.', $replacements));
       }
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       $replacements['@error_message'] = $e->getMessage();
-      throw new DrupalUpdateException($t('Failed to delete rules !rule_name: @error_message', $replacements), $e->getCode(), $e);
+      throw new \Exception($t('Failed to delete rules !rule_name: @error_message', $replacements), $e->getCode(), $e);
     }
   }
 

@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * Class DrupalHelpersTestCase.
+ *
+ * Base class for all other tests.
+ *
+ * Using DrupalWebTestCase because XAutoload uses registry in the database
+ * to load files.
+ */
+abstract class DrupalHelpersTestCase extends DrupalWebTestCase {
+
+  /**
+   * Invoke data provider to mimic PHPUnit.
+   *
+   * @param string $callable
+   *   Data provider method name.
+   * @param callable $callback
+   *   Date processor callback.
+   */
+  protected function invokeDataProvider($callable, callable $callback) {
+    if (!is_callable([static::class, $callable])) {
+      throw new \RuntimeException(sprintf('%s is not callable', $callable));
+    }
+
+    if (!is_callable($callback)) {
+      throw new \RuntimeException(sprintf('Provided callback is not callable', $callable));
+    }
+
+    $deataset = $this->{$callable}();
+
+    foreach ($deataset as $k => $data) {
+      $this->pass(sprintf('-- Assertions for data set #%s --', $k));
+
+      try {
+        call_user_func_array($callback, $data);
+      }
+      catch (\Exception $e) {
+        $this->fail($e->getMessage());
+      }
+    }
+  }
+
+}

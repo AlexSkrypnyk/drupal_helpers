@@ -23,12 +23,7 @@ class Block {
     $block = block_load($block_module, $block_delta);
     $render = _block_get_renderable_array(_block_render_blocks([$block]));
 
-    if ($renderable_array) {
-      return $render;
-    }
-    else {
-      return render($render);
-    }
+    return $renderable_array ? $render : render($render);
   }
 
   /**
@@ -47,6 +42,7 @@ class Block {
    */
   public static function place($block_delta, $block_module, $region, $theme, $weight = 0) {
     _block_rehash($theme);
+
     db_update('block')
       ->fields([
         'status' => 1,

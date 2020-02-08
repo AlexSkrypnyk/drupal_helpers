@@ -27,7 +27,9 @@ class Bean {
    *   Loaded or created bean object.
    */
   public static function loadOrCreate($type, $label, $delta = NULL) {
-    $delta = (!is_null($delta)) ? $delta : strtolower(substr(preg_replace('/[^A-Za-z0-9]/', '-', $label), 0, 32));
+    // Convert label to delta if delta is not provided.
+    $delta = !is_null($delta) ? $delta : strtolower(substr(preg_replace('/[^A-Za-z0-9]/', '-', $label), 0, 32));
+
     $bean_data = [
       'type' => $type,
       'label' => $label,

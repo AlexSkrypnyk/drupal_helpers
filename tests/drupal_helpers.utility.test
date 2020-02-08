@@ -1,13 +1,27 @@
 <?php
 
-namespace Drupal\drupal_helpers\Tests;
+/**
+ * @file
+ * Tests Drupal Helpers Utility functions.
+ */
+
+use Drupal\drupal_helpers\Utility;
 
 /**
- * Class ArrayRemoveEmptyUtilityTestCase.
- *
- * @package Drupal\drupal_helpers\Tests
+ * Class DrupalHelpersUtilityTestCase.
  */
-class ArrayRemoveEmptyUtilityTestCase extends \PHPUnit_Framework_TestCase {
+class DrupalHelpersUtilityTestCase extends DrupalHelpersTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return [
+      'name' => 'Utility',
+      'description' => 'Tests Drupal Helpers Utility functions.',
+      'group' => 'Helpers',
+    ];
+  }
 
   /**
    * Test that arrayRemoveEmpty() works correctly.
@@ -66,32 +80,23 @@ class ArrayRemoveEmptyUtilityTestCase extends \PHPUnit_Framework_TestCase {
    * Assert that arrayRemoveEmpty() method removes empty values.
    */
   protected function assertArrayRemoveEmpty($expected, $haystack, $message) {
-    $actual = call_user_func('Drupal\drupal_helpers\Utility::arrayRemoveEmpty', $haystack);
+    $actual = Utility::arrayRemoveEmpty($haystack);
 
-    $this->assertEquals($expected, $actual, $message);
+    $this->assertEqual($expected, $actual, $message);
   }
-
-}
-
-/**
- * Class ArrayGetColumnUtilityTestCase.
- *
- * @package Drupal\drupal_helpers\Tests
- */
-class ArrayGetColumnUtilityTestCase extends \PHPUnit_Framework_TestCase {
 
   /**
    * Test valid values.
    */
   public function testValidValues() {
     // Simple scalar.
-    $this->assertValidValues(1, NULL, NULL, 1);
+    $this->assertArrayGetColumn(1, NULL, NULL, 1);
 
     // Scalar array. No columns.
-    $this->assertValidValues([1, 2, 3], NULL, NULL, [1, 2, 3]);
+    $this->assertArrayGetColumn([1, 2, 3], NULL, NULL, [1, 2, 3]);
 
     // Array of arrays. Simple columns.
-    $this->assertValidValues([
+    $this->assertArrayGetColumn([
       [
         'one' => 11,
         'two' => 12,
@@ -110,7 +115,7 @@ class ArrayGetColumnUtilityTestCase extends \PHPUnit_Framework_TestCase {
     ], 'one', NULL, [11, 21, 31]);
 
     // Array of arrays. Simple columns with getter - should make no difference.
-    $this->assertValidValues([
+    $this->assertArrayGetColumn([
       [
         'one' => 11,
         'two' => 12,
@@ -129,15 +134,15 @@ class ArrayGetColumnUtilityTestCase extends \PHPUnit_Framework_TestCase {
     ], 'one', 'someFakeGetter', [11, 21, 31]);
 
     // Object. Public property is accessed directly.
-    $this->assertValidValues($this->prepareObjectPublicProperty(1),
+    $this->assertArrayGetColumn($this->prepareObjectPublicProperty(1),
       'publicProperty', NULL, 1);
 
     // Object. Public property is accessed using getter.
-    $this->assertValidValues($this->prepareObjectPublicProperty(1),
+    $this->assertArrayGetColumn($this->prepareObjectPublicProperty(1),
       NULL, 'getPublicProperty', 1);
 
     // Array of objects. Public property is accessed directly.
-    $this->assertValidValues([
+    $this->assertArrayGetColumn([
       'one' => $this->prepareObjectPublicProperty(11),
       'two' => $this->prepareObjectPublicProperty(12),
       'three' => $this->prepareObjectPublicProperty(13),
@@ -148,7 +153,7 @@ class ArrayGetColumnUtilityTestCase extends \PHPUnit_Framework_TestCase {
     ]);
 
     // Array of objects. Public property is accessed using getter.
-    $this->assertValidValues([
+    $this->assertArrayGetColumn([
       'one' => $this->prepareObjectPublicProperty(11),
       'two' => $this->prepareObjectPublicProperty(12),
       'three' => $this->prepareObjectPublicProperty(13),
@@ -159,7 +164,7 @@ class ArrayGetColumnUtilityTestCase extends \PHPUnit_Framework_TestCase {
     ]);
 
     // Array of array of objects. Public property is accessed using getter.
-    $this->assertValidValues([
+    $this->assertArrayGetColumn([
       [
         'one' => $this->prepareObjectPublicProperty(11),
         'two' => $this->prepareObjectPublicProperty(12),
@@ -181,10 +186,10 @@ class ArrayGetColumnUtilityTestCase extends \PHPUnit_Framework_TestCase {
   /**
    * Assert valid values helper.
    */
-  protected function assertValidValues($value, $column, $getter, $expected) {
-    $actual = call_user_func('Drupal\drupal_helpers\Utility::arrayGetColumn', $value, $column, $getter);
+  protected function assertArrayGetColumn($value, $column, $getter, $expected) {
+    $actual = Utility::arrayGetColumn($value, $column, $getter);
 
-    $this->assertEquals($expected, $actual);
+    $this->assertEqual($expected, $actual);
   }
 
   /**
@@ -193,11 +198,11 @@ class ArrayGetColumnUtilityTestCase extends \PHPUnit_Framework_TestCase {
    * @param mixed $value
    *   Value to set for public property.
    *
-   * @return ArrayGetColumnUtilityTestCaseDummy
+   * @return DrupalHelpersUtilityDummy
    *   Dummy object to be used in test assertions.
    */
   protected function prepareObjectPublicProperty($value) {
-    $object = new ArrayGetColumnUtilityTestCaseDummy();
+    $object = new DrupalHelpersUtilityDummy();
     $object->setPublicProperty($value);
 
     return $object;
@@ -206,11 +211,12 @@ class ArrayGetColumnUtilityTestCase extends \PHPUnit_Framework_TestCase {
 }
 
 /**
- * Class ArrayGetColumnUtilityTestCaseDummy.
+ * Class DrupalHelpersUtilityDummy.
  *
  * Dummy class for testing arrayRemoveEmpty() functionality.
  */
-class ArrayGetColumnUtilityTestCaseDummy {
+class DrupalHelpersUtilityDummy {
+
   /**
    * Dummy public property.
    *
@@ -228,6 +234,7 @@ class ArrayGetColumnUtilityTestCaseDummy {
    */
   // @codingStandardsIgnoreStart
   private $privateProperty;
+
   // @codingStandardsIgnoreEnd
 
   /**

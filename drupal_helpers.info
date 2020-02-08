@@ -1,6 +1,11 @@
 name = Drupal Helpers
 description = Collection of Drupal helper functions and classes.
-php = 5.4
 core = 7.x
 
-dependencies[] = xautoload (>= 7.x-4.0, >= 7.x-5.0)
+dependencies[] = drupal:system (>= 7.40)
+dependencies[] = xautoload:xautoload
+
+files[] = tests/drupal_helpers.test
+files[] = tests/drupal_helpers.random.test
+files[] = tests/drupal_helpers.utility.test
+files[] = tests/drupal_helpers.variable.test
