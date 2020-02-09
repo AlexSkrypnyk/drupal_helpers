@@ -82,7 +82,7 @@ EOT;
   }
 
   /**
-   * Helper to generate LoremIpsum content.
+   * Generate LoremIpsum content.
    *
    * @param int $count
    *   Number of pieces to generate. Defaults to 10.
@@ -170,7 +170,7 @@ EOT;
   }
 
   /**
-   * Helper to get random ip address.
+   * Get random ip address.
    */
   public static function ip() {
     return long2ip(rand(0, 4294967295));
@@ -229,7 +229,7 @@ EOT;
    * Always use this method when creating test accounts.
    *
    * @param string $domain
-   *   Optional email domain. Defaults to 'example.com'.
+   *   (optional) Email domain. Defaults to 'example.com'.
    *
    * @return string
    *   Random email address.
@@ -264,7 +264,7 @@ EOT;
    * Helper function to generate random path.
    *
    * @param string $path
-   *   Optional path containing placeholders (% or %name) to be replaced.
+   *   (optional) Path containing placeholders (% or %name) to be replaced.
    *
    * @return string
    *   Generated path.
@@ -283,7 +283,7 @@ EOT;
   }
 
   /**
-   * Helper to get random array items.
+   * Get random array items.
    */
   public static function arrayItems($haystack, $count = 1) {
     $haystack_keys = array_keys($haystack);

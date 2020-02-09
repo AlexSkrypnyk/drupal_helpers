@@ -15,11 +15,12 @@ class Views {
    * @param string $name
    *   View machine name.
    * @param bool $reset_cache
-   *   Optional flag to reset views cache after enabling a view. Defaults
+   *   (optional) Flag to reset views cache after enabling a view. Defaults
    *   to TRUE.
    */
   public static function enable($name, $reset_cache = TRUE) {
     $defaults = variable_get('views_defaults', []);
+
     if (isset($defaults[$name])) {
       unset($defaults[$name]);
 
@@ -37,11 +38,12 @@ class Views {
    * @param string $name
    *   View machine name.
    * @param bool $reset_cache
-   *   Optional flag to reset views cache after disabling a view. Defaults
+   *   (optional) Flag to reset views cache after disabling a view. Defaults
    *   to TRUE.
    */
   public static function disable($name, $reset_cache = TRUE) {
     $defaults = variable_get('views_defaults', []);
+
     $defaults[$name] = TRUE;
 
     variable_set('views_defaults', $defaults);

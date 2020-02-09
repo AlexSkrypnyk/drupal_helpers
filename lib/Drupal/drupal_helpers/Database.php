@@ -17,7 +17,9 @@ class Database {
     $fp = fopen($filename, 'r');
 
     if (!$fp) {
-      throw new \Exception(sprintf('Unable to open file %s', $filename));
+      throw new DrupalHelpersException('Unable to open file @file_name', [
+        '@file_name' => $filename,
+      ]);
     }
 
     $query = '';

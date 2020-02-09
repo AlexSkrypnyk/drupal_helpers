@@ -10,7 +10,7 @@ namespace Drupal\drupal_helpers;
 class Menu {
 
   /**
-   * Helper to add menu item into specified menu.
+   * Add menu item into specified menu.
    *
    * @param string $menu_name
    *   String machine menu name.
@@ -172,8 +172,8 @@ class Menu {
    *   Array of menu item fields to search item. Items keys used in
    *   menu_link_save().
    * @param int $depth
-   *   Optional children tree depth. Defaults to 1, meaning that only immediate
-   *   children will be returned.
+   *   (optional) Children tree depth. Defaults to 1, meaning that only
+   *   immediate children will be returned.
    *
    * @return array
    *   Array of children menu items.
@@ -217,7 +217,7 @@ class Menu {
    *   Array of menu item fields to search item. Items keys used in
    *   menu_link_save().
    * @param bool $include_current
-   *   Optional flag to include current item into set of returned siblings.
+   *   (optional) Flag to include current item into set of returned siblings.
    *   Defaults to FALSE.
    *
    * @return array
@@ -272,7 +272,7 @@ class Menu {
    *   item array definitions. 'children' key is used to specify children menu
    *   levels.
    * @param int $plid
-   *   Optional parent mlid. Defaults to 0.
+   *   (optional) Parent mlid. Defaults to 0.
    *
    * @return array
    *   Array of created mlids.

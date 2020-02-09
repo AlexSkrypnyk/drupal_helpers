@@ -10,6 +10,38 @@ namespace Drupal\drupal_helpers;
 class Utility {
 
   /**
+   * Print a message.
+   *
+   * @param string $message
+   *   String containing a message with optional tokens (similar to t()).
+   * @param array $args
+   *   (optional) Array of tokens arguments for a message.
+   * @param int $indent
+   *   (optional) Indent for messages. Defaults to 2.
+   * @param string $prefix
+   *   (optional) Prefix to be used for messages when called through CLI.
+   *   Defaults to '-- '.
+   *
+   * @return string
+   *   Message as a string. Used to capture what was already printed to reuse
+   *   in other context.
+   */
+  public static function message($message, array $args = [], $indent = 2, $prefix = '-- ') {
+    $t = get_t();
+    $message = $t($message, $args);
+
+    if (function_exists('drush_print')) {
+      $message = ((string) $prefix) . html_entity_decode($message);
+      drush_print($message, $indent);
+    }
+    else {
+      drupal_set_message($message);
+    }
+
+    return $message;
+  }
+
+  /**
    * Recursively remove empty elements from array.
    *
    * @param array $haystack
@@ -36,7 +68,7 @@ class Utility {
   }
 
   /**
-   * Helper to retrieve array column.
+   * Retrieve array column.
    *
    * Supports scalar, arrays and object as array values. For complex objects
    * value retrieval a getter must be specified.
@@ -44,16 +76,13 @@ class Utility {
    * @param mixed $value
    *   Value to extract column from.
    * @param string|int $column
-   *   Optional array column to retrieve value from.
+   *   (optional) Array column to retrieve value from.
    * @param string $getter
-   *   Optional getter for cases when values are complex objects.
+   *   (optional) Getter for cases when values are complex objects.
    *
    * @return array
    *   Array of values retrieved from column or a scalar value if scalar value
    *   was provided.
-   *
-   * @throws \Exception
-   *   Exception if specified $column does not exist in array.
    */
   public static function arrayGetColumn($value, $column = NULL, $getter = NULL) {
     $result = $value;
@@ -73,9 +102,8 @@ class Utility {
           }
           // Column is set, but does not exist.
           else {
-            throw new \Exception(format_string('Column @column does not exist', [
-              '@column' => $column,
-            ]));
+            // Not using custom exception for portability.
+            throw new \Exception(sprintf('Column "%s" does not exist', $column));
           }
         }
         // Value is not an array.
