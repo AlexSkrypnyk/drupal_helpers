@@ -54,12 +54,12 @@ class Block {
       ->condition('theme', $theme)
       ->execute();
 
-    General::messageSet(format_string('Block "@block_module-@block_delta" successfully added to the "@region" region in "@theme" theme.', [
+    Utility::message('Block "@block_module-@block_delta" was successfully added to the "@region" region in "@theme" theme.', [
       '@block_delta' => $block_delta,
       '@block_module' => $block_module,
       '@region' => $region,
       '@theme' => $theme,
-    ]));
+    ]);
   }
 
   /**
@@ -83,11 +83,11 @@ class Block {
       ->condition('theme', $theme)
       ->execute();
 
-    General::messageSet(format_string('Block "@block_module-@block_delta" successfully removed from "@theme" theme.', [
+    Utility::message('Block "@block_module-@block_delta" was successfully removed from "@theme" theme.', [
       '@block_delta' => $block_delta,
       '@block_module' => $block_module,
       '@theme' => $theme,
-    ]));
+    ]);
   }
 
   /**
@@ -105,9 +105,9 @@ class Block {
       ->condition('theme', $theme)
       ->execute();
 
-    General::messageSet(format_string('All blocks successfully removed from all regions in "@theme" theme.', [
+    Utility::message('All blocks were successfully removed from all regions in "@theme" theme.', [
       '@theme' => $theme,
-    ]));
+    ]);
   }
 
   /**
@@ -129,6 +129,7 @@ class Block {
    */
   public static function visibility($block_delta, $block_module, $theme, $pages, $visibility = BLOCK_VISIBILITY_LISTED) {
     _block_rehash($theme);
+
     db_update('block')
       ->fields([
         'visibility' => $visibility,
@@ -139,10 +140,10 @@ class Block {
       ->condition('theme', $theme)
       ->execute();
 
-    General::messageSet(format_string('Block "@block_module-@block_delta" successfully configured with visibility rules.', [
+    Utility::message('Block "@block_module-@block_delta" was successfully configured with visibility rules.', [
       '@block_delta' => $block_delta,
       '@block_module' => $block_module,
-    ]));
+    ]);
   }
 
   /**
@@ -161,6 +162,7 @@ class Block {
    */
   public static function title($block_delta, $block_module, $theme, $title) {
     _block_rehash($theme);
+
     db_update('block')
       ->fields([
         'title' => $title,
@@ -170,11 +172,11 @@ class Block {
       ->condition('theme', $theme)
       ->execute();
 
-    General::messageSet(format_string('Block "@block_module-@block_delta" successfully configured with title "@title".', [
+    Utility::message('Block "@block_module-@block_delta" was successfully configured with title "@title".', [
       '@block_delta' => $block_delta,
       '@block_module' => $block_module,
       '@title' => $title,
-    ]));
+    ]);
   }
 
 }

@@ -10,28 +10,6 @@ namespace Drupal\drupal_helpers;
 class Rules {
 
   /**
-   * Load a rules configuration.
-   *
-   * @param string $rule_name
-   *   Machine name of the Rule.
-   *
-   * @return bool|object
-   *   Rules configuration object or FALSE if configuration was not found.
-   */
-  protected static function load($rule_name) {
-    $t = get_t();
-
-    $rules_config = rules_config_load($rule_name);
-    if (!$rules_config) {
-      General::messageSet($t('Skipped: rules !rule_name was not found', ['!rule_name' => $rule_name]));
-
-      return FALSE;
-    }
-
-    return $rules_config;
-  }
-
-  /**
    * Set Active.
    *
    * Set the active property for a rules configuration.
@@ -40,31 +18,31 @@ class Rules {
    *   Machine name of the Rule.
    * @param bool $value
    *   Set rule active property to value.
-   *
-   * @throws DrupalUpdateException
    */
   public static function setActive($rule_name, $value) {
-    $t = get_t();
-
     $action = $value ? 'enable' : 'disable';
-    $actioned = $action . 'd';
+
     $replacements = [
-      '!rule_name' => $rule_name,
-      '!action' => $action,
-      '!actioned' => $actioned,
+      '@rule_name' => $rule_name,
+      '@action' => $action,
+      '@actioned' => $action . 'd',
     ];
 
     try {
-      $rules_config = self::load($rule_name);
-      if ($rules_config) {
-        $rules_config->active = (bool) $value;
-        $rules_config->save();
-        General::messageSet($t('The rules !rule_name has been !actioned.', $replacements));
+      $rules_config = rules_config_load($rule_name);
+
+      if (!$rules_config) {
+        throw new DrupalHelpersException('Failed to load rules "@rule_name" configuration', [
+          '@rule_name' => $rule_name,
+        ]);
       }
+
+      $rules_config->active = (bool) $value;
+      $rules_config->save();
+      Utility::message('The rules @rule_name has been @actioned.', $replacements);
     }
     catch (\Exception $e) {
-      $replacements['@error_message'] = $e->getMessage();
-      throw new \DrupalUpdateException($t('Failed to !action rules !rule_name: @error_message', $replacements), $e->getCode(), $e);
+      throw new DrupalHelpersException('Failed to @action rules "@rule_name".', $replacements, $e);
     }
   }
 
@@ -73,8 +51,6 @@ class Rules {
    *
    * @param string $rule_name
    *   Machine name of the Rule.
-   *
-   * @throws \DrupalUpdateException
    */
   public static function disable($rule_name) {
     self::setActive($rule_name, FALSE);
@@ -85,8 +61,6 @@ class Rules {
    *
    * @param string $rule_name
    *   Machine name of the Rule.
-   *
-   * @throws \DrupalUpdateException
    */
   public static function enable($rule_name) {
     self::setActive($rule_name, TRUE);
@@ -97,27 +71,27 @@ class Rules {
    *
    * @param string $rule_name
    *   Machine name of the Rule.
-   *
-   * @throws \Exception
    */
   public static function delete($rule_name) {
-    $t = get_t();
-
-    $replacements = [
-      '!rule_name' => $rule_name,
-    ];
-
     try {
-      $rules_config = self::load($rule_name);
-      if ($rules_config) {
-        $rules_config->delete();
+      $rules_config = rules_config_load($rule_name);
 
-        General::messageSet($t('The rules !rule_name has been deleted.', $replacements));
+      if (!$rules_config) {
+        throw new DrupalHelpersException('Failed to load rules "@rule_name" configuration', [
+          '@rule_name' => $rule_name,
+        ]);
       }
+
+      $rules_config->delete();
+
+      Utility::message('The rules "@rule_name" has been deleted.', [
+        '@rule_name' => $rule_name,
+      ]);
     }
     catch (\Exception $e) {
-      $replacements['@error_message'] = $e->getMessage();
-      throw new \Exception($t('Failed to delete rules !rule_name: @error_message', $replacements), $e->getCode(), $e);
+      throw new DrupalHelpersException('Failed to delete rules "@rule_name".', [
+        '@rule_name' => $rule_name,
+      ], $e);
     }
   }
 

@@ -10,21 +10,20 @@ namespace Drupal\drupal_helpers;
 class User {
 
   /**
-   * Helper to create user with specified fields and roles.
+   * Create user with specified fields and roles.
    *
    * @param array $edit_overrides
    *   Array of user override fields. Value of an element with a 'mail' key
    *   is required.
    * @param array $role_names
-   *   Optional array of role names to be assigned.
+   *   (optinal) Array of role names to be assigned.
    *
    * @return bool|Object
    *   User account object or FALSE if user was not created.
    */
   public static function create(array $edit_overrides, array $role_names = []) {
-    // Mail is an absolute minimum that we require.
     if (!isset($edit_overrides['mail'])) {
-      return FALSE;
+      throw new DrupalHelpersException('Missing required "mail" key.');
     }
 
     $edit['mail'] = Random::email();

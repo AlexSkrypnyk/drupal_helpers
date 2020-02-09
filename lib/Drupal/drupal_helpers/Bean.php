@@ -2,10 +2,6 @@
 
 namespace Drupal\drupal_helpers;
 
-if (!module_exists('bean')) {
-  throw new \Exception('BEAN module is not present.');
-}
-
 /**
  * Class Bean.
  *

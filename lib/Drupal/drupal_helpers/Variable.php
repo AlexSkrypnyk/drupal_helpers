@@ -51,7 +51,7 @@ class Variable {
    * @param string|array $names
    *   Name or array of variables as exact or wildcard match.
    * @param null|string $storage_key
-   *   Optional storage key for variable storage. Defaults to first variable
+   *   (optional) Storage key for variable storage. Defaults to first variable
    *   name.
    */
   public static function store($names, $storage_key = NULL) {
@@ -85,12 +85,12 @@ class Variable {
   }
 
   /**
-   * Helper to extract variable names from provided name or array of names.
+   * Extract variable names from provided name or array of names.
    *
    * @param string|array $names
    *   Name or array of variables as exact or wildcard match.
    * @param array $variables
-   *   Optional array of variables. If not provided, global $conf will be used
+   *   (optional) Array of variables. If not provided, global $conf will be used
    *   instead.
    *
    * @return array
@@ -114,12 +114,12 @@ class Variable {
   }
 
   /**
-   * Get variable name form a single string.
+   * Get variable name from a single string.
    *
    * @param string $pattern
    *   Variable name that may represent regex, wildcard or exact variable name.
    * @param array $variables
-   *   Optional array of variables. If not provided, global $conf will be used
+   *   (optional) Array of variables. If not provided, global $conf will be used
    *   instead.
    *
    * @return array
@@ -137,7 +137,7 @@ class Variable {
   }
 
   /**
-   * Helper to get all variables from global $conf.
+   * Get all variables from global $conf.
    */
   protected static function getAll() {
     global $conf;

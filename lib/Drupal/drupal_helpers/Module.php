@@ -7,7 +7,7 @@ namespace Drupal\drupal_helpers;
  *
  * @package Drupal\drupal_helpers
  */
-class Module extends System {
+class Module {
 
   /**
    * Enables a module and performs some error checking.
@@ -17,36 +17,30 @@ class Module extends System {
    * @param bool $enable_dependencies
    *   Flag to enable module's dependencies. Defaults to TRUE.
    *
-   * @return bool
-   *   Returns TRUE if module was enabled successfully, \DrupalUpdateException
-   *   is thrown otherwise.
-   *
    * @throws \DrupalUpdateException
    *   Throws exception if module was not enabled.
    */
   public static function enable($module, $enable_dependencies = TRUE) {
     if (self::isEnabled($module)) {
-      General::messageSet(format_string('Module "@module" already exists - Aborting!', [
+      Utility::message('Module "@module" already enabled - skipping enabling!', [
         '@module' => $module,
-      ]));
+      ]);
 
-      return TRUE;
-    }
-    $ret = module_enable([$module], $enable_dependencies);
-    if ($ret) {
-      // Double check that the installed.
-      if (self::isEnabled($module)) {
-        General::messageSet(format_string('Module "@module" was successfully enabled.', [
-          '@module' => $module,
-        ]));
-
-        return TRUE;
-      }
+      return;
     }
 
-    throw new \DrupalUpdateException(format_string('Module "@module" could not enabled.', [
+    $is_enabled = module_enable([$module], $enable_dependencies);
+
+    // Double check that the module was installed.
+    if (!$is_enabled || !self::isEnabled($module)) {
+      throw new DrupalHelpersException('Module "@module" could not be enabled.', [
+        '@module' => $module,
+      ]);
+    }
+
+    Utility::message('Module "@module" was successfully enabled.', [
       '@module' => $module,
-    ]));
+    ]);
   }
 
   /**
@@ -58,35 +52,29 @@ class Module extends System {
    *   If TRUE, dependent modules will automatically be added and disabled in
    *   the correct order.
    *
-   * @return bool
-   *   Returns TRUE if module was disabled successfully, \DrupalUpdateException
-   *   is thrown otherwise.
-   *
-   * @throws \DrupalUpdateException
+   * @throws DrupalHelpersException
    *   Throws exception if module was not disabled.
    */
   public static function disable($module, $disable_dependents = TRUE) {
     if (self::isDisabled($module)) {
-      General::messageSet(format_string('Module "@module" is already disabled - Aborting!', [
+      Utility::message('Module "@module" is already disabled - skipping disabling!', [
         '@module' => $module,
-      ]));
+      ]);
 
-      return TRUE;
+      return;
     }
 
     module_disable([$module], $disable_dependents);
 
-    if (self::isDisabled($module)) {
-      General::messageSet(format_string('Module "@module" was successfully disabled.', [
+    if (!self::isDisabled($module)) {
+      throw new DrupalHelpersException('Module "@module" could not be disabled.', [
         '@module' => $module,
-      ]));
-
-      return TRUE;
+      ]);
     }
 
-    throw new \DrupalUpdateException(format_string('Module "@module" could not disabled.', [
+    Utility::message('Module "@module" was successfully disabled.', [
       '@module' => $module,
-    ]));
+    ]);
   }
 
   /**
@@ -98,28 +86,20 @@ class Module extends System {
    *   If TRUE, dependent modules will automatically be disabled and uninstalled
    *   in the correct order.
    *
-   * @return bool
-   *   Returns TRUE if module was uninstalled successfully,
-   *   \DrupalUpdateException is thrown otherwise.
-   *
-   * @throws \DrupalUpdateException
+   * @throws DrupalHelpersException
    *   Throws exception if module was not uninstalled.
    */
   public static function uninstall($module, $uninstall_dependents = TRUE) {
     self::disable($module, $uninstall_dependents);
     drupal_uninstall_modules([$module], $uninstall_dependents);
 
-    if (self::isUninstalled($module)) {
-      General::messageSet(format_string('Module "@module" was successfully uninstalled.', [
+    if (!self::isUninstalled($module)) {
+      throw new DrupalHelpersException('Module "@module" could not uninstalled.', [
         '@module' => $module,
-      ]));
-
-      return TRUE;
+      ]);
     }
 
-    throw new \DrupalUpdateException(format_string('Module "@module" could not uninstalled.', [
-      '@module' => $module,
-    ]));
+    Utility::message('Module "@module" was successfully uninstalled.', ['@module' => $module]);
   }
 
   /**
@@ -142,9 +122,90 @@ class Module extends System {
       ->condition('name', $module)
       ->execute();
 
-    General::messageSet(format_string('Removed traces of module "@module".', [
-      '@module' => $module,
-    ]));
+    Utility::message('Removed traces of module "@module".', ['@module' => $module]);
+  }
+
+  /**
+   * Retrieves the weight of a module.
+   *
+   * @param string $name
+   *   Machine name of module.
+   *
+   * @return int
+   *   Weight of the specified item.
+   */
+  public static function weightGet($name) {
+    return db_query("SELECT weight FROM {system} WHERE name = :name AND type = :type", [
+      ':name' => $name,
+      ':type' => 'module',
+    ])->fetchField();
+  }
+
+  /**
+   * Updates the weight of a module.
+   *
+   * @param string $name
+   *   Machine name of module.
+   * @param int $weight
+   *   Weight value to set.
+   */
+  public static function weightSet($name, $weight) {
+    db_update('system')
+      ->fields(['weight' => $weight])
+      ->condition('name', $name)
+      ->condition('type', 'module')
+      ->execute();
+  }
+
+  /**
+   * Checks if module is enabled.
+   *
+   * @param string $name
+   *   Machine name of module.
+   *
+   * @return bool
+   *   TRUE if the module is enabled, FALSE otherwise.
+   */
+  public static function isEnabled($name) {
+    $q = db_select('system');
+    $q->fields('system', ['name', 'status'])
+      ->condition('name', $name, '=')
+      ->condition('type', 'module', '=');
+    $rs = $q->execute();
+
+    return (bool) $rs->fetch()->status;
+  }
+
+  /**
+   * Checks the status of a module.
+   *
+   * @param string $name
+   *   Machine name of module.
+   *
+   * @return bool
+   *   TRUE if the module is disabled, FALSE otherwise.
+   */
+  public static function isDisabled($name) {
+    return !self::isEnabled($name);
+  }
+
+  /**
+   * Checks whether a module is uninstalled.
+   *
+   * @param string $name
+   *   Machine name of module.
+   *
+   * @return bool
+   *   TRUE if the module is uninstalled, FALSE otherwise.
+   */
+  public static function isUninstalled($name) {
+    $q = db_select('system');
+    $q->fields('system', ['name', 'schema_version'])
+      ->condition('name', $name, '=')
+      ->condition('type', 'module', '=');
+    $rs = $q->execute();
+
+    return (int) $rs->fetch()->schema_version === -1;
   }
 
 }
