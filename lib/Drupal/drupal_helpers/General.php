@@ -33,7 +33,7 @@ class General {
    * @see \Drupal\drupal_helpers\Utility::message()
    */
   public static function messageSet($message, $prefix = '-- ', $indent = 2) {
-    Utility::message($message, [], $prefix, $indent);
+    Utility::message($message, [], $indent, $prefix);
   }
 
 }
