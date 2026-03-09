@@ -1,0 +1,213 @@
+name: Test
+
+on:
+  push:
+    tags:
+      - '**'
+    branches:
+      - 2.x
+  pull_request:
+    branches:
+      - 2.x
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+        with:
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+        with:
+          php-version: 8.4
+          extensions: gd, sqlite, pdo_sqlite
+
+      - name: Assemble the codebase
+        run: .devtools/assemble
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lint code with PHPCS
+        working-directory: build
+        run: vendor/bin/phpcs
+        continue-on-error: ${{ vars.CI_PHPCS_IGNORE_FAILURE == '1' }}
+
+      - name: Lint code with PHPStan
+        working-directory: build
+        run: vendor/bin/phpstan
+        continue-on-error: ${{ vars.CI_PHPSTAN_IGNORE_FAILURE == '1' }}
+
+      - name: Lint code with Rector
+        working-directory: build
+        run: vendor/bin/rector --clear-cache --dry-run
+        continue-on-error: ${{ vars.CI_RECTOR_IGNORE_FAILURE == '1' }}
+
+  test:
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+          - name: test-php-8.2-d10-legacy
+            php-version: 8.2
+            drupal-version: 10.2
+
+          - name: test-php-8.2-d10-stable
+            php-version: 8.2
+            drupal-version: 10.3
+
+          - name: test-php-8.2-d10-canary
+            php-version: 8.2
+            drupal-version: 10.4@beta
+            stability: canary
+
+          - name: test-php-8.3-d10-legacy
+            php-version: 8.3
+            drupal-version: 10.2
+
+          - name: test-php-8.3-d10-stable
+            php-version: 8.3
+            drupal-version: 10.3
+
+          - name: test-php-8.3-d10-canary
+            php-version: 8.3
+            drupal-version: 10.4@beta
+            stability: canary
+
+          - name: test-php-8.4-d10-legacy
+            php-version: 8.4
+            drupal-version: 10.3 # Lowest Drupal version that supports PHP 8.4.
+
+          - name: test-php-8.4-d10-stable
+            php-version: 8.4
+            drupal-version: 10.3
+
+          - name: test-php-8.4-d10-canary
+            php-version: 8.4
+            drupal-version: 10.4@beta
+
+          - name: test-php-8.3-d11-legacy
+            php-version: 8.3
+            drupal-version: 11.0 # Lowest Drupal version that exists.
+
+          - name: test-php-8.3-d11-stable
+            php-version: 8.3
+            drupal-version: 11.0
+
+          - name: test-php-8.3-d11-canary
+            php-version: 8.3
+            drupal-version: 11@beta
+
+          - name: test-php-8.4-d11-legacy
+            php-version: 8.4
+            drupal-version: 11.0 # Lowest Drupal version that exists.
+
+          - name: test-php-8.4-d11-stable
+            php-version: 8.4
+            drupal-version: 11.0
+
+          - name: test-php-8.4-d11-canary
+            php-version: 8.4
+            drupal-version: 11@beta
+
+    services:
+      chrome:
+        image: selenium/standalone-chromium:latest@sha256:36474a4c56765ec3d04dc4cbac57a021e0d88e89fdb5dca297a50f1100279c1a
+        ports:
+          - 4444:4444
+
+    name: ${{ matrix.name }}
+
+    env:
+      DRUPAL_VERSION: ${{ matrix.drupal-version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+        with:
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+
+      - name: Upgrade sqlite3
+        run: |
+          wget https://www.sqlite.org/2024/sqlite-autoconf-3450300.tar.gz -O /tmp/sqlite.tar.gz
+          tar -xzf /tmp/sqlite.tar.gz -C /tmp
+          cd /tmp/sqlite-autoconf-3450300
+          ./configure CFLAGS="-DSQLITE_ENABLE_COLUMN_METADATA=1" --prefix=/usr/local
+          make && sudo make install
+          sudo ldconfig
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: gd, sqlite, pdo_sqlite
+          coverage: pcov
+
+      # Disable Symfony deprecations helper for PHP 8.4+ until minor
+      # versions of Drupal 10 and 11 fully support PHP 8.4.
+      # @see https://www.drupal.org/project/drupal/issues/1267246
+      - name: Update SYMFONY_DEPRECATIONS_HELPER for PHP 8.4
+        run: |
+          if [ "$(php -r 'echo PHP_MAJOR_VERSION . PHP_MINOR_VERSION;')" == "84" ]; then
+            echo "SYMFONY_DEPRECATIONS_HELPER=disabled" >> "$GITHUB_ENV"
+          fi
+
+      - name: Assemble the codebase
+        run: .devtools/assemble
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Start built-in PHP server
+        run: .devtools/start
+        env:
+          WEBSERVER_HOST: 0.0.0.0
+
+      - name: Provision site
+        run: .devtools/provision
+
+      - name: Run tests
+        working-directory: build
+        run: php -d pcov.directory=.. vendor/bin/phpunit
+        continue-on-error: ${{ vars.CI_TEST_IGNORE_FAILURE == '1' }}
+        env:
+          BROWSERTEST_OUTPUT_DIRECTORY: /tmp
+          SIMPLETEST_DB: sqlite://tmp/db.sqlite
+
+      - name: Upload test results as an artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        if: always()
+        with:
+          name: Artifacts (${{ matrix.name }})
+          path: build/web/sites/simpletest/browser_output
+
+      - name: Upload coverage report as an artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: ${{github.job}}-code-coverage-report-${{ matrix.name }}
+          path: ./.logs/coverage/phpunit/.coverage-html
+          include-hidden-files: true
+          if-no-files-found: error
+
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
+        if: ${{ env.CODECOV_TOKEN != '' }}
+        with:
+          files: ./.logs/coverage/phpunit/cobertura.xml
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

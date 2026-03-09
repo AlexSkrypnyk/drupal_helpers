@@ -1,0 +1,5 @@
+name: Drupal Helpers
+type: module
+description: 'Helper utilities for Drupal.'
+core_version_requirement: ^10.3 || ^11
+package: Development

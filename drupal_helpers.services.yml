@@ -1,0 +1,22 @@
+services:
+  drupal_helpers.term:
+    class: Drupal\drupal_helpers\Helpers\Term
+    arguments: ['@entity_type.manager', '@messenger']
+  drupal_helpers.menu:
+    class: Drupal\drupal_helpers\Helpers\Menu
+    arguments: ['@entity_type.manager', '@messenger']
+  drupal_helpers.field:
+    class: Drupal\drupal_helpers\Helpers\Field
+    arguments: ['@entity_type.manager', '@messenger']
+  drupal_helpers.entity:
+    class: Drupal\drupal_helpers\Helpers\Entity
+    arguments: ['@entity_type.manager', '@messenger']
+  drupal_helpers.config:
+    class: Drupal\drupal_helpers\Helpers\Config
+    arguments: ['@config.factory', '@config.storage', '@extension.list.module', '@messenger']
+  drupal_helpers.user:
+    class: Drupal\drupal_helpers\Helpers\User
+    arguments: ['@entity_type.manager', '@messenger', '@password_generator']
+  drupal_helpers.redirect:
+    class: Drupal\drupal_helpers\Helpers\Redirect
+    arguments: ['@entity_type.manager', '@messenger']

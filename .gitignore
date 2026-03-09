@@ -1,2 +1,6 @@
-composer.lock
-build
+/.logs
+/.phpunit.cache
+/build
+/composer.lock
+/node_modules
+/vendor

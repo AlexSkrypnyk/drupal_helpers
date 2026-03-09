@@ -1,6 +1,7 @@
 {
-    "name": "integratedexperts/drupal_helpers",
-    "description": "Helper classes for Drupal",
+    "name": "drupal/drupal_helpers",
+    "description": "Helper utilities for Drupal",
+    "type": "drupal-module",
     "keywords": [
         "drupal",
         "helper",
@@ -11,23 +12,17 @@
     "authors": [
         {
             "name": "Alex Skrypnyk",
-            "email": "alex@integratedexperts.com"
-        },
-        {
-            "name": "Nick Santamaria",
-            "email": "nick@nicksantamaria.net"
+            "email": "alex@drevops.com"
         }
     ],
     "support": {
-        "issues": "https://github.com/integratedexperts/drupal_helpers/issues",
-        "source": "https://github.com/integratedexperts/drupal_helpers"
+        "issues": "https://github.com/AlexSkrypnyk/drupal_helpers/issues",
+        "source": "https://github.com/AlexSkrypnyk/drupal_helpers"
     },
     "require": {
-        "drupal/xautoload": "^4||^5"
+        "php": ">=8.2"
     },
-    "autoload": {
-        "psr-0": {
-            "Drupal\\drupal_helpers\\": "lib/"
-        }
+    "suggest": {
+        "drupal/redirect": "Required for the Redirect helper."
     }
 }
