@@ -51,8 +51,25 @@ batches operations across multiple requests — no manual tracking of
 `$sandbox['#finished']`.
 
 ```php
+// Batch-update every article node:
 function my_module_deploy_001(array &$sandbox): ?string {
+  return Helper::entity($sandbox)->batchEntity('node', 'article', function ($node) {
+    $node->set('field_migrated', TRUE);
+    $node->save();
+  });
+}
+
+// Batch-delete all articles:
+function my_module_deploy_002(array &$sandbox): ?string {
   return Helper::entity($sandbox)->deleteAll('node', 'article');
+}
+
+// Batch-process arbitrary items with a callback:
+function my_module_deploy_003(array &$sandbox): ?string {
+  $emails = ['user1@example.com', 'user2@example.com', /* ... hundreds more */];
+  return Helper::user($sandbox)->batch($emails, function ($email) {
+    Helper::user()->create($email, ['editor']);
+  }, 'users');
 }
 ```
 

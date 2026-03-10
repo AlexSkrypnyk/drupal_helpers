@@ -25,7 +25,7 @@ use Drupal\drupal_helpers\Helpers\User;
  *
  * // Batched — with sandbox:
  * function my_module_deploy_001(array &$sandbox): ?string {
- *   return Helper::entity($sandbox)->batch('node', 'article', function ($node) {
+ *   return Helper::entity($sandbox)->batchEntity('node', 'article', function ($node) {
  *     $node->set('field_migrated', TRUE);
  *     $node->save();
  *   });
