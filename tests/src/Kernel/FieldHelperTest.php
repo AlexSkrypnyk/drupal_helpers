@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\drupal_helpers\Kernel;
 
 use Drupal\drupal_helpers\Helpers\Field;
+use Drupal\entity_test\EntityTestHelper;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\KernelTests\KernelTestBase;
@@ -102,6 +103,8 @@ class FieldHelperTest extends KernelTestBase {
    * Tests deleting a field instance from one bundle leaves other bundles.
    */
   public function testDeleteInstance(): void {
+    EntityTestHelper::createBundle('bundle2');
+
     $this->createField('field_subtitle', 'entity_test');
     $this->createField('field_subtitle', 'bundle2');
 
