@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\drupal_helpers\Kernel;
 
 use Drupal\drupal_helpers\Helpers\Field;
+use Drupal\entity_test\EntityTestHelper;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\KernelTests\KernelTestBase;
@@ -43,6 +44,27 @@ class FieldHelperTest extends KernelTestBase {
    */
   public function testRequiredModules(): void {
     $this->assertEquals([], $this->fieldHelper->requiredModules());
+  }
+
+  /**
+   * Registers a new bundle for the entity_test entity type.
+   *
+   * Compatible with both Drupal 10 and Drupal 11.2+.
+   *
+   * @param string $bundle
+   *   The bundle machine name.
+   */
+  protected function createBundle(string $bundle): void {
+    if (class_exists(EntityTestHelper::class)) {
+      EntityTestHelper::createBundle($bundle);
+
+      return;
+    }
+
+    $bundles = \Drupal::state()->get('entity_test.bundles', ['entity_test' => ['label' => 'Entity Test Bundle']]);
+    $bundles += [$bundle => ['label' => $bundle]];
+    \Drupal::state()->set('entity_test.bundles', $bundles);
+    \Drupal::service('entity_bundle.listener')->onBundleCreate($bundle, 'entity_test');
   }
 
   /**
@@ -102,6 +124,8 @@ class FieldHelperTest extends KernelTestBase {
    * Tests deleting a field instance from one bundle leaves other bundles.
    */
   public function testDeleteInstance(): void {
+    $this->createBundle('bundle2');
+
     $this->createField('field_subtitle', 'entity_test');
     $this->createField('field_subtitle', 'bundle2');
 
