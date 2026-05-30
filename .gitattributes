@@ -1,18 +1,28 @@
 # Ignore files for distribution archives.
 
+AGENTS.md          export-ignore
+CLAUDE.md          export-ignore
+.claude            export-ignore
 .ahoy.yml          export-ignore
 .circleci          export-ignore
 .devtools          export-ignore
 .editorconfig      export-ignore
+.eslintignore      export-ignore
+.eslintrc.json     export-ignore
 .gitattributes     export-ignore
 .github            export-ignore
 .gitignore         export-ignore
+.prettierignore    export-ignore
+.prettierrc.json   export-ignore
 .skip_npm_build    export-ignore
-AGENTS.md          export-ignore
-CLAUDE.md          export-ignore
+.stylelintrc.js    export-ignore
+.twig-cs-fixer.php export-ignore
 Makefile           export-ignore
 composer.dev.json  export-ignore
 docs.php           export-ignore
+jest.config.js     export-ignore
+package-lock.json  export-ignore
+package.json       export-ignore
 patches            export-ignore
 phpcs.xml          export-ignore
 phpstan.neon       export-ignore
@@ -22,4 +32,3 @@ rector.php         export-ignore
 renovate.json      export-ignore
 tests              export-ignore
 
-LICENSE.txt        export-ignore

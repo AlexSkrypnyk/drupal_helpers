@@ -1,0 +1,16 @@
+/**
+ * @file
+ * Drupal Helpers styles.
+ */
+
+[data-drupal_helpers-time] {
+  color: #f00;
+  font-size: 0.875rem;
+  padding: 0.5rem;
+  text-align: center;
+}
+
+[data-drupal_helpers-time].drupal_helpers-processed {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
