@@ -992,18 +992,18 @@ EOD,
           ],
         ],
         "| Helper | Description |\n"
-        . "| --- | --- |\n"
-        . "| [User](#user) | User helpers for deploy hooks. |\n"
-        . "\n---\n"
-        . "\n### User\n\n"
-        . "[Source](src/Helpers/User.php)\n\n"
-        . ">  User helpers for deploy hooks.\n\n"
-        . "<details>\n"
-        . "  <summary>Create a user account.<br/><code>create(string \$email): UserInterface</code></summary>\n\n"
-        . "```php\n"
-        . "Helper::user()->create('admin@example.com');\n"
-        . "```\n\n"
-        . "</details>\n\n",
+          . "| --- | --- |\n"
+          . "| [User](#user) | User helpers for deploy hooks. |\n"
+          . "\n---\n"
+          . "\n### User\n\n"
+          . "[Source](src/Helpers/User.php)\n\n"
+          . ">  User helpers for deploy hooks.\n\n"
+          . "<details>\n"
+          . "  <summary>Create a user account.<br/><code>create(string \$email): UserInterface</code></summary>\n\n"
+          . "```php\n"
+          . "Helper::user()->create('admin@example.com');\n"
+          . "```\n\n"
+          . "</details>\n\n",
       ],
 
       'method without example' => [
@@ -1023,15 +1023,15 @@ EOD,
           ],
         ],
         "| Helper | Description |\n"
-        . "| --- | --- |\n"
-        . "| [Config](#config) | Config helpers. |\n"
-        . "\n---\n"
-        . "\n### Config\n\n"
-        . "[Source](src/Helpers/Config.php)\n\n"
-        . ">  Config helpers.\n\n"
-        . "<details>\n"
-        . "  <summary>Get a config value.<br/><code>get(string \$key): mixed</code></summary>\n\n\n"
-        . "</details>\n\n",
+          . "| --- | --- |\n"
+          . "| [Config](#config) | Config helpers. |\n"
+          . "\n---\n"
+          . "\n### Config\n\n"
+          . "[Source](src/Helpers/Config.php)\n\n"
+          . ">  Config helpers.\n\n"
+          . "<details>\n"
+          . "  <summary>Get a config value.<br/><code>get(string \$key): mixed</code></summary>\n\n\n"
+          . "</details>\n\n",
       ],
 
       'multiple classes' => [
@@ -1064,30 +1064,30 @@ EOD,
           ],
         ],
         "| Helper | Description |\n"
-        . "| --- | --- |\n"
-        . "| [Alpha](#alpha) | Alpha desc. |\n"
-        . "| [Beta](#beta) | Beta desc. |\n"
-        . "\n---\n"
-        . "\n### Alpha\n\n"
-        . "[Source](src/Helpers/Alpha.php)\n\n"
-        . ">  Alpha desc.\n\n"
-        . "<details>\n"
-        . "  <summary>Run alpha.<br/><code>run(): void</code></summary>\n\n\n"
-        . "</details>\n\n"
-        . "\n### Beta\n\n"
-        . "[Source](src/Helpers/Beta.php)\n\n"
-        . ">  Beta desc.\n\n"
-        . "<details>\n"
-        . "  <summary>Start beta.<br/><code>start(): void</code></summary>\n\n\n"
-        . "</details>\n\n",
+          . "| --- | --- |\n"
+          . "| [Alpha](#alpha) | Alpha desc. |\n"
+          . "| [Beta](#beta) | Beta desc. |\n"
+          . "\n---\n"
+          . "\n### Alpha\n\n"
+          . "[Source](src/Helpers/Alpha.php)\n\n"
+          . ">  Alpha desc.\n\n"
+          . "<details>\n"
+          . "  <summary>Run alpha.<br/><code>run(): void</code></summary>\n\n\n"
+          . "</details>\n\n"
+          . "\n### Beta\n\n"
+          . "[Source](src/Helpers/Beta.php)\n\n"
+          . ">  Beta desc.\n\n"
+          . "<details>\n"
+          . "  <summary>Start beta.<br/><code>start(): void</code></summary>\n\n\n"
+          . "</details>\n\n",
       ],
 
       'empty info' => [
         [],
         "| Helper | Description |\n"
-        . "| --- | --- |\n"
-        . "\n"
-        . "\n---\n",
+          . "| --- | --- |\n"
+          . "\n"
+          . "\n---\n",
       ],
 
       'multiple methods in one class' => [
@@ -1113,21 +1113,21 @@ EOD,
           ],
         ],
         "| Helper | Description |\n"
-        . "| --- | --- |\n"
-        . "| [Entity](#entity) | Entity helpers. |\n"
-        . "\n---\n"
-        . "\n### Entity\n\n"
-        . "[Source](src/Helpers/Entity.php)\n\n"
-        . ">  Entity helpers.\n\n"
-        . "<details>\n"
-        . "  <summary>Load entity.<br/><code>load(int \$id): EntityInterface</code></summary>\n\n\n"
-        . "</details>\n\n"
-        . "<details>\n"
-        . "  <summary>Delete entity.<br/><code>delete(int \$id): void</code></summary>\n\n"
-        . "```php\n"
-        . "\$helper->delete(123);\n"
-        . "```\n\n"
-        . "</details>\n\n",
+          . "| --- | --- |\n"
+          . "| [Entity](#entity) | Entity helpers. |\n"
+          . "\n---\n"
+          . "\n### Entity\n\n"
+          . "[Source](src/Helpers/Entity.php)\n\n"
+          . ">  Entity helpers.\n\n"
+          . "<details>\n"
+          . "  <summary>Load entity.<br/><code>load(int \$id): EntityInterface</code></summary>\n\n\n"
+          . "</details>\n\n"
+          . "<details>\n"
+          . "  <summary>Delete entity.<br/><code>delete(int \$id): void</code></summary>\n\n"
+          . "```php\n"
+          . "\$helper->delete(123);\n"
+          . "```\n\n"
+          . "</details>\n\n",
       ],
     ];
   }
@@ -1340,6 +1340,22 @@ EOD,
         ],
       ],
     ];
+  }
+
+  // =========================================================================
+  // extract_class_info() - nonexistent file.
+  // =========================================================================
+
+  // phpcs:ignore DrevOps.TestingPractices.DataProviderMatchesTestName.InvalidProviderName
+  public function testExtractClassInfoNonexistentFile(): void {
+    $actual = @extract_class_info(
+      'Drupal\\drupal_helpers\\Helpers\\Missing',
+      'src/Helpers/Missing.php',
+      static::$tmp,
+      []
+    );
+
+    $this->assertNull($actual);
   }
 
   // =========================================================================
@@ -1649,21 +1665,6 @@ EOD,
         ],
       ],
     ];
-  }
-
-  // =========================================================================
-  // extract_class_info() - nonexistent file.
-  // =========================================================================
-
-  public function testExtractClassInfoNonexistentFile(): void {
-    $actual = @extract_class_info(
-      'Drupal\\drupal_helpers\\Helpers\\Missing',
-      'src/Helpers/Missing.php',
-      static::$tmp,
-      []
-    );
-
-    $this->assertNull($actual);
   }
 
 }
