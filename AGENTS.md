@@ -30,7 +30,6 @@ This is a Drupal Helpers template for creating contributed modules or themes. Th
 - `ahoy test-kernel` - Run kernel tests only
 - `ahoy test-functional` - Run functional tests only
 - `ahoy test-functional-javascript` - Run FunctionalJavascript tests (requires Selenium)
-- `ahoy test-js` - Run JavaScript unit tests (Jest)
 - `ahoy selenium-start` - Start Selenium container
 - `ahoy selenium-stop` - Stop Selenium container
 

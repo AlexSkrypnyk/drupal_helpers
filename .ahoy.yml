@@ -60,7 +60,6 @@ commands:
       vendor/bin/rector --clear-cache --dry-run
       ahoy title "Running Twig CS Fixer"
       vendor/bin/twig-cs-fixer
-      [ ! -d node_modules ] || (ahoy title "Running ESLint" && npm run lint)
       popd >/dev/null || exit 1
       ahoy title "Running docs check"
       php docs.php --fail-on-change
@@ -75,7 +74,6 @@ commands:
       vendor/bin/phpcbf
       ahoy title "Running Twig CS Fixer"
       vendor/bin/twig-cs-fixer --no-cache --fix
-      [ ! -d node_modules ] || (ahoy title "Running ESLint" && npm run lint-fix)
       popd >/dev/null || exit 1
 
   test:
@@ -84,7 +82,6 @@ commands:
       pushd "build" >/dev/null || exit 1
       ahoy title "Running PHPUnit"
       php -d pcov.directory=.. vendor/bin/phpunit "$@"
-      [ ! -d node_modules ] || (ahoy title "Running Jest" && npm test)
       popd >/dev/null || exit 1
 
   test-unit:
@@ -114,13 +111,6 @@ commands:
       ahoy selenium-start
       pushd "build" >/dev/null || exit 1
       php -d pcov.directory=.. vendor/bin/phpunit --testsuite functional-javascript "$@"
-      popd >/dev/null || exit 1
-
-  test-js:
-    usage: Run JavaScript unit tests.
-    cmd: |
-      pushd "build" >/dev/null || exit 1
-      [ ! -d node_modules ] || npm test
       popd >/dev/null || exit 1
 
   selenium-start:
