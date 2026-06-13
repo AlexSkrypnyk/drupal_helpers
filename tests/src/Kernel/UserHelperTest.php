@@ -21,8 +21,6 @@ class UserHelperTest extends KernelTestBase {
 
   /**
    * The user helper service.
-   *
-   * @var \Drupal\drupal_helpers\Helpers\User
    */
   protected User $userHelper;
 

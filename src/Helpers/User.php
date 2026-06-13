@@ -117,7 +117,7 @@ class User extends HelperBase {
   public function assignRoles(string $user_identifier, array $roles): void {
     $user = $this->findUser($user_identifier);
 
-    if ($user === NULL) {
+    if (!$user instanceof UserInterface) {
       $this->messenger->addWarning($this->t('User "@identifier" not found — skipped.', [
         '@identifier' => $user_identifier,
       ]));
@@ -152,7 +152,7 @@ class User extends HelperBase {
   public function removeRoles(string $user_identifier, array $roles): void {
     $user = $this->findUser($user_identifier);
 
-    if ($user === NULL) {
+    if (!$user instanceof UserInterface) {
       $this->messenger->addWarning($this->t('User "@identifier" not found — skipped.', [
         '@identifier' => $user_identifier,
       ]));

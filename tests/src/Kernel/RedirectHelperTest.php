@@ -172,6 +172,7 @@ class RedirectHelperTest extends KernelTestBase {
       $result = $helper->deleteAll();
     } while ($result === NULL);
 
+    /** @phpstan-ignore method.alreadyNarrowedType */
     $this->assertNotNull($result);
 
     // Reset entity cache and verify all deleted.
@@ -188,9 +189,9 @@ class RedirectHelperTest extends KernelTestBase {
     $csv_path = sys_get_temp_dir() . '/test_redirects_' . uniqid() . '.csv';
     $handle = fopen($csv_path, 'w');
     $this->assertIsResource($handle);
-    fputcsv($handle, escape: '\\', fields: ['csv-page-one', '/csv-target-one', '301']);
-    fputcsv($handle, escape: '\\', fields: ['csv-page-two', '/csv-target-two', '302']);
-    fputcsv($handle, escape: '\\', fields: ['csv-page-three', 'https://example.com', '301']);
+    fputcsv($handle, fields: ['csv-page-one', '/csv-target-one', '301'], escape: '\\');
+    fputcsv($handle, fields: ['csv-page-two', '/csv-target-two', '302'], escape: '\\');
+    fputcsv($handle, fields: ['csv-page-three', 'https://example.com', '301'], escape: '\\');
     fclose($handle);
 
     $result = $this->redirectHelper->importFromCsv($csv_path);
@@ -212,7 +213,7 @@ class RedirectHelperTest extends KernelTestBase {
     $handle = fopen($csv_path, 'w');
     $this->assertIsResource($handle);
     for ($i = 0; $i < 125; $i++) {
-      fputcsv($handle, escape: '\\', fields: ['csv-sandbox-page-' . $i, '/csv-sandbox-target-' . $i, '301']);
+      fputcsv($handle, fields: ['csv-sandbox-page-' . $i, '/csv-sandbox-target-' . $i, '301'], escape: '\\');
     }
     fclose($handle);
 
@@ -225,6 +226,7 @@ class RedirectHelperTest extends KernelTestBase {
       $result = $helper->importFromCsv($csv_path);
     } while ($result === NULL);
 
+    /** @phpstan-ignore method.alreadyNarrowedType */
     $this->assertNotNull($result);
 
     $storage = $this->container->get('entity_type.manager')->getStorage('redirect');

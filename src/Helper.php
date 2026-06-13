@@ -36,15 +36,11 @@ class Helper {
 
   /**
    * Cached cloned service instances keyed by sandbox ID and service name.
-   *
-   * @var array
    */
   protected static array $instances = [];
 
   /**
    * Counter for generating unique sandbox IDs.
-   *
-   * @var int
    */
   protected static int $instanceId = 0;
 
@@ -169,7 +165,7 @@ class Helper {
       }
     }
 
-    if ($missing) {
+    if ($missing !== []) {
       throw new \RuntimeException(sprintf('Required modules not installed: %s.', implode(', ', $missing)));
     }
   }

@@ -21,8 +21,6 @@ class MenuHelperTest extends KernelTestBase {
 
   /**
    * The menu helper service.
-   *
-   * @var \Drupal\drupal_helpers\Helpers\Menu
    */
   protected Menu $menuHelper;
 
