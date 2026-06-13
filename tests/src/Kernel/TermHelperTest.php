@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\drupal_helpers\Kernel;
 
+use Drupal\taxonomy\TermInterface;
 use Drupal\drupal_helpers\Helpers\Term;
 use Drupal\KernelTests\KernelTestBase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -21,8 +22,6 @@ class TermHelperTest extends KernelTestBase {
 
   /**
    * The term helper service.
-   *
-   * @var \Drupal\drupal_helpers\Helpers\Term
    */
   protected Term $termHelper;
 
@@ -60,7 +59,7 @@ class TermHelperTest extends KernelTestBase {
 
     $this->assertCount(3, $terms);
 
-    $names = array_map(fn($term) => $term->getName(), $terms);
+    $names = array_map(fn(TermInterface $term) => $term->getName(), $terms);
     $this->assertContains('News', $names);
     $this->assertContains('Events', $names);
     $this->assertContains('Blog', $names);

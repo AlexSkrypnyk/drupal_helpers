@@ -16,15 +16,11 @@ trait BatchTrait {
 
   /**
    * The sandbox array, or NULL for non-batched operations.
-   *
-   * @var array|null
    */
   protected ?array $sandbox = NULL;
 
   /**
    * The batch size for batched operations.
-   *
-   * @var int
    */
   protected int $batchSize = 50;
 

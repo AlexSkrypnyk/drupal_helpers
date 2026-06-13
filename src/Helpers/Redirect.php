@@ -202,7 +202,7 @@ class Redirect extends HelperBase {
       }
 
       while (($row = fgetcsv($handle, escape: '\\')) !== FALSE) {
-        if (empty($row) || (count($row) === 1 && trim($row[0]) === '')) {
+        if (count($row) === 1 && trim((string) $row[0]) === '') {
           continue;
         }
 

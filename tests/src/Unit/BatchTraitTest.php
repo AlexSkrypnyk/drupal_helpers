@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\drupal_helpers\Unit;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
@@ -28,14 +29,14 @@ class BatchTraitTest extends TestCase {
    *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected EntityTypeManagerInterface $entityTypeManager;
+  protected MockObject $entityTypeManager;
 
   /**
    * The messenger mock.
    *
    * @var \Drupal\Core\Messenger\MessengerInterface&\PHPUnit\Framework\MockObject\MockObject
    */
-  protected MessengerInterface $messenger;
+  protected MockObject $messenger;
 
   /**
    * The test helper instance using BatchTrait.
@@ -54,9 +55,7 @@ class BatchTraitTest extends TestCase {
     $this->helper = new BatchTraitTestHelper($this->entityTypeManager, $this->messenger);
 
     $translation = $this->createMock(TranslationInterface::class);
-    $translation->method('translateString')->willReturnCallback(function ($input) {
-      return (string) $input->getUntranslatedString();
-    });
+    $translation->method('translateString')->willReturnCallback(fn($input): string => (string) $input->getUntranslatedString());
     $this->helper->setStringTranslation($translation);
   }
 
@@ -139,17 +138,20 @@ class BatchTraitTest extends TestCase {
     // Second call: items 51-100.
     $result = $this->helper->batch($items, $callback, 'records');
     $this->assertNull($result);
+    /** @phpstan-ignore method.impossibleType */
     $this->assertCount(100, $processed);
 
     // Third call: items 101-120 (final).
     $this->messenger->expects($this->once())->method('addStatus');
     $result = $this->helper->batch($items, $callback, 'records');
     $this->assertNotNull($result);
+    /** @phpstan-ignore method.impossibleType */
     $this->assertCount(120, $processed);
     $this->assertStringContainsString('120', $result);
     $this->assertStringContainsString('records', $result);
 
     // Verify all items were processed in order.
+    /** @phpstan-ignore method.impossibleType */
     $this->assertSame($items, $processed);
   }
 
@@ -204,7 +206,7 @@ class BatchTraitTest extends TestCase {
     $items = ['a', 'b', 'c'];
     $captured_contexts = [];
 
-    $callback = function ($item, array $context) use (&$captured_contexts): void {
+    $callback = function (string $item, array $context) use (&$captured_contexts): void {
       $this->assertArrayHasKey('index', $context);
       $this->assertArrayHasKey('total', $context);
       $this->assertArrayHasKey('results', $context);

@@ -114,6 +114,7 @@ class HelperFacadeTest extends KernelTestBase {
   public function testRequirementCheckingPasses(): void {
     $instance = Helper::redirect();
 
+    /** @phpstan-ignore method.alreadyNarrowedType */
     $this->assertInstanceOf(Redirect::class, $instance);
   }
 

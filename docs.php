@@ -355,9 +355,7 @@ function dedent_code(string $code): string {
     return rtrim($code);
   }
 
-  $dedented = array_map(static function (string $line) use ($min_indent): string {
-    return strlen($line) >= $min_indent ? substr($line, $min_indent) : $line;
-  }, $lines);
+  $dedented = array_map(static fn(string $line): string => strlen($line) >= $min_indent ? substr($line, $min_indent) : $line, $lines);
 
   return rtrim(implode(PHP_EOL, $dedented));
 }

@@ -153,7 +153,7 @@ class Menu extends HelperBase {
   public function updateItem(string $menu_name, array $find_properties, array $updates): ?MenuLinkContentInterface {
     $link = $this->findItem($menu_name, $find_properties);
 
-    if ($link === NULL) {
+    if (!$link instanceof MenuLinkContentInterface) {
       $this->messenger->addWarning($this->t('Menu link not found in "@menu" — skipped update.', [
         '@menu' => $menu_name,
       ]));
