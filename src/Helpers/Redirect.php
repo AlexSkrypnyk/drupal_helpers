@@ -202,7 +202,8 @@ class Redirect extends HelperBase {
       }
 
       while (($row = fgetcsv($handle, escape: '\\')) !== FALSE) {
-        if (count($row) === 1 && trim((string) $row[0]) === '') {
+        $has_value = (bool) array_filter($row, static fn($value): bool => trim((string) $value) !== '');
+        if (!$has_value) {
           continue;
         }
 
