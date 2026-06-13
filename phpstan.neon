@@ -31,12 +31,5 @@ parameters:
         - web/modules/custom/*
         - web/themes/custom/*
       reportUnmatched: false
-    -
-      # Drupal field magic properties are not visible to PHPStan.
-      message: '#Access to an undefined property#'
-      paths:
-        - web/modules/custom/*/tests/*
-        - web/themes/custom/*/tests/*
-      reportUnmatched: false
 
   reportUnmatchedIgnoredErrors: false
