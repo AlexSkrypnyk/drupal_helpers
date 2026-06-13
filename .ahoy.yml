@@ -66,6 +66,8 @@ commands:
       ahoy title "Running Twig CS Fixer"
       vendor/bin/twig-cs-fixer
       popd >/dev/null || exit 1
+      ahoy title "Running docs check"
+      php docs.php --fail-on-change
 
   lint-fix:
     usage: Fix violations in coding standards.
