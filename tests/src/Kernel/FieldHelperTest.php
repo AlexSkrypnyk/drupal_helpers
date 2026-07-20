@@ -112,6 +112,28 @@ class FieldHelperTest extends KernelTestBase {
   }
 
   /**
+   * Tests that deleting a field purges all data across multiple batches.
+   */
+  public function testDeletePurgesAllFieldData(): void {
+    $this->createField('field_flag');
+
+    $storage = $this->container->get('entity_type.manager')->getStorage('entity_test');
+    for ($i = 0; $i < 3; $i++) {
+      $storage->create(['name' => 'entity_' . $i, 'field_flag' => TRUE])->save();
+    }
+
+    // Force a batch size of one so the purge loop runs multiple passes.
+    $this->fieldHelper->setBatchSize(1);
+    $this->fieldHelper->delete('field_flag');
+
+    $this->assertNull(FieldStorageConfig::loadByName('entity_test', 'field_flag'));
+
+    $repository = $this->container->get('entity_field.deleted_fields_repository');
+    $this->assertSame([], $repository->getFieldStorageDefinitions());
+    $this->assertSame([], $repository->getFieldDefinitions());
+  }
+
+  /**
    * Tests deleting a non-existent field produces a warning.
    */
   public function testDeleteNonExistent(): void {
