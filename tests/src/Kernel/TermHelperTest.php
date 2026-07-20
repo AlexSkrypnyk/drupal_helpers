@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\drupal_helpers\Kernel;
 
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Drupal\taxonomy\TermInterface;
 use Drupal\drupal_helpers\Helpers\Term;
 use Drupal\KernelTests\KernelTestBase;
@@ -13,6 +14,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * Kernel tests for the Term helper service.
  */
 #[CoversClass(Term::class)]
+#[RunTestsInSeparateProcesses]
 class TermHelperTest extends KernelTestBase {
 
   /**

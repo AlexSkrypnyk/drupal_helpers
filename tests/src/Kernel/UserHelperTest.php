@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\drupal_helpers\Kernel;
 
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Drupal\drupal_helpers\Helpers\User;
 use Drupal\KernelTests\KernelTestBase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -12,6 +13,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * Kernel tests for the User helper service.
  */
 #[CoversClass(User::class)]
+#[RunTestsInSeparateProcesses]
 class UserHelperTest extends KernelTestBase {
 
   /**

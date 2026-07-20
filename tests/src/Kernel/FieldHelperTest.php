@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\drupal_helpers\Kernel;
 
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Drupal\drupal_helpers\Helpers\Field;
 use Drupal\entity_test\EntityTestHelper;
 use Drupal\field\Entity\FieldConfig;
@@ -15,6 +16,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * Kernel tests for the Field helper service.
  */
 #[CoversClass(Field::class)]
+#[RunTestsInSeparateProcesses]
 class FieldHelperTest extends KernelTestBase {
 
   /**
