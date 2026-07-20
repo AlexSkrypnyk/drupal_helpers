@@ -7,7 +7,7 @@ services:
     arguments: ['@entity_type.manager', '@messenger']
   drupal_helpers.field:
     class: Drupal\drupal_helpers\Helpers\Field
-    arguments: ['@entity_type.manager', '@messenger']
+    arguments: ['@entity_type.manager', '@messenger', '@?Drupal\Core\Field\FieldPurger']
   drupal_helpers.entity:
     class: Drupal\drupal_helpers\Helpers\Entity
     arguments: ['@entity_type.manager', '@messenger']

@@ -4,10 +4,23 @@ declare(strict_types=1);
 
 namespace Drupal\drupal_helpers\Helpers;
 
+use Drupal\Component\Utility\DeprecationHelper;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Field\FieldPurger;
+use Drupal\Core\Messenger\MessengerInterface;
+
 /**
  * Field helpers for deploy hooks.
  */
 class Field extends HelperBase {
+
+  public function __construct(
+    EntityTypeManagerInterface $entity_type_manager,
+    MessengerInterface $messenger,
+    protected ?FieldPurger $fieldPurger = NULL,
+  ) {
+    parent::__construct($entity_type_manager, $messenger);
+  }
 
   /**
    * Delete a field from all entity bundles and purge its data.
@@ -41,7 +54,7 @@ class Field extends HelperBase {
     // Deleting the storage automatically cascades to all field instances
     // via the config dependency system (ConfigEntityBase::preDelete).
     $field_storage->delete();
-    field_purge_batch(100);
+    $this->purgeBatch(100);
 
     $this->messenger->addStatus($this->t('Deleted field storage "@field" and purged data.', [
       '@field' => $field_name,
@@ -80,13 +93,31 @@ class Field extends HelperBase {
     }
 
     $field_config->delete();
-    field_purge_batch(100);
+    $this->purgeBatch(100);
 
     $this->messenger->addStatus($this->t('Deleted field instance "@field" from @entity_type.@bundle.', [
       '@field' => $field_name,
       '@entity_type' => $entity_type,
       '@bundle' => $bundle,
     ]));
+  }
+
+  /**
+   * Purge a batch of deleted field data.
+   *
+   * @param int $batch_size
+   *   Maximum number of field data records to purge in this batch.
+   */
+  protected function purgeBatch(int $batch_size): void {
+    // The FieldPurger service replaced the procedural field_purge_batch()
+    // function on Drupal 11.4.0; the injected service is NULL on earlier
+    // supported cores, where the function is still the correct entry point.
+    DeprecationHelper::backwardsCompatibleCall(
+      \Drupal::VERSION,
+      '11.4.0',
+      fn() => $this->fieldPurger?->purgeBatch($batch_size),
+      fn() => field_purge_batch($batch_size),
+    );
   }
 
 }
