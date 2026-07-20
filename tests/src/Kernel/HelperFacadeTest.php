@@ -11,6 +11,7 @@ use Drupal\drupal_helpers\Helpers\Config;
 use Drupal\drupal_helpers\Helpers\Entity;
 use Drupal\drupal_helpers\Helpers\Field;
 use Drupal\drupal_helpers\Helpers\Menu;
+use Drupal\drupal_helpers\Helpers\Module;
 use Drupal\drupal_helpers\Helpers\Redirect;
 use Drupal\drupal_helpers\Helpers\Term;
 use Drupal\drupal_helpers\Helpers\User;
@@ -68,6 +69,7 @@ class HelperFacadeTest extends KernelTestBase {
       'config' => ['config', Config::class],
       'user' => ['user', User::class],
       'redirect' => ['redirect', Redirect::class],
+      'module' => ['module', Module::class],
     ];
   }
 

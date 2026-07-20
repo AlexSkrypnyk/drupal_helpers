@@ -20,3 +20,6 @@ services:
   drupal_helpers.redirect:
     class: Drupal\drupal_helpers\Helpers\Redirect
     arguments: ['@entity_type.manager', '@messenger']
+  drupal_helpers.module:
+    class: Drupal\drupal_helpers\Helpers\Module
+    arguments: ['@module_installer', '@extension.list.module', '@config.factory', '@config.manager', '@update.update_hook_registry', '@update.post_update_registry', '@router.builder', '@messenger']
