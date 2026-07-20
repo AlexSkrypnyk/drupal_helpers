@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\drupal_helpers\Kernel;
 
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Drupal\drupal_helpers\Helpers\Redirect;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\redirect\Entity\Redirect as RedirectEntity;
@@ -13,6 +14,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
  * Kernel tests for the Redirect helper service.
  */
 #[CoversClass(Redirect::class)]
+#[RunTestsInSeparateProcesses]
 class RedirectHelperTest extends KernelTestBase {
 
   /**

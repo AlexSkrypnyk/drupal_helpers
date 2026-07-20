@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\drupal_helpers\Kernel;
 
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Drupal\drupal_helpers\Helpers\HelperBase;
 use Drupal\drupal_helpers\Helper;
 use Drupal\drupal_helpers\Helpers\Config;
@@ -21,6 +22,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
  * Kernel tests for the Helper facade.
  */
 #[CoversClass(Helper::class)]
+#[RunTestsInSeparateProcesses]
 class HelperFacadeTest extends KernelTestBase {
 
   /**
