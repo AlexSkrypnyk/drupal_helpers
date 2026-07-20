@@ -134,7 +134,7 @@ class Field extends HelperBase {
    *   the purge silently no-op and leave orphaned data behind.
    */
   protected function purgeViaService(int $batch_size): void {
-    if ($this->fieldPurger === NULL) {
+    if (!$this->fieldPurger instanceof FieldPurger) {
       throw new \RuntimeException('The "Drupal\Core\Field\FieldPurger" service is required to purge deleted field data on Drupal 11.4.0 and later.');
     }
 

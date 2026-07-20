@@ -28,11 +28,9 @@ class FieldPurgeTest extends TestCase {
       $this->createMock(EntityTypeManagerInterface::class),
       $this->createMock(MessengerInterface::class),
       $this->createMock(DeletedFieldsRepositoryInterface::class),
-      NULL,
     );
 
     $method = new \ReflectionMethod($field, 'purgeViaService');
-    $method->setAccessible(TRUE);
 
     $this->expectException(\RuntimeException::class);
     $this->expectExceptionMessage('FieldPurger');
