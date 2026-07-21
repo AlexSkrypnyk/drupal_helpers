@@ -129,6 +129,12 @@ class ModuleHelperTest extends KernelTestBase {
   public function testForceUninstallOrphanedModule(): void {
     $this->registerOrphanedModule('ghost_module');
 
+    // Seed the module's own config in the default and a non-default collection.
+    // An orphaned module's leftover config has no schema, so write it straight
+    // to storage to bypass the kernel test's config schema checker.
+    $this->container->get('config.storage')->write('ghost_module.settings', ['foo' => 'bar']);
+    $this->container->get('config.storage')->createCollection('language.xx')->write('ghost_module.settings', ['foo' => 'bar']);
+
     $called = NULL;
     $result = Helper::module()->uninstall('ghost_module', function (string $module) use (&$called): void {
       $called = $module;
@@ -137,6 +143,8 @@ class ModuleHelperTest extends KernelTestBase {
     $this->assertSame('ghost_module', $called);
     $this->assertArrayNotHasKey('ghost_module', $this->installedModules());
     $this->assertSame(UpdateHookRegistry::SCHEMA_UNINSTALLED, $this->updateHookRegistry()->getInstalledVersion('ghost_module'));
+    $this->assertTrue($this->container->get('config.factory')->get('ghost_module.settings')->isNew());
+    $this->assertFalse($this->container->get('config.storage')->createCollection('language.xx')->exists('ghost_module.settings'));
     $this->assertStringContainsString("Force-removed orphaned module 'ghost_module'", $result);
   }
 

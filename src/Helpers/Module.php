@@ -7,6 +7,7 @@ namespace Drupal\drupal_helpers\Helpers;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ConfigManagerInterface;
+use Drupal\Core\Config\StorageInterface;
 use Drupal\Core\Extension\MissingDependencyException;
 use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\Extension\ModuleInstallerInterface;
@@ -28,6 +29,7 @@ class Module {
     protected ModuleExtensionList $moduleExtensionList,
     protected ConfigFactoryInterface $configFactory,
     protected ConfigManagerInterface $configManager,
+    protected StorageInterface $configStorage,
     protected UpdateHookRegistry $updateHookRegistry,
     protected UpdateRegistry $postUpdateRegistry,
     protected RouteBuilderInterface $routeBuilder,
@@ -60,7 +62,7 @@ class Module {
       return (string) $message;
     }
 
-    if (!$this->moduleExtensionList->exists($module)) {
+    if (!$this->moduleHasCode($module)) {
       throw new \RuntimeException(sprintf("Module '%s' cannot be installed because its code could not be found.", $module));
     }
 
@@ -130,7 +132,7 @@ class Module {
       return (string) $message;
     }
 
-    if (!$this->moduleExtensionList->exists($module)) {
+    if (!$this->moduleHasCode($module)) {
       return $this->forceUninstall($module, $callback);
     }
 
@@ -164,10 +166,11 @@ class Module {
    * The native module installer refuses to uninstall a module it cannot find
    * on disk, leaving orphaned traces behind. This reproduces the parts of a
    * normal uninstall that do not need the module's code: dependent config is
-   * repaired, the module is removed from the extension list, its schema and
-   * post-update bookkeeping are dropped, caches are flushed and routes are
-   * rebuilt. The module's own hook_uninstall() cannot run, so the caller-
-   * supplied callback stands in for it.
+   * repaired, the module's own config is removed, its schema version and
+   * post-update bookkeeping are cleared, caches are flushed and routes are
+   * rebuilt. The module's own hook_uninstall() and hook_schema() teardown
+   * cannot run, so the caller-supplied callback must remove any leftover
+   * database tables or data the module owned.
    *
    * @param string $module
    *   Module machine name.
@@ -208,6 +211,10 @@ class Module {
    * from the file system" warning. The config manager's own uninstall() only
    * needs that path for a schema-cache refresh a codeless module never needs.
    *
+   * Config entities that depend on the module are fixed or deleted, and the
+   * module's own simple configuration is removed from the default collection
+   * and from every other collection (such as language overrides).
+   *
    * @param string $module
    *   Module machine name.
    */
@@ -227,8 +234,14 @@ class Module {
       $entity->delete();
     }
 
-    foreach ($this->configFactory->listAll($module . '.') as $config_name) {
+    $prefix = $module . '.';
+
+    foreach ($this->configFactory->listAll($prefix) as $config_name) {
       $this->configFactory->getEditable($config_name)->delete();
+    }
+
+    foreach ($this->configStorage->getAllCollectionNames() as $collection) {
+      $this->configStorage->createCollection($collection)->deleteAll($prefix);
     }
   }
 
@@ -269,6 +282,23 @@ class Module {
    */
   protected function isInstalled(string $module): bool {
     return array_key_exists($module, $this->installedModules());
+  }
+
+  /**
+   * Check whether a module's code is present on disk.
+   *
+   * Rescans the extension list first so a module added to or removed from the
+   * filesystem during the same request is detected, rather than relying on the
+   * list discovered when the container was built.
+   *
+   * @param string $module
+   *   Module machine name.
+   *
+   * @return bool
+   *   TRUE when the module's code can be found.
+   */
+  protected function moduleHasCode(string $module): bool {
+    return $this->moduleExtensionList->reset()->exists($module);
   }
 
 }

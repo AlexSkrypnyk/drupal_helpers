@@ -9,6 +9,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ConfigManagerInterface;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\Core\Config\ImmutableConfig;
+use Drupal\Core\Config\StorageInterface;
 use Drupal\Core\Extension\MissingDependencyException;
 use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\Extension\ModuleInstallerInterface;
@@ -56,6 +57,13 @@ class ModuleHelperTest extends TestCase {
    * @var \Drupal\Core\Config\ConfigManagerInterface&\PHPUnit\Framework\MockObject\MockObject
    */
   protected MockObject $configManager;
+
+  /**
+   * The active config storage mock.
+   *
+   * @var \Drupal\Core\Config\StorageInterface&\PHPUnit\Framework\MockObject\MockObject
+   */
+  protected MockObject $configStorage;
 
   /**
    * The update hook registry mock.
@@ -107,8 +115,10 @@ class ModuleHelperTest extends TestCase {
 
     $this->moduleInstaller = $this->createMock(ModuleInstallerInterface::class);
     $this->moduleExtensionList = $this->createMock(ModuleExtensionList::class);
+    $this->moduleExtensionList->method('reset')->willReturnSelf();
     $this->configFactory = $this->createMock(ConfigFactoryInterface::class);
     $this->configManager = $this->createMock(ConfigManagerInterface::class);
+    $this->configStorage = $this->createMock(StorageInterface::class);
     $this->updateHookRegistry = $this->createMock(UpdateHookRegistry::class);
     $this->postUpdateRegistry = $this->createMock(UpdateRegistry::class);
     $this->routeBuilder = $this->createMock(RouteBuilderInterface::class);
@@ -130,6 +140,7 @@ class ModuleHelperTest extends TestCase {
       $this->moduleExtensionList,
       $this->configFactory,
       $this->configManager,
+      $this->configStorage,
       $this->updateHookRegistry,
       $this->postUpdateRegistry,
       $this->routeBuilder,
@@ -267,9 +278,13 @@ class ModuleHelperTest extends TestCase {
       ['core.extension', $core_extension],
     ]);
 
+    $collection_storage = $this->createMock(StorageInterface::class);
+    $collection_storage->expects($this->once())->method('deleteAll')->with('ghost.');
+    $this->configStorage->method('getAllCollectionNames')->willReturn(['language.de']);
+    $this->configStorage->method('createCollection')->with('language.de')->willReturn($collection_storage);
+
     $this->updateHookRegistry->expects($this->once())->method('deleteInstalledVersion')->with('ghost');
     $this->postUpdateRegistry->expects($this->once())->method('filterOutInvokedUpdatesByExtension')->with('ghost');
-    $this->moduleExtensionList->expects($this->once())->method('reset');
     $this->routeBuilder->expects($this->once())->method('rebuild');
 
     $module = $this->createForcedModule();
@@ -294,6 +309,7 @@ class ModuleHelperTest extends TestCase {
     $this->configManager->method('getConfigEntitiesToChangeOnDependencyRemoval')
       ->willReturn(['update' => [], 'delete' => [], 'unchanged' => []]);
     $this->configFactory->method('listAll')->willReturn([]);
+    $this->configStorage->method('getAllCollectionNames')->willReturn([]);
 
     $core_extension = $this->createMock(Config::class);
     $core_extension->method('clear')->willReturnSelf();
@@ -324,6 +340,7 @@ class ModuleHelperTest extends TestCase {
         $this->moduleExtensionList,
         $this->configFactory,
         $this->configManager,
+        $this->configStorage,
         $this->updateHookRegistry,
         $this->postUpdateRegistry,
         $this->routeBuilder,
