@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\drupal_helpers\Kernel;
 
+use Drupal\block\BlockInterface;
+use Drupal\block_content\BlockContentInterface;
 use Drupal\block_content\Entity\BlockContentType;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\drupal_helpers\Helpers\Block;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
@@ -71,7 +72,7 @@ class BlockHelperTest extends KernelTestBase {
   public function testPlace(): void {
     $block = $this->blockHelper->place('system_powered_by_block', 'stark', 'content');
 
-    $this->assertInstanceOf(EntityInterface::class, $block);
+    $this->assertInstanceOf(BlockInterface::class, $block);
     $this->assertEquals('stark_system_powered_by_block', $block->id());
     $this->assertEquals('system_powered_by_block', $block->get('plugin'));
     $this->assertEquals('stark', $block->get('theme'));
@@ -88,7 +89,7 @@ class BlockHelperTest extends KernelTestBase {
       'weight' => 10,
     ]);
 
-    $this->assertInstanceOf(EntityInterface::class, $block);
+    $this->assertInstanceOf(BlockInterface::class, $block);
     $this->assertEquals('custom_powered', $block->id());
     $this->assertEquals(10, $block->get('weight'));
   }
@@ -107,7 +108,7 @@ class BlockHelperTest extends KernelTestBase {
       ],
     ]);
 
-    $this->assertInstanceOf(EntityInterface::class, $block);
+    $this->assertInstanceOf(BlockInterface::class, $block);
     $visibility = $block->get('visibility');
     $this->assertArrayHasKey('request_path', $visibility);
     $this->assertEquals('/admin/*', $visibility['request_path']['pages']);
@@ -121,8 +122,8 @@ class BlockHelperTest extends KernelTestBase {
     $first = $this->blockHelper->place('system_powered_by_block', 'stark', 'content');
     $second = $this->blockHelper->place('system_powered_by_block', 'stark', 'content');
 
-    $this->assertInstanceOf(EntityInterface::class, $first);
-    $this->assertInstanceOf(EntityInterface::class, $second);
+    $this->assertInstanceOf(BlockInterface::class, $first);
+    $this->assertInstanceOf(BlockInterface::class, $second);
     $this->assertEquals($first->id(), $second->id());
 
     $storage = $this->container->get('entity_type.manager')->getStorage('block');
@@ -167,7 +168,7 @@ class BlockHelperTest extends KernelTestBase {
       'body' => 'Call us on 1234',
     ]);
 
-    $this->assertInstanceOf(EntityInterface::class, $block_content);
+    $this->assertInstanceOf(BlockContentInterface::class, $block_content);
     $this->assertEquals('Footer contact', $block_content->label());
     $this->assertEquals('basic', $block_content->bundle());
     $this->assertEquals('Call us on 1234', $block_content->get('body')->value);
@@ -180,8 +181,8 @@ class BlockHelperTest extends KernelTestBase {
     $first = $this->blockHelper->createContent('basic', ['info' => 'Duplicate', 'body' => 'One']);
     $second = $this->blockHelper->createContent('basic', ['info' => 'Duplicate', 'body' => 'Two']);
 
-    $this->assertInstanceOf(EntityInterface::class, $first);
-    $this->assertInstanceOf(EntityInterface::class, $second);
+    $this->assertInstanceOf(BlockContentInterface::class, $first);
+    $this->assertInstanceOf(BlockContentInterface::class, $second);
     $this->assertEquals($first->id(), $second->id());
 
     $storage = $this->container->get('entity_type.manager')->getStorage('block_content');
