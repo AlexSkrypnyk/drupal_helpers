@@ -4,12 +4,148 @@ declare(strict_types=1);
 
 namespace Drupal\drupal_helpers\Helpers;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
 
 /**
  * Entity helpers for deploy hooks.
  */
 class Entity extends HelperBase {
+
+  /**
+   * Create an entity of a given type and bundle.
+   *
+   * @code
+   * Helper::entity()->create('node', 'article', [
+   *   'title' => 'Welcome',
+   *   'body' => 'Hello world',
+   * ]);
+   *
+   * // Skip re-creating an entity that already has the same identity value:
+   * Helper::entity()->create('node', 'article', [
+   *   'title' => 'Welcome',
+   * ], identity: 'title');
+   * @endcode
+   *
+   * @param string $entity_type
+   *   Entity type ID.
+   * @param string $bundle
+   *   Bundle machine name.
+   * @param array $values
+   *   Field values keyed by field name.
+   * @param string|null $identity
+   *   Field or property name used to detect duplicates within the bundle. When
+   *   set and present in $values, an existing entity with the same value is
+   *   returned instead of creating a new one. Defaults to NULL (always create).
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
+   *   Created entity, or the existing one when a duplicate is detected.
+   */
+  public function create(string $entity_type, string $bundle, array $values, ?string $identity = NULL): EntityInterface {
+    $storage = $this->entityTypeManager->getStorage($entity_type);
+    $bundle_key = $this->entityTypeManager->getDefinition($entity_type)->getKey('bundle');
+
+    if ($identity !== NULL && array_key_exists($identity, $values)) {
+      $conditions = [$identity => $values[$identity]];
+
+      if ($bundle_key) {
+        $conditions[$bundle_key] = $bundle;
+      }
+
+      $existing = $storage->loadByProperties($conditions);
+
+      if ($existing) {
+        $entity = reset($existing);
+        $this->messenger->addStatus($this->t('@type "@value" already exists - skipped.', [
+          '@type' => $entity_type,
+          '@value' => $values[$identity],
+        ]));
+
+        return $entity;
+      }
+    }
+
+    if ($bundle_key) {
+      $values = [$bundle_key => $bundle] + $values;
+    }
+
+    $entity = $storage->create($values);
+    $entity->save();
+
+    $this->messenger->addStatus($this->t('Created @type (id: @id).', [
+      '@type' => $entity_type,
+      '@id' => $entity->id(),
+    ]));
+
+    return $entity;
+  }
+
+  /**
+   * Create multiple entities with optional sandbox batching.
+   *
+   * @code
+   * $rows = [
+   *   ['title' => 'Page one'],
+   *   ['title' => 'Page two'],
+   * ];
+   * Helper::entity()->createMultiple('node', 'article', $rows, identity: 'title');
+   *
+   * // With sandbox for large datasets:
+   * function my_module_deploy_001(array &$sandbox): ?string {
+   *   return Helper::entity($sandbox)->createMultiple('node', 'article', $rows, identity: 'title');
+   * }
+   * @endcode
+   *
+   * @param string $entity_type
+   *   Entity type ID.
+   * @param string $bundle
+   *   Bundle machine name.
+   * @param array $rows
+   *   Array of field-value arrays, one per entity to create.
+   * @param string|null $identity
+   *   Field or property name used to detect duplicates within the bundle.
+   *   Defaults to NULL (always create).
+   *
+   * @return string|null
+   *   Status message when finished, or NULL while in progress.
+   */
+  public function createMultiple(string $entity_type, string $bundle, array $rows, ?string $identity = NULL): ?string {
+    return $this->batch($rows, function (array $row) use ($entity_type, $bundle, $identity): void {
+      $this->create($entity_type, $bundle, $row, $identity);
+    }, $entity_type . ' entities');
+  }
+
+  /**
+   * Update entities matched by a set of properties.
+   *
+   * @code
+   * Helper::entity()->update('node', ['type' => 'article'], ['status' => 0]);
+   *
+   * // With sandbox for large datasets:
+   * function my_module_deploy_001(array &$sandbox): ?string {
+   *   return Helper::entity($sandbox)->update('node', ['type' => 'article'], ['status' => 0]);
+   * }
+   * @endcode
+   *
+   * @param string $entity_type
+   *   Entity type ID.
+   * @param array $properties
+   *   Properties to match as ['field' => 'value'] pairs. May include the bundle
+   *   key to constrain the update to a single bundle.
+   * @param array $values
+   *   Field values to set on each matched entity, keyed by field name.
+   *
+   * @return string|null
+   *   Status message when finished, or NULL while in progress.
+   */
+  public function update(string $entity_type, array $properties, array $values): ?string {
+    return $this->batchEntity($entity_type, NULL, function ($entity) use ($values): void {
+      foreach ($values as $field => $value) {
+        $entity->set($field, $value);
+      }
+      $entity->save();
+    }, $properties);
+  }
 
   /**
    * Delete all entities of a given type and optional bundle.
