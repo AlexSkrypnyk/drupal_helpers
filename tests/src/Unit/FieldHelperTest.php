@@ -211,7 +211,7 @@ class FieldHelperTest extends TestCase {
   }
 
   /**
-   * Builds a Field helper with mocked dependencies and a passthrough translator.
+   * Builds a Field helper with mocked dependencies and a stub translator.
    */
   protected function createField(): Field {
     $field = new Field(

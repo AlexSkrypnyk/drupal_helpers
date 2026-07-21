@@ -10,7 +10,6 @@ use Drupal\drupal_helpers\Helpers\Field;
 use Drupal\entity_test\EntityTestHelper;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\field\FieldConfigInterface;
 use Drupal\KernelTests\KernelTestBase;
 use PHPUnit\Framework\Attributes\CoversClass;
 
@@ -104,7 +103,7 @@ class FieldHelperTest extends KernelTestBase {
   public function testCreate(): void {
     $instance = $this->fieldHelper->create('entity_test', 'entity_test', 'field_subtitle', ['type' => 'string']);
 
-    $this->assertInstanceOf(FieldConfigInterface::class, $instance);
+    $this->assertEquals('field_subtitle', $instance->getName());
 
     $storage = FieldStorageConfig::loadByName('entity_test', 'field_subtitle');
     $this->assertNotNull($storage);
@@ -127,7 +126,7 @@ class FieldHelperTest extends KernelTestBase {
   }
 
   /**
-   * Tests creating a field with explicit storage, instance and display settings.
+   * Tests creating a field with explicit storage, instance and display config.
    */
   public function testCreateWithExplicitSettings(): void {
     $this->fieldHelper->create('entity_test', 'entity_test', 'field_tagline', [

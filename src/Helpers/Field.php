@@ -231,7 +231,8 @@ class Field extends HelperBase {
    *   The existing or newly created field storage.
    *
    * @throws \InvalidArgumentException
-   *   When an existing storage has a field type different from the requested one.
+   *   When an existing storage has a field type different from the
+   *   requested one.
    */
   protected function ensureStorage(string $entity_type, string $field_name, array $settings): FieldStorageConfigInterface {
     $field_storage_config_storage = $this->entityTypeManager->getStorage('field_storage_config');
