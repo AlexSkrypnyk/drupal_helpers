@@ -67,7 +67,7 @@ class Block extends HelperBase {
     if ($skip_existing) {
       $existing = $storage->load($id);
       if ($existing instanceof EntityInterface) {
-        $this->messenger->addStatus($this->t('Block "@id" already exists - skipped.', [
+        $this->reporter->skipped($this->t('Block "@id" already exists - skipped.', [
           '@id' => $id,
         ]));
 
@@ -86,7 +86,7 @@ class Block extends HelperBase {
     ]);
     $block->save();
 
-    $this->messenger->addStatus($this->t('Placed block "@plugin" as "@id" in "@theme:@region".', [
+    $this->reporter->created($this->t('Placed block "@plugin" as "@id" in "@theme:@region".', [
       '@plugin' => $plugin_id,
       '@id' => $id,
       '@theme' => $theme,
@@ -157,7 +157,7 @@ class Block extends HelperBase {
     $block = $this->entityTypeManager->getStorage('block')->load($id);
 
     if (!$block instanceof EntityInterface) {
-      $this->messenger->addStatus($this->t('Block "@id" not found - nothing to remove.', [
+      $this->reporter->skipped($this->t('Block "@id" not found - nothing to remove.', [
         '@id' => $id,
       ]));
 
@@ -166,7 +166,7 @@ class Block extends HelperBase {
 
     $block->delete();
 
-    $this->messenger->addStatus($this->t('Removed block "@id".', [
+    $this->reporter->deleted($this->t('Removed block "@id".', [
       '@id' => $id,
     ]));
 
@@ -204,7 +204,7 @@ class Block extends HelperBase {
     if ($skip_existing && $info !== NULL) {
       $existing = $storage->loadByProperties(['type' => $bundle, 'info' => $info]);
       if ($existing) {
-        $this->messenger->addStatus($this->t('Block content "@info" already exists - skipped.', [
+        $this->reporter->skipped($this->t('Block content "@info" already exists - skipped.', [
           '@info' => $info,
         ]));
 
@@ -215,7 +215,7 @@ class Block extends HelperBase {
     $block_content = $storage->create(['type' => $bundle] + $values);
     $block_content->save();
 
-    $this->messenger->addStatus($this->t('Created "@type" block content "@info".', [
+    $this->reporter->created($this->t('Created "@type" block content "@info".', [
       '@type' => $bundle,
       '@info' => $info ?? '',
     ]));
@@ -289,10 +289,10 @@ class Block extends HelperBase {
     $storage->delete($blocks);
 
     $count = count($blocks);
-    $this->messenger->addStatus($this->t('Deleted @count block content matching "@info".', [
+    $this->reporter->deleted($this->t('Deleted @count block content matching "@info".', [
       '@count' => $count,
       '@info' => $info,
-    ]));
+    ]), $count);
 
     return $count;
   }
