@@ -70,7 +70,7 @@ class Redirect extends HelperBase {
 
     if ($skip_existing) {
       $existing = $this->loadRedirects($source_path, $language);
-      if ($existing) {
+      if ($existing !== []) {
         $this->reporter->skipped($this->t('Redirect from "@source" already exists — skipped.', [
           '@source' => $source_path,
         ]));
@@ -199,8 +199,7 @@ class Redirect extends HelperBase {
   public function exportToCsv(string $file_path): string {
     $storage = $this->entityTypeManager->getStorage('redirect');
 
-    $result = $storage->getQuery()->accessCheck(FALSE)->sort('rid')->execute();
-    $ids = is_array($result) ? array_values($result) : [];
+    $ids = array_values($storage->getQuery()->accessCheck(FALSE)->sort('rid')->execute());
 
     if (!is_writable(dirname($file_path))) {
       throw new \RuntimeException(sprintf('Cannot write CSV file: %s', $file_path));
@@ -213,10 +212,9 @@ class Redirect extends HelperBase {
       throw new \RuntimeException(sprintf('Cannot open CSV file for writing: %s', $file_path));
     }
     // @codeCoverageIgnoreEnd
-
     $count = 0;
 
-    foreach (array_chunk($ids, $this->batchSize) as $chunk) {
+    foreach (array_chunk($ids, max(1, $this->batchSize)) as $chunk) {
       foreach ($storage->loadMultiple($chunk) as $redirect) {
         if (!$redirect instanceof ContentEntityInterface) {
           continue;
@@ -348,8 +346,9 @@ class Redirect extends HelperBase {
    * @param string $file_path
    *   Absolute path to the CSV file.
    *
-   * @return array<int, array{line: int, source: string, target: string, status_code: string, language: string}>
-   *   Row records for every non-blank line, in file order.
+   * @return array<int, array<string, int|string>>
+   *   One record per non-blank line, in file order, each with 'line', 'source',
+   *   'target', 'status_code' and 'language' keys.
    *
    * @throws \RuntimeException
    *   If the file cannot be read or opened.
@@ -378,10 +377,10 @@ class Redirect extends HelperBase {
 
       $rows[] = [
         'line' => $line,
-        'source' => (string) ($columns[0] ?? ''),
-        'target' => (string) ($columns[1] ?? ''),
-        'status_code' => (string) ($columns[2] ?? ''),
-        'language' => (string) ($columns[3] ?? ''),
+        'source' => $columns[0] ?? '',
+        'target' => $columns[1] ?? '',
+        'status_code' => $columns[2] ?? '',
+        'language' => $columns[3] ?? '',
       ];
     }
 
@@ -413,7 +412,12 @@ class Redirect extends HelperBase {
       throw new \RuntimeException('missing target path');
     }
 
-    return [$source, $target, $this->parseStatusCode((string) $row['status_code']), $this->parseLanguage((string) $row['language'])];
+    return [
+      $source,
+      $target,
+      $this->parseStatusCode((string) $row['status_code']),
+      $this->parseLanguage((string) $row['language']),
+    ];
   }
 
   /**
@@ -547,7 +551,7 @@ class Redirect extends HelperBase {
     $source_path = ltrim($source_path, '/');
     $existing = $this->loadRedirects($source_path, $language);
 
-    if (!$existing) {
+    if ($existing === []) {
       $this->saveRedirect($source_path, $redirect_path, $status_code, $language);
       $this->reporter->created($this->t('Created @code redirect: "@source" -> "@target".', [
         '@code' => $status_code,
@@ -602,7 +606,7 @@ class Redirect extends HelperBase {
     $source_path = ltrim($source_path, '/');
     $redirects = $this->loadRedirects($source_path, $language);
 
-    if (!$redirects) {
+    if ($redirects === []) {
       $this->reporter->skipped($this->t('No redirect found for "@source" — skipped.', [
         '@source' => $source_path,
       ]));

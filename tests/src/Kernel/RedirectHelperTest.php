@@ -91,6 +91,7 @@ class RedirectHelperTest extends KernelTestBase {
 
     // Re-creating the same language skips.
     $again = $this->redirectHelper->create('old-page', '/nouvelle', 301, TRUE, 'fr');
+    $this->assertInstanceOf(RedirectEntity::class, $again);
     $this->assertEquals($french->id(), $again->id());
     $this->assertCount(2, $storage->loadByProperties(['redirect_source__path' => 'old-page']));
   }
@@ -317,6 +318,7 @@ class RedirectHelperTest extends KernelTestBase {
     $french = $storage->loadByProperties(['redirect_source__path' => 'fr-page', 'language' => 'fr']);
     $this->assertCount(1, $french);
     $redirect = reset($french);
+    $this->assertInstanceOf(RedirectEntity::class, $redirect);
     $this->assertEquals('fr', $redirect->get('language')->value);
     $this->assertEquals(301, $redirect->get('status_code')->value);
 
@@ -338,6 +340,7 @@ class RedirectHelperTest extends KernelTestBase {
     $redirects = $storage->loadByProperties(['redirect_source__path' => 'page']);
     $this->assertCount(1, $redirects);
     $redirect = reset($redirects);
+    $this->assertInstanceOf(RedirectEntity::class, $redirect);
     $this->assertEquals('internal:/new-target', $redirect->get('redirect_redirect')->uri);
     $this->assertEquals(302, $redirect->get('status_code')->value);
 
@@ -499,6 +502,7 @@ class RedirectHelperTest extends KernelTestBase {
     $remaining = $storage->loadByProperties(['redirect_source__path' => 'page']);
     $this->assertCount(1, $remaining);
     $redirect = reset($remaining);
+    $this->assertInstanceOf(RedirectEntity::class, $redirect);
     $this->assertEquals('en', $redirect->get('language')->value);
 
     unlink($csv_path);
@@ -598,6 +602,7 @@ class RedirectHelperTest extends KernelTestBase {
 
     $snapshot = [];
     foreach ($storage->loadMultiple() as $redirect) {
+      /** @var \Drupal\redirect\Entity\Redirect $redirect */
       $snapshot[] = [
         'source' => (string) $redirect->get('redirect_source')->path,
         'uri' => (string) $redirect->get('redirect_redirect')->uri,
