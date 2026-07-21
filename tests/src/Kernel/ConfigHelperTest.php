@@ -153,4 +153,83 @@ class ConfigHelperTest extends KernelTestBase {
     $this->assertEquals('/node/2', $value);
   }
 
+  /**
+   * Tests that a guarded set applies when the live value matches.
+   */
+  public function testSetIfExpectedMatch(): void {
+    $this->configHelper->set('system.site', 'name', 'Original');
+
+    $result = $this->configHelper->setIfExpected('system.site', 'name', 'Original', 'Updated');
+
+    $this->assertEquals('Updated', $this->config('system.site')->get('name'));
+    $this->assertStringContainsString('Set', $result);
+    $this->assertStringContainsString('system.site', $result);
+  }
+
+  /**
+   * Tests that a guarded set is skipped and reported when the value differs.
+   */
+  public function testSetIfExpectedMismatch(): void {
+    $this->configHelper->set('system.site', 'name', 'Actual');
+
+    $result = $this->configHelper->setIfExpected('system.site', 'name', 'Expected', 'Updated');
+
+    // The change is not applied.
+    $this->assertEquals('Actual', $this->config('system.site')->get('name'));
+
+    // A warning is surfaced that reports the difference.
+    $warnings = $this->container->get('messenger')->messagesByType('warning');
+    $this->assertNotEmpty($warnings);
+    $warning = (string) reset($warnings);
+    $this->assertStringContainsString('Actual', $warning);
+    $this->assertStringContainsString('Expected', $warning);
+
+    $this->assertStringContainsString('Actual', $result);
+    $this->assertStringContainsString('Expected', $result);
+  }
+
+  /**
+   * Tests that re-running once the value is set is a no-op reporting success.
+   */
+  public function testSetIfExpectedAlreadyApplied(): void {
+    $this->configHelper->set('system.site', 'name', 'Target');
+
+    $result = $this->configHelper->setIfExpected('system.site', 'name', 'Anything', 'Target');
+
+    $this->assertEquals('Target', $this->config('system.site')->get('name'));
+    $this->assertStringContainsString('already set', $result);
+
+    // An idempotent no-op is a success, not a warning.
+    $warnings = $this->container->get('messenger')->messagesByType('warning');
+    $this->assertEmpty($warnings);
+  }
+
+  /**
+   * Tests that the guard applies and skips for nested config structures.
+   */
+  public function testSetIfExpectedNestedStructure(): void {
+    $this->configHelper->set('drupal_helpers.test_guard', 'data', ['a' => 1, 'b' => 2]);
+
+    // A match on the whole nested structure applies the change.
+    $this->configHelper->setIfExpected('drupal_helpers.test_guard', 'data', ['a' => 1, 'b' => 2], ['a' => 1, 'b' => 3]);
+    $this->assertEquals(['a' => 1, 'b' => 3], $this->config('drupal_helpers.test_guard')->get('data'));
+
+    // A mismatch on a nested structure leaves the value untouched and reports
+    // both values as inline YAML.
+    $result = $this->configHelper->setIfExpected('drupal_helpers.test_guard', 'data', ['a' => 9], ['a' => 1, 'b' => 99]);
+    $this->assertEquals(['a' => 1, 'b' => 3], $this->config('drupal_helpers.test_guard')->get('data'));
+    $this->assertStringContainsString('a: 9', $result);
+    $this->assertStringContainsString('a: 1', $result);
+  }
+
+  /**
+   * Tests that guarding an unset key reports the missing current value.
+   */
+  public function testSetIfExpectedMissingKey(): void {
+    $result = $this->configHelper->setIfExpected('drupal_helpers.test_guard', 'absent', 'Expected', 'Updated');
+
+    $this->assertNull($this->config('drupal_helpers.test_guard')->get('absent'));
+    $this->assertStringContainsString('NULL', $result);
+  }
+
 }

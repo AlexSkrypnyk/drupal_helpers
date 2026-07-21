@@ -49,6 +49,68 @@ class Config {
   }
 
   /**
+   * Set a value only when the live value matches an expected value.
+   *
+   * Guards a config write against clobbering a value that has drifted from what
+   * the caller assumed: the change applies only when the current value equals
+   * the expected value. Re-running once the target value is already in place is
+   * a no-op that still reports success, so the operation is idempotent.
+   *
+   * @code
+   * return Helper::config()->setIfExpected('system.site', 'name', 'Old Name', 'New Name');
+   * @endcode
+   *
+   * @param string $config_name
+   *   Config name (e.g., 'system.site').
+   * @param string $key
+   *   Dot-separated key path (e.g., 'page.front').
+   * @param mixed $expected
+   *   Value the live config must currently hold for the change to apply.
+   * @param mixed $value
+   *   Value to set when the guard passes.
+   *
+   * @return string
+   *   A human-readable description of the outcome, suitable for returning
+   *   directly as a deploy hook's output.
+   */
+  public function setIfExpected(string $config_name, string $key, mixed $expected, mixed $value): string {
+    $config = $this->configFactory->getEditable($config_name);
+    $current = $config->get($key);
+
+    if ($current === $value) {
+      $message = $this->t('Value "@key" in "@config" already set - skipped.', [
+        '@key' => $key,
+        '@config' => $config_name,
+      ]);
+      $this->reporter->skipped($message);
+
+      return (string) $message;
+    }
+
+    if ($current !== $expected) {
+      $message = $this->t('Value "@key" in "@config" is "@current" but expected "@expected" - skipped.', [
+        '@key' => $key,
+        '@config' => $config_name,
+        '@current' => $this->formatValue($current),
+        '@expected' => $this->formatValue($expected),
+      ]);
+      $this->reporter->skipped($message, severity: Reporter::SEVERITY_WARNING);
+
+      return (string) $message;
+    }
+
+    $config->set($key, $value)->save();
+
+    $message = $this->t('Set "@key" in "@config".', [
+      '@key' => $key,
+      '@config' => $config_name,
+    ]);
+    $this->reporter->updated($message);
+
+    return (string) $message;
+  }
+
+  /**
    * Get a value from a configuration object.
    *
    * @code
@@ -186,6 +248,32 @@ class Config {
     $this->reporter->message($this->t('Set front page to "@path".', [
       '@path' => $path,
     ]));
+  }
+
+  /**
+   * Format a config value for display in an operation message.
+   *
+   * @param mixed $value
+   *   The value to format.
+   *
+   * @return string
+   *   A compact, single-line representation: booleans as TRUE/FALSE, NULL as
+   *   NULL, arrays as inline YAML, and scalars as their string form.
+   */
+  protected function formatValue(mixed $value): string {
+    if (is_bool($value)) {
+      return $value ? 'TRUE' : 'FALSE';
+    }
+
+    if (is_array($value)) {
+      return Yaml::dump($value, 0);
+    }
+
+    if (is_scalar($value)) {
+      return (string) $value;
+    }
+
+    return 'NULL';
   }
 
 }

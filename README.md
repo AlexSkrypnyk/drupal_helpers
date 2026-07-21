@@ -394,6 +394,15 @@ Helper::config()->set('system.site', 'name', 'My Site');
 </details>
 
 <details>
+  <summary>Set a value only when the live value matches an expected value.<br/><code>setIfExpected(string $config_name, string $key, mixed $expected, mixed $value): string</code></summary>
+
+```php
+return Helper::config()->setIfExpected('system.site', 'name', 'Old Name', 'New Name');
+```
+
+</details>
+
+<details>
   <summary>Get a value from a configuration object.<br/><code>get(string $config_name, string $key): mixed</code></summary>
 
 ```php
