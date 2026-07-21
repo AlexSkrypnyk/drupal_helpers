@@ -204,7 +204,15 @@ trait BatchTrait {
    */
   protected function batchEntityQuery(QueryInterface $query, callable $callback, bool $continue_on_error = FALSE): ?string {
     $entity_type = $query->getEntityTypeId();
-    $ids = (!$this->sandbox || !isset($this->sandbox['items'])) ? array_values($query->execute()) : [];
+    $ids = [];
+
+    if (!$this->sandbox || !isset($this->sandbox['items'])) {
+      // Query::execute() returns an int only when the query has the "count"
+      // flag set, which batching never does; guard it anyway for PHPStan.
+      $result = $query->execute();
+      $ids = is_array($result) ? array_values($result) : [];
+    }
+
     $storage = $this->getEntityTypeManager()->getStorage($entity_type);
 
     return $this->batch($ids, function ($id, array $context) use ($storage, $callback): void {
@@ -295,7 +303,11 @@ trait BatchTrait {
     $failed = count($errors);
 
     if ($failed > 0) {
-      $message = (string) $this->t('Processed @total @label, @failed failed.', ['@total' => $total, '@label' => $label, '@failed' => $failed]);
+      $message = (string) $this->t('Processed @total @label, @failed failed.', [
+        '@total' => $total,
+        '@label' => $label,
+        '@failed' => $failed,
+      ]);
     }
     else {
       $message = (string) $this->t('Processed @total @label.', ['@total' => $total, '@label' => $label]);

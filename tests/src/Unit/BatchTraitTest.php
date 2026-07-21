@@ -424,10 +424,13 @@ class BatchTraitTest extends TestCase {
     $this->messenger->expects($this->once())->method('addStatus');
     $this->messenger->expects($this->once())->method('addWarning');
 
-    $this->assertNull($this->helper->batch($items, $callback, 'items', TRUE));
-    $this->assertNull($this->helper->batch($items, $callback, 'items', TRUE));
+    $result1 = $this->helper->batch($items, $callback, 'items', TRUE);
+    $result2 = $this->helper->batch($items, $callback, 'items', TRUE);
     $result = $this->helper->batch($items, $callback, 'items', TRUE);
 
+    $this->assertNull($result1);
+    $this->assertNull($result2);
+    $this->assertNotNull($result);
     $this->assertStringContainsString('Processed 5 items, 2 failed', $result);
     $this->assertSame(['a', 'c', 'e'], $processed);
     $this->assertCount(2, $sandbox['errors']);
