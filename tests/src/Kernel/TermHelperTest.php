@@ -157,7 +157,7 @@ class TermHelperTest extends KernelTestBase {
     $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
     $generals = $storage->loadByProperties(['vid' => 'tags', 'name' => 'General']);
 
-    // Matching is scoped by parent, not by name alone: one 'General' per parent.
+    // Matching is scoped by parent, not name alone: one 'General' per parent.
     $this->assertCount(2, $generals);
 
     $finance = $this->termHelper->find('Finance', 'tags');
@@ -190,7 +190,7 @@ class TermHelperTest extends KernelTestBase {
 
     $this->assertSame(['Blog', 'News', 'Events'], $this->termHelper->exportTree('tags'));
 
-    // The same terms are reused (reordered in place), not deleted and recreated.
+    // The same terms are reused in place, not deleted and recreated.
     $this->assertSame($ids_before, $this->termIdsByName('tags'));
   }
 
