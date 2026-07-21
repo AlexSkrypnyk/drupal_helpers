@@ -77,7 +77,7 @@ function my_module_deploy_003(array &$sandbox): ?string {
 </details>
 
 <details>
-  <summary>🧰 <strong>Taxonomy, menu, field, entity, config, user, redirect, and URL alias helpers</strong></summary>
+  <summary>🧰 <strong>Taxonomy, menu, field, entity, config, user, role, redirect, and URL alias helpers</strong></summary>
 
 Common deploy hook operations covered out of the box:
 - Create taxonomy term trees (flat or nested) with duplicate detection.
@@ -85,6 +85,7 @@ Common deploy hook operations covered out of the box:
 - Delete fields and field instances with automatic data purging.
 - Import config YAML from modules.
 - Create users with roles and auto-generated passwords.
+- Create and delete roles and grant or revoke permissions (unknown permissions rejected).
 - Create, import (CSV), and clean up redirects.
 - Create, find, update, import (CSV), and clean up URL aliases (core, no contrib).
 
@@ -145,6 +146,7 @@ function my_module_deploy_001(array &$sandbox): ?string {
 | [Menu](#menu) | Menu link helpers for deploy hooks. |
 | [Module](#module) | Module install and uninstall helpers for deploy hooks. |
 | [Redirect](#redirect) | Redirect helpers for deploy hooks. |
+| [Role](#role) | Role and permission helpers for deploy hooks. |
 | [Term](#term) | Taxonomy term helpers for deploy hooks. |
 | [User](#user) | User helpers for deploy hooks. |
 
@@ -541,6 +543,52 @@ Helper::redirect()->importFromCsv('/path/to/redirects.csv');
 function my_module_deploy_001(array &$sandbox): ?string {
   return Helper::redirect($sandbox)->importFromCsv('/path/to/redirects.csv');
 }
+```
+
+</details>
+
+
+### Role
+
+[Source](src/Helpers/Role.php)
+
+>  Role and permission helpers for deploy hooks.
+
+<details>
+  <summary>Create a user role.<br/><code>create(string $id, string $label): RoleInterface</code></summary>
+
+```php
+Helper::role()->create('editor', 'Editor');
+```
+
+</details>
+
+<details>
+  <summary>Delete a user role.<br/><code>delete(string $id): void</code></summary>
+
+```php
+Helper::role()->delete('editor');
+```
+
+</details>
+
+<details>
+  <summary>Grant permissions to a role.<br/><code>grantPermissions(string $id, array $permissions): RoleInterface</code></summary>
+
+```php
+Helper::role()->grantPermissions('editor', [
+  'access content overview',
+  'edit any article content',
+]);
+```
+
+</details>
+
+<details>
+  <summary>Revoke permissions from a role.<br/><code>revokePermissions(string $id, array $permissions): RoleInterface</code></summary>
+
+```php
+Helper::role()->revokePermissions('editor', ['edit any article content']);
 ```
 
 </details>
