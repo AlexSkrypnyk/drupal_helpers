@@ -39,11 +39,11 @@ class Alias extends HelperBase {
   public function create(string $path, string $alias, ?string $langcode = NULL, bool $skip_existing = TRUE): ?PathAliasInterface {
     $path = $this->normalizePath($path);
     $alias = $this->normalizePath($alias);
-    $langcode = $langcode ?? LanguageInterface::LANGCODE_NOT_SPECIFIED;
+    $langcode ??= LanguageInterface::LANGCODE_NOT_SPECIFIED;
 
     if ($skip_existing) {
       $existing = $this->findByPath($path, $langcode);
-      if ($existing) {
+      if ($existing instanceof PathAliasInterface) {
         $this->messenger->addStatus($this->t('Alias for "@path" already exists - skipped.', [
           '@path' => $path,
         ]));
@@ -52,7 +52,7 @@ class Alias extends HelperBase {
       }
 
       $taken = $this->findByAlias($alias, $langcode);
-      if ($taken) {
+      if ($taken instanceof PathAliasInterface) {
         $this->messenger->addStatus($this->t('Alias "@alias" is already in use - skipped.', [
           '@alias' => $alias,
         ]));
@@ -102,7 +102,7 @@ class Alias extends HelperBase {
     foreach ($aliases as $alias) {
       $result = $this->create($alias['path'], $alias['alias'], $alias['langcode'] ?? NULL);
 
-      if ($result !== NULL) {
+      if ($result instanceof PathAliasInterface) {
         $count++;
       }
     }
@@ -173,7 +173,7 @@ class Alias extends HelperBase {
 
     $path_alias = $this->findByPath($path, $langcode);
 
-    if ($path_alias === NULL) {
+    if (!$path_alias instanceof PathAliasInterface) {
       $this->messenger->addStatus($this->t('No alias found for path "@path" - nothing to update.', [
         '@path' => $path,
       ]));
@@ -217,7 +217,7 @@ class Alias extends HelperBase {
 
     $path_alias = $this->findByAlias($alias, $langcode);
 
-    if ($path_alias === NULL) {
+    if (!$path_alias instanceof PathAliasInterface) {
       $this->messenger->addStatus($this->t('No alias "@alias" found - nothing to update.', [
         '@alias' => $alias,
       ]));
@@ -338,7 +338,7 @@ class Alias extends HelperBase {
           continue;
         }
 
-        $langcode = isset($row[2]) ? trim((string) $row[2]) : '';
+        $langcode = isset($row[2]) ? trim($row[2]) : '';
 
         $rows[] = [
           'path' => $row[0],
