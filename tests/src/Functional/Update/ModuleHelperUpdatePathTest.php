@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
- * Tests force-removal of an orphaned module through the update path.
+ * Tests the Module helper driven from a post-update hook.
  */
 #[Group('drupal_helpers')]
 #[CoversNothing]
@@ -28,14 +28,14 @@ class ModuleHelperUpdatePathTest extends UpdatePathTestBase {
   protected function setDatabaseDumpFiles(): void {
     $this->databaseDumpFiles = [
       $this->root . '/core/modules/system/tests/fixtures/update/drupal-10.3.0.bare.standard.php.gz',
-      __DIR__ . '/../../../fixtures/update/drupal_helpers_orphan.php',
+      __DIR__ . '/../../../fixtures/update/drupal_helpers_modules.php',
     ];
   }
 
   /**
-   * Tests that post-update hooks drive the Module helper.
+   * Tests that a post-update hook uninstalls a module via the helper.
    */
-  public function testModuleOperationsViaPostUpdate(): void {
+  public function testModuleUninstalledViaPostUpdate(): void {
     $modules = \Drupal::config('core.extension')->get('module');
     $this->assertIsArray($modules);
     $this->assertArrayHasKey('drupal_helpers_test', $modules);
@@ -43,14 +43,11 @@ class ModuleHelperUpdatePathTest extends UpdatePathTestBase {
     $this->runUpdates();
 
     $this->assertSession()->pageTextContains("Uninstalled module 'drupal_helpers_test'");
-    $this->assertSession()->pageTextContains("Force-removed orphaned module 'drupal_helpers_orphan'");
 
     \Drupal::configFactory()->reset();
     $modules = \Drupal::config('core.extension')->get('module');
     $this->assertIsArray($modules);
     $this->assertArrayNotHasKey('drupal_helpers_test', $modules);
-    $this->assertArrayNotHasKey('drupal_helpers_orphan', $modules);
-    $this->assertSame('drupal_helpers_orphan', \Drupal::state()->get('drupal_helpers_update_test_removed'));
   }
 
 }

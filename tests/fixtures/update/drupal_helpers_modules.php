@@ -4,11 +4,8 @@
  * @file
  * Enables the drupal_helpers modules in the pre-update database state.
  *
- * The update path then exercises the Module helper from a post-update hook: a
- * normal uninstall of a code-present module, and the force-removal of an
- * orphaned module whose state the hook simulates (update.php refuses to run
- * while a module recorded in core.extension is missing from disk, so an
- * orphaned module cannot be present here).
+ * The update path then exercises the Module helper from a post-update hook,
+ * uninstalling a code-present module the way a deploy hook would.
  */
 
 declare(strict_types=1);
