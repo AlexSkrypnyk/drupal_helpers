@@ -158,6 +158,24 @@ class MenuHelperTest extends KernelTestBase {
   }
 
   /**
+   * Tests exporting round-trips non-HTTP scheme links such as mailto and tel.
+   */
+  public function testExportTreeSchemeRoundTrip(): void {
+    $tree = [
+      'Email' => 'mailto:info@example.com',
+      'Phone' => 'tel:+15551234567',
+    ];
+    $this->menuHelper->createTree('main', $tree);
+    $exported = $this->menuHelper->exportTree('main');
+    $this->assertIsArray($exported);
+
+    $this->menuHelper->deleteTree('main');
+    $this->menuHelper->createTree('main', $exported);
+
+    $this->assertSame($tree, $this->menuHelper->exportTree('main'));
+  }
+
+  /**
    * Tests exporting a route link round-trips the token path.
    */
   public function testExportTreeFront(): void {

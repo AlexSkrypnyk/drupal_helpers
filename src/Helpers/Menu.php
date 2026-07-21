@@ -261,11 +261,9 @@ class Menu extends HelperBase {
    *   URI string (internal:/, entity:node/1, or https://...).
    */
   protected function pathToUri(string $path): string {
-    if (str_starts_with($path, 'internal:') || str_starts_with($path, 'entity:') || str_starts_with($path, 'route:') || str_starts_with($path, 'base:')) {
-      return $path;
-    }
-
-    if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+    // Pass through anything already carrying a URI scheme (internal:, entity:,
+    // mailto:, tel:, https:, ...) so it round-trips with uriToPath().
+    if (preg_match('#^[a-z][a-z0-9+.\-]*:#i', $path) === 1) {
       return $path;
     }
 
