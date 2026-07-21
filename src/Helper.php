@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\drupal_helpers;
 
+use Drupal\drupal_helpers\Helpers\Alias;
 use Drupal\drupal_helpers\Helpers\Config;
 use Drupal\drupal_helpers\Helpers\Entity;
 use Drupal\drupal_helpers\Helpers\Field;
@@ -107,6 +108,14 @@ class Helper {
   public static function redirect(?array &$sandbox = NULL, int $batch_size = 50): Redirect {
     /** @var \Drupal\drupal_helpers\Helpers\Redirect */
     return static::service('redirect', $sandbox, $batch_size);
+  }
+
+  /**
+   * Get the URL alias helper service.
+   */
+  public static function alias(?array &$sandbox = NULL, int $batch_size = 50): Alias {
+    /** @var \Drupal\drupal_helpers\Helpers\Alias */
+    return static::service('alias', $sandbox, $batch_size);
   }
 
   /**

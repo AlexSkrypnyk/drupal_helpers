@@ -7,6 +7,7 @@ namespace Drupal\Tests\drupal_helpers\Kernel;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Drupal\drupal_helpers\Helpers\HelperBase;
 use Drupal\drupal_helpers\Helper;
+use Drupal\drupal_helpers\Helpers\Alias;
 use Drupal\drupal_helpers\Helpers\Config;
 use Drupal\drupal_helpers\Helpers\Entity;
 use Drupal\drupal_helpers\Helpers\Field;
@@ -41,6 +42,7 @@ class HelperFacadeTest extends KernelTestBase {
     $this->installEntitySchema('taxonomy_term');
     $this->installEntitySchema('menu_link_content');
     $this->installEntitySchema('redirect');
+    $this->installEntitySchema('path_alias');
     $this->installConfig(['system']);
   }
 
@@ -69,6 +71,7 @@ class HelperFacadeTest extends KernelTestBase {
       'config' => ['config', Config::class],
       'user' => ['user', User::class],
       'redirect' => ['redirect', Redirect::class],
+      'alias' => ['alias', Alias::class],
       'module' => ['module', Module::class],
     ];
   }
