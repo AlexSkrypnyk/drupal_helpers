@@ -257,6 +257,20 @@ class MenuHelperTest extends KernelTestBase {
   }
 
   /**
+   * Tests exporting warns when sibling links share a title.
+   */
+  public function testExportTreeDuplicateTitleWarns(): void {
+    $storage = $this->container->get('entity_type.manager')->getStorage('menu_link_content');
+    $storage->create(['menu_name' => 'main', 'title' => 'Docs', 'link' => ['uri' => 'internal:/a'], 'weight' => 0])->save();
+    $storage->create(['menu_name' => 'main', 'title' => 'Docs', 'link' => ['uri' => 'internal:/b'], 'weight' => 1])->save();
+
+    $this->menuHelper->exportTree('main');
+
+    $messages = $this->container->get('messenger')->messagesByType('warning');
+    $this->assertNotEmpty($messages);
+  }
+
+  /**
    * Tests deleting all menu links from a menu.
    */
   public function testDeleteTree(): void {

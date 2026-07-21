@@ -252,6 +252,24 @@ class TermHelperTest extends KernelTestBase {
   }
 
   /**
+   * Tests exporting warns when sibling parent terms share a name.
+   */
+  public function testExportTreeDuplicateNameWarns(): void {
+    $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
+    $first = $storage->create(['vid' => 'tags', 'name' => 'Dup', 'weight' => 0]);
+    $first->save();
+    $second = $storage->create(['vid' => 'tags', 'name' => 'Dup', 'weight' => 1]);
+    $second->save();
+    $storage->create(['vid' => 'tags', 'name' => 'ChildA', 'parent' => $first->id()])->save();
+    $storage->create(['vid' => 'tags', 'name' => 'ChildB', 'parent' => $second->id()])->save();
+
+    $this->termHelper->exportTree('tags');
+
+    $messages = $this->container->get('messenger')->messagesByType('warning');
+    $this->assertNotEmpty($messages);
+  }
+
+  /**
    * Tests deleting all terms from a vocabulary.
    */
   public function testDeleteAll(): void {

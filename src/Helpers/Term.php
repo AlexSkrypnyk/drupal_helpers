@@ -111,6 +111,9 @@ class Term extends HelperBase {
   /**
    * Export a vocabulary to the nested tree accepted by createTree().
    *
+   * Sibling parent terms that share a name cannot both be represented and are
+   * reported with a warning during export.
+   *
    * @code
    * // Snapshot structure as data:
    * $tree = Helper::term()->exportTree('topics');
@@ -166,14 +169,22 @@ class Term extends HelperBase {
         continue;
       }
 
+      $name = $term->getName();
       $children = $this->buildTermTree($vocabulary, (int) $term->id());
 
-      if ($children !== []) {
-        $tree[$term->getName()] = $children;
+      if ($children === []) {
+        $tree[] = $name;
+
+        continue;
       }
-      else {
-        $tree[] = $term->getName();
+
+      if (isset($tree[$name])) {
+        $this->messenger->addWarning($this->t('Parent terms share the name "@name" at the same level; the exported tree can only keep one.', [
+          '@name' => $name,
+        ]));
       }
+
+      $tree[$name] = $children;
     }
 
     return $tree;

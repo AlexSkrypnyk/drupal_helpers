@@ -95,6 +95,9 @@ class Menu extends HelperBase {
   /**
    * Export a menu to the nested tree accepted by createTree().
    *
+   * Sibling links that share a title cannot both be represented and are
+   * reported with a warning during export.
+   *
    * @code
    * // Snapshot structure as data:
    * $tree = Helper::menu()->exportTree('main');
@@ -150,10 +153,18 @@ class Menu extends HelperBase {
     $tree = [];
 
     foreach ($children_by_parent[$parent_id] ?? [] as $link) {
+      $title = $link->getTitle();
+
+      if (isset($tree[$title])) {
+        $this->messenger->addWarning($this->t('Menu links share the title "@title" at the same level; the exported tree can only keep one.', [
+          '@title' => $title,
+        ]));
+      }
+
       $path = $this->uriToPath($link->get('link')->first()->get('uri')->getValue());
       $children = $this->buildMenuTree($children_by_parent, 'menu_link_content:' . $link->uuid());
 
-      $tree[$link->getTitle()] = $children !== [] ? ['path' => $path, 'children' => $children] : $path;
+      $tree[$title] = $children !== [] ? ['path' => $path, 'children' => $children] : $path;
     }
 
     return $tree;
