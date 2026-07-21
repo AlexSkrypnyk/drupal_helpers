@@ -145,18 +145,53 @@ class TermHelperTest extends KernelTestBase {
   }
 
   /**
+   * Tests that the same name under different parents yields distinct terms.
+   */
+  public function testCreateTreeSameNameUnderDifferentParents(): void {
+    $tree = [
+      'Finance' => ['General'],
+      'Operations' => ['General'],
+    ];
+    $this->termHelper->createTree('tags', $tree);
+
+    $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
+    $generals = $storage->loadByProperties(['vid' => 'tags', 'name' => 'General']);
+
+    // Matching is scoped by parent, not by name alone: one 'General' per parent.
+    $this->assertCount(2, $generals);
+
+    $finance = $this->termHelper->find('Finance', 'tags');
+    $operations = $this->termHelper->find('Operations', 'tags');
+    $parent_ids = [];
+    foreach ($generals as $general) {
+      $parent_ids[] = (int) $general->get('parent')->first()->get('target_id')->getValue();
+    }
+    sort($parent_ids);
+    $expected = [(int) $finance->id(), (int) $operations->id()];
+    sort($expected);
+    $this->assertSame($expected, $parent_ids);
+
+    // Re-running in safe mode keeps them distinct rather than collapsing them.
+    $this->termHelper->createTree('tags', $tree);
+    $storage->resetCache();
+    $this->assertCount(2, $storage->loadByProperties(['vid' => 'tags', 'name' => 'General']));
+  }
+
+  /**
    * Tests that update mode reorders existing terms without duplicating them.
    */
   public function testCreateTreeUpdateReorders(): void {
     $this->termHelper->createTree('tags', ['News', 'Events', 'Blog']);
     $this->assertSame(['News', 'Events', 'Blog'], $this->termHelper->exportTree('tags'));
 
+    $ids_before = $this->termIdsByName('tags');
+
     $this->termHelper->createTree('tags', ['Blog', 'News', 'Events'], Term::MODE_UPDATE);
 
     $this->assertSame(['Blog', 'News', 'Events'], $this->termHelper->exportTree('tags'));
 
-    $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
-    $this->assertCount(3, $storage->loadByProperties(['vid' => 'tags']));
+    // The same terms are reused (reordered in place), not deleted and recreated.
+    $this->assertSame($ids_before, $this->termIdsByName('tags'));
   }
 
   /**
@@ -180,14 +215,15 @@ class TermHelperTest extends KernelTestBase {
    */
   public function testCreateTreeUpdateNested(): void {
     $this->termHelper->createTree('tags', ['Finance' => ['Budgets', 'Grants']]);
+    $ids_before = $this->termIdsByName('tags');
 
     // Re-apply with a reordered child list under the same parent.
     $this->termHelper->createTree('tags', ['Finance' => ['Grants', 'Budgets']], Term::MODE_UPDATE);
 
     $this->assertSame(['Finance' => ['Grants', 'Budgets']], $this->termHelper->exportTree('tags'));
 
-    $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
-    $this->assertCount(3, $storage->loadByProperties(['vid' => 'tags']));
+    // The parent and its children are reused in place, not recreated.
+    $this->assertSame($ids_before, $this->termIdsByName('tags'));
   }
 
   /**
@@ -466,6 +502,28 @@ class TermHelperTest extends KernelTestBase {
     $term = $this->termHelper->find('Ghost', 'tags');
 
     $this->assertNull($term);
+  }
+
+  /**
+   * Map term names in a vocabulary to their IDs, ordered by name.
+   *
+   * @param string $vocabulary
+   *   Vocabulary machine name.
+   *
+   * @return array<string, int|string|null>
+   *   Term IDs keyed by term name.
+   */
+  protected function termIdsByName(string $vocabulary): array {
+    $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
+    $ids = [];
+
+    foreach ($storage->loadByProperties(['vid' => $vocabulary]) as $term) {
+      $ids[$term->getName()] = $term->id();
+    }
+
+    ksort($ids);
+
+    return $ids;
   }
 
 }
