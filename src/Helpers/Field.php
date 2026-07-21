@@ -73,7 +73,7 @@ class Field extends HelperBase {
     $instance = $field_config_storage->load($entity_type . '.' . $bundle . '.' . $field_name);
 
     if ($instance instanceof FieldConfigInterface) {
-      $this->messenger->addStatus($this->t('Field "@field" already exists on @entity_type.@bundle - skipped.', [
+      $this->reporter->skipped($this->t('Field "@field" already exists on @entity_type.@bundle - skipped.', [
         '@field' => $field_name,
         '@entity_type' => $entity_type,
         '@bundle' => $bundle,
@@ -86,7 +86,7 @@ class Field extends HelperBase {
     $instance = $this->createInstance($entity_type, $bundle, $field_name, $settings);
     $this->setDisplayDefaults($entity_type, $bundle, $field_name, $settings);
 
-    $this->messenger->addStatus($this->t('Created field "@field" on @entity_type.@bundle.', [
+    $this->reporter->created($this->t('Created field "@field" on @entity_type.@bundle.', [
       '@field' => $field_name,
       '@entity_type' => $entity_type,
       '@bundle' => $bundle,
