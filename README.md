@@ -341,6 +341,37 @@ function my_module_deploy_001(array &$sandbox): ?string {
 
 </details>
 
+<details>
+  <summary>Process entities matching an entity query with optional sandbox batching.<br/><code>batchQuery(QueryInterface $query, callable $callback, bool $continue_on_error = FALSE): ?string</code></summary>
+
+```php
+// Migrate a value on every legacy article, tolerating per-item failures:
+function my_module_deploy_001(array &$sandbox): ?string {
+  $query = \Drupal::entityQuery('node')
+    ->condition('type', 'article')
+    ->condition('field_legacy', 1);
+  return Helper::entity($sandbox)->batchQuery($query, function ($node): void {
+    $node->set('field_migrated', TRUE);
+    $node->save();
+  }, continue_on_error: TRUE);
+}
+```
+
+</details>
+
+<details>
+  <summary>Set a field value on every entity matching an entity query.<br/><code>batchSetField(QueryInterface $query, string $field_name, mixed $value, bool $continue_on_error = FALSE): ?string</code></summary>
+
+```php
+// Archive every article:
+function my_module_deploy_001(array &$sandbox): ?string {
+  $query = \Drupal::entityQuery('node')->condition('type', 'article');
+  return Helper::entity($sandbox)->batchSetField($query, 'field_status', 'archived');
+}
+```
+
+</details>
+
 
 ### Field
 

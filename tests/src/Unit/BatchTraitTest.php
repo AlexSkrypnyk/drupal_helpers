@@ -346,6 +346,193 @@ class BatchTraitTest extends TestCase {
     $this->assertSame($entity1, $processed_entities[0]);
   }
 
+  /**
+   * Tests continue-on-error records failures and keeps processing (no sandbox).
+   */
+  public function testBatchContinueOnErrorNonSandbox(): void {
+    $items = ['ok1', 'bad', 'ok2'];
+    $processed = [];
+
+    $callback = function (string $item) use (&$processed): void {
+      if ($item === 'bad') {
+        throw new \RuntimeException('boom');
+      }
+      $processed[] = $item;
+    };
+
+    $warnings = [];
+    $this->messenger->expects($this->once())->method('addStatus');
+    $this->messenger->method('addWarning')->willReturnCallback(function ($message) use (&$warnings): MessengerInterface {
+      $warnings[] = (string) $message;
+
+      return $this->messenger;
+    });
+
+    $result = $this->helper->batch($items, $callback, 'things', TRUE);
+
+    $this->assertSame(['ok1', 'ok2'], $processed);
+    $this->assertStringContainsString('Processed 3 things', $result);
+    $this->assertStringContainsString('1 failed', $result);
+    $this->assertCount(1, $warnings);
+    $this->assertStringContainsString('boom', $warnings[0]);
+  }
+
+  /**
+   * Tests continue-on-error with no failures yields the normal message.
+   */
+  public function testBatchContinueOnErrorNoFailures(): void {
+    $this->messenger->expects($this->once())->method('addStatus');
+    $this->messenger->expects($this->never())->method('addWarning');
+
+    $result = $this->helper->batch(['a', 'b'], function (): void {
+    }, 'items', TRUE);
+
+    $this->assertStringContainsString('Processed 2 items', $result);
+    $this->assertStringNotContainsString('failed', $result);
+  }
+
+  /**
+   * Tests a thrown error aborts the run when continue-on-error is off.
+   */
+  public function testBatchAbortsWithoutContinueOnError(): void {
+    $this->expectException(\RuntimeException::class);
+    $this->expectExceptionMessage('boom');
+
+    $this->helper->batch(['a'], function (): void {
+      throw new \RuntimeException('boom');
+    }, 'items');
+  }
+
+  /**
+   * Tests sandbox continue-on-error accumulates failures across batches.
+   */
+  public function testBatchContinueOnErrorSandbox(): void {
+    $items = ['a', 'bad1', 'c', 'bad2', 'e'];
+    /** @var array<string, mixed> $sandbox */
+    $sandbox = [];
+    $this->helper->setSandbox($sandbox);
+    $this->helper->setBatchSize(2);
+
+    $processed = [];
+    $callback = function (string $item) use (&$processed): void {
+      if (str_starts_with($item, 'bad')) {
+        throw new \RuntimeException('fail ' . $item);
+      }
+      $processed[] = $item;
+    };
+
+    $this->messenger->expects($this->once())->method('addStatus');
+    $this->messenger->expects($this->once())->method('addWarning');
+
+    $result1 = $this->helper->batch($items, $callback, 'items', TRUE);
+    $result2 = $this->helper->batch($items, $callback, 'items', TRUE);
+    $result = $this->helper->batch($items, $callback, 'items', TRUE);
+
+    $this->assertNull($result1);
+    $this->assertNull($result2);
+    $this->assertNotNull($result);
+    $this->assertStringContainsString('Processed 5 items, 2 failed', $result);
+    $this->assertSame(['a', 'c', 'e'], $processed);
+    $this->assertCount(2, $sandbox['errors']);
+    $this->assertSame(1, $sandbox['errors'][0]['index']);
+    $this->assertSame('bad1', $sandbox['errors'][0]['item']);
+    $this->assertStringContainsString('fail bad1', $sandbox['errors'][0]['message']);
+    $this->assertSame(3, $sandbox['errors'][1]['index']);
+    $this->assertSame('bad2', $sandbox['errors'][1]['item']);
+  }
+
+  /**
+   * Tests the failure warning truncates the list and labels non-scalar items.
+   */
+  public function testBatchErrorSummaryTruncatesAndLabelsItems(): void {
+    $items = array_fill(0, 12, ['some' => 'data']);
+
+    $warnings = [];
+    $this->messenger->method('addWarning')->willReturnCallback(function ($message) use (&$warnings): MessengerInterface {
+      $warnings[] = (string) $message;
+
+      return $this->messenger;
+    });
+
+    $result = $this->helper->batch($items, function (): void {
+      throw new \RuntimeException('nope');
+    }, 'rows', TRUE);
+
+    $this->assertStringContainsString('Processed 12 rows, 12 failed', $result);
+    $this->assertCount(1, $warnings);
+    $this->assertStringContainsString('12 failed', $warnings[0]);
+    $this->assertStringContainsString('array: nope', $warnings[0]);
+    $this->assertStringContainsString('showing first 10 of 12', $warnings[0]);
+  }
+
+  /**
+   * Tests batchEntity applies the bundle key and conditions to the query.
+   */
+  public function testBatchEntityBundleAndConditions(): void {
+    $entity1 = $this->createMock(EntityInterface::class);
+
+    $storage = $this->createMock(EntityStorageInterface::class);
+    $storage->method('load')->willReturn($entity1);
+
+    $captured = [];
+    $query = $this->createMock(QueryInterface::class);
+    $query->method('accessCheck')->willReturnSelf();
+    $query->method('getEntityTypeId')->willReturn('node');
+    $query->method('condition')->willReturnCallback(function (string $field, mixed $value) use (&$captured, $query): QueryInterface {
+      $captured[$field] = $value;
+
+      return $query;
+    });
+    $query->method('execute')->willReturn([1]);
+    $storage->method('getQuery')->willReturn($query);
+
+    $definition = $this->createMock(EntityTypeInterface::class);
+    $definition->method('getKey')->willReturn('type');
+
+    $this->entityTypeManager->method('getStorage')->willReturn($storage);
+    $this->entityTypeManager->method('getDefinition')->willReturn($definition);
+
+    $processed = [];
+    $result = $this->helper->batchEntity('node', 'article', function ($entity) use (&$processed): void {
+      $processed[] = $entity;
+    }, ['status' => 1, 'field_x' => 'y']);
+
+    $this->assertNotNull($result);
+    $this->assertCount(1, $processed);
+    $this->assertSame(['type' => 'article', 'status' => 1, 'field_x' => 'y'], $captured);
+  }
+
+  /**
+   * Tests batchEntity records per-item failures when tolerating errors.
+   */
+  public function testBatchEntityContinueOnError(): void {
+    $entity1 = $this->createMock(EntityInterface::class);
+    $entity2 = $this->createMock(EntityInterface::class);
+
+    $storage = $this->createMock(EntityStorageInterface::class);
+    $storage->method('load')->willReturnMap([[1, $entity1], [2, $entity2]]);
+
+    $query = $this->createMock(QueryInterface::class);
+    $query->method('accessCheck')->willReturnSelf();
+    $query->method('condition')->willReturnSelf();
+    $query->method('getEntityTypeId')->willReturn('node');
+    $query->method('execute')->willReturn([1, 2]);
+    $storage->method('getQuery')->willReturn($query);
+
+    $this->entityTypeManager->method('getStorage')->willReturn($storage);
+    $this->entityTypeManager->method('getDefinition')->willReturn($this->createMock(EntityTypeInterface::class));
+
+    $this->messenger->expects($this->once())->method('addWarning');
+
+    $result = $this->helper->batchEntity('node', NULL, function ($entity) use ($entity2): void {
+      if ($entity === $entity2) {
+        throw new \RuntimeException('cannot process');
+      }
+    }, [], TRUE);
+
+    $this->assertStringContainsString('Processed 2 node entities, 1 failed', $result);
+  }
+
 }
 
 /**
