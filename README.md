@@ -328,6 +328,55 @@ Helper::config()->setFrontPage('/node/1');
 >  Entity helpers for deploy hooks.
 
 <details>
+  <summary>Create an entity of a given type and bundle.<br/><code>create(string $entity_type, string $bundle, array $values, ?string $identity = NULL): EntityInterface</code></summary>
+
+```php
+Helper::entity()->create('node', 'article', [
+  'title' => 'Welcome',
+  'body' => 'Hello world',
+]);
+
+// Skip re-creating an entity that already has the same identity value:
+Helper::entity()->create('node', 'article', [
+  'title' => 'Welcome',
+], identity: 'title');
+```
+
+</details>
+
+<details>
+  <summary>Create multiple entities with optional sandbox batching.<br/><code>createMultiple(string $entity_type, string $bundle, array $rows, ?string $identity = NULL): ?string</code></summary>
+
+```php
+$rows = [
+  ['title' => 'Page one'],
+  ['title' => 'Page two'],
+];
+Helper::entity()->createMultiple('node', 'article', $rows, identity: 'title');
+
+// With sandbox for large datasets:
+function my_module_deploy_001(array &$sandbox): ?string {
+  return Helper::entity($sandbox)->createMultiple('node', 'article', $rows, identity: 'title');
+}
+```
+
+</details>
+
+<details>
+  <summary>Update entities matched by a set of properties.<br/><code>update(string $entity_type, array $properties, array $values): ?string</code></summary>
+
+```php
+Helper::entity()->update('node', ['type' => 'article'], ['status' => 0]);
+
+// With sandbox for large datasets:
+function my_module_deploy_001(array &$sandbox): ?string {
+  return Helper::entity($sandbox)->update('node', ['type' => 'article'], ['status' => 0]);
+}
+```
+
+</details>
+
+<details>
   <summary>Delete all entities of a given type and optional bundle.<br/><code>deleteAll(string $entity_type, ?string $bundle = NULL): ?string</code></summary>
 
 ```php
