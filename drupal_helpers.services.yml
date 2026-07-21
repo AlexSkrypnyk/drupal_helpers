@@ -23,6 +23,9 @@ services:
   drupal_helpers.alias:
     class: Drupal\drupal_helpers\Helpers\Alias
     arguments: ['@entity_type.manager', '@messenger']
+  drupal_helpers.block:
+    class: Drupal\drupal_helpers\Helpers\Block
+    arguments: ['@entity_type.manager', '@messenger']
   drupal_helpers.role:
     class: Drupal\drupal_helpers\Helpers\Role
     arguments: ['@entity_type.manager', '@messenger', '@?user.permissions']

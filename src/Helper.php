@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\drupal_helpers;
 
 use Drupal\drupal_helpers\Helpers\Alias;
+use Drupal\drupal_helpers\Helpers\Block;
 use Drupal\drupal_helpers\Helpers\Config;
 use Drupal\drupal_helpers\Helpers\Entity;
 use Drupal\drupal_helpers\Helpers\Field;
@@ -117,6 +118,14 @@ class Helper {
   public static function alias(?array &$sandbox = NULL, int $batch_size = 50): Alias {
     /** @var \Drupal\drupal_helpers\Helpers\Alias */
     return static::service('alias', $sandbox, $batch_size);
+  }
+
+  /**
+   * Get the block helper service.
+   */
+  public static function block(?array &$sandbox = NULL, int $batch_size = 50): Block {
+    /** @var \Drupal\drupal_helpers\Helpers\Block */
+    return static::service('block', $sandbox, $batch_size);
   }
 
   /**
