@@ -123,17 +123,128 @@ class TermHelperTest extends KernelTestBase {
   }
 
   /**
-   * Tests overwriting existing terms when preserve_existing is FALSE.
+   * Tests that safe mode leaves the order of existing terms untouched.
    */
-  public function testCreateTreeOverwrite(): void {
-    $this->termHelper->createTree('tags', ['News']);
+  public function testCreateTreeSafeDoesNotReorder(): void {
+    $this->termHelper->createTree('tags', ['News', 'Events', 'Blog']);
 
-    // Create again with preserve_existing = FALSE.
-    $this->termHelper->createTree('tags', ['News'], FALSE);
+    // Safe mode with a different order does not reorder existing terms.
+    $this->termHelper->createTree('tags', ['Blog', 'News', 'Events']);
+
+    $this->assertSame(['News', 'Events', 'Blog'], $this->termHelper->exportTree('tags'));
+  }
+
+  /**
+   * Tests that a repeated name under the same parent reuses one term.
+   */
+  public function testCreateTreeReusesRepeatedName(): void {
+    $this->termHelper->createTree('tags', ['News', 'News']);
 
     $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
-    $all_news = $storage->loadByProperties(['vid' => 'tags', 'name' => 'News']);
-    $this->assertCount(2, $all_news);
+    $this->assertCount(1, $storage->loadByProperties(['vid' => 'tags', 'name' => 'News']));
+  }
+
+  /**
+   * Tests that update mode reorders existing terms without duplicating them.
+   */
+  public function testCreateTreeUpdateReorders(): void {
+    $this->termHelper->createTree('tags', ['News', 'Events', 'Blog']);
+    $this->assertSame(['News', 'Events', 'Blog'], $this->termHelper->exportTree('tags'));
+
+    $this->termHelper->createTree('tags', ['Blog', 'News', 'Events'], Term::MODE_UPDATE);
+
+    $this->assertSame(['Blog', 'News', 'Events'], $this->termHelper->exportTree('tags'));
+
+    $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
+    $this->assertCount(3, $storage->loadByProperties(['vid' => 'tags']));
+  }
+
+  /**
+   * Tests that update mode also creates terms missing from the vocabulary.
+   */
+  public function testCreateTreeUpdateCreatesMissing(): void {
+    $first = $this->termHelper->createTree('tags', ['News']);
+    $original_tid = array_key_first($first);
+
+    $this->termHelper->createTree('tags', ['News', 'Events'], Term::MODE_UPDATE);
+
+    $this->assertSame(['News', 'Events'], $this->termHelper->exportTree('tags'));
+
+    // The existing 'News' term is reused, not recreated.
+    $news = $this->termHelper->find('News', 'tags');
+    $this->assertEquals($original_tid, $news->id());
+  }
+
+  /**
+   * Tests that update mode on a nested tree updates children in place.
+   */
+  public function testCreateTreeUpdateNested(): void {
+    $this->termHelper->createTree('tags', ['Finance' => ['Budgets', 'Grants']]);
+
+    // Re-apply with a reordered child list under the same parent.
+    $this->termHelper->createTree('tags', ['Finance' => ['Grants', 'Budgets']], Term::MODE_UPDATE);
+
+    $this->assertSame(['Finance' => ['Grants', 'Budgets']], $this->termHelper->exportTree('tags'));
+
+    $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
+    $this->assertCount(3, $storage->loadByProperties(['vid' => 'tags']));
+  }
+
+  /**
+   * Tests that sync mode deletes terms absent from the supplied tree.
+   */
+  public function testCreateTreeSyncDeletesAbsent(): void {
+    $this->termHelper->createTree('tags', ['News', 'Events', 'Blog']);
+
+    $this->termHelper->createTree('tags', ['News', 'Blog'], Term::MODE_SYNC);
+
+    $this->assertSame(['News', 'Blog'], $this->termHelper->exportTree('tags'));
+    $this->assertNull($this->termHelper->find('Events', 'tags'));
+  }
+
+  /**
+   * Tests that sync mode reconciles a nested tree, deleting whole subtrees.
+   */
+  public function testCreateTreeSyncNested(): void {
+    $this->termHelper->createTree('tags', [
+      'Finance' => ['Budgets', 'Grants'],
+      'Operations' => ['Logistics'],
+    ]);
+
+    $this->termHelper->createTree('tags', [
+      'Finance' => ['Budgets', 'Payroll'],
+    ], Term::MODE_SYNC);
+
+    $this->assertSame(['Finance' => ['Budgets', 'Payroll']], $this->termHelper->exportTree('tags'));
+    $this->assertNull($this->termHelper->find('Grants', 'tags'));
+    $this->assertNull($this->termHelper->find('Operations', 'tags'));
+    $this->assertNull($this->termHelper->find('Logistics', 'tags'));
+  }
+
+  /**
+   * Tests that sync mode refuses to wipe a vocabulary from an empty tree.
+   */
+  public function testCreateTreeSyncEmptyTreeGuard(): void {
+    $this->termHelper->createTree('tags', ['News', 'Events']);
+
+    $result = $this->termHelper->createTree('tags', [], Term::MODE_SYNC);
+
+    $this->assertSame([], $result);
+
+    $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
+    $this->assertCount(2, $storage->loadByProperties(['vid' => 'tags']));
+
+    $messages = $this->container->get('messenger')->messagesByType('warning');
+    $this->assertNotEmpty($messages);
+  }
+
+  /**
+   * Tests that an unsupported mode throws.
+   */
+  public function testCreateTreeInvalidModeThrows(): void {
+    $this->expectException(\InvalidArgumentException::class);
+
+    $this->termHelper->createTree('tags', ['News'], 'bogus');
   }
 
   /**
