@@ -142,6 +142,7 @@ function my_module_deploy_001(array &$sandbox): ?string {
 | [Alias](#alias) | URL alias helpers for deploy hooks. |
 | [Block](#block) | Block placement and block content helpers for deploy hooks. |
 | [Config](#config) | Configuration helpers for deploy hooks. |
+| [Display](#display) | Entity form and view display helpers for deploy hooks. |
 | [Entity](#entity) | Entity helpers for deploy hooks. |
 | [Field](#field) | Field helpers for deploy hooks. |
 | [Menu](#menu) | Menu link helpers for deploy hooks. |
@@ -412,6 +413,56 @@ Helper::config()->importMultiple('my_module', [
 
 ```php
 Helper::config()->setFrontPage('/node/1');
+```
+
+</details>
+
+
+### Display
+
+[Source](src/Helpers/Display.php)
+
+>  Entity form and view display helpers for deploy hooks.
+
+<details>
+  <summary>Set a widget component on an entity form display.<br/><code>setFormComponent(string $entity_type, string $bundle, string $mode, string $field_name, array $options = []): EntityDisplayInterface</code></summary>
+
+```php
+Helper::display()->setFormComponent('node', 'article', 'default', 'field_subtitle', [
+  'type' => 'string_textfield',
+  'weight' => 5,
+]);
+```
+
+</details>
+
+<details>
+  <summary>Set a formatter component on an entity view display.<br/><code>setViewComponent(string $entity_type, string $bundle, string $mode, string $field_name, array $options = []): EntityDisplayInterface</code></summary>
+
+```php
+Helper::display()->setViewComponent('node', 'article', 'teaser', 'field_subtitle', [
+  'type' => 'string',
+  'label' => 'hidden',
+  'weight' => 5,
+]);
+```
+
+</details>
+
+<details>
+  <summary>Hide a component on an entity form display.<br/><code>hideFormComponent(string $entity_type, string $bundle, string $mode, string $field_name): EntityDisplayInterface</code></summary>
+
+```php
+Helper::display()->hideFormComponent('node', 'article', 'default', 'field_subtitle');
+```
+
+</details>
+
+<details>
+  <summary>Hide a component on an entity view display.<br/><code>hideViewComponent(string $entity_type, string $bundle, string $mode, string $field_name): EntityDisplayInterface</code></summary>
+
+```php
+Helper::display()->hideViewComponent('node', 'article', 'teaser', 'field_subtitle');
 ```
 
 </details>

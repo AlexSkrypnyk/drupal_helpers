@@ -10,6 +10,7 @@ use Drupal\drupal_helpers\Helper;
 use Drupal\drupal_helpers\Helpers\Alias;
 use Drupal\drupal_helpers\Helpers\Block;
 use Drupal\drupal_helpers\Helpers\Config;
+use Drupal\drupal_helpers\Helpers\Display;
 use Drupal\drupal_helpers\Helpers\Entity;
 use Drupal\drupal_helpers\Helpers\Field;
 use Drupal\drupal_helpers\Helpers\Menu;
@@ -76,6 +77,7 @@ class HelperFacadeTest extends KernelTestBase {
       'alias' => ['alias', Alias::class],
       'block' => ['block', Block::class],
       'role' => ['role', Role::class],
+      'display' => ['display', Display::class],
       'module' => ['module', Module::class],
     ];
   }

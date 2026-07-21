@@ -7,6 +7,7 @@ namespace Drupal\drupal_helpers;
 use Drupal\drupal_helpers\Helpers\Alias;
 use Drupal\drupal_helpers\Helpers\Block;
 use Drupal\drupal_helpers\Helpers\Config;
+use Drupal\drupal_helpers\Helpers\Display;
 use Drupal\drupal_helpers\Helpers\Entity;
 use Drupal\drupal_helpers\Helpers\Field;
 use Drupal\drupal_helpers\Helpers\HelperBase;
@@ -134,6 +135,14 @@ class Helper {
   public static function role(): Role {
     /** @var \Drupal\drupal_helpers\Helpers\Role */
     return static::service('role');
+  }
+
+  /**
+   * Get the display helper service.
+   */
+  public static function display(): Display {
+    /** @var \Drupal\drupal_helpers\Helpers\Display */
+    return \Drupal::service('drupal_helpers.display');
   }
 
   /**
