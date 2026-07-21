@@ -175,6 +175,7 @@ function my_module_deploy_001(array &$sandbox): ?string {
 | [Redirect](#redirect) | Redirect helpers for deploy hooks. |
 | [Role](#role) | Role and permission helpers for deploy hooks. |
 | [Term](#term) | Taxonomy term helpers for deploy hooks. |
+| [Translation](#translation) | Interface translation helpers for deploy hooks. |
 | [User](#user) | User helpers for deploy hooks. |
 
 ---
@@ -908,6 +909,24 @@ Helper::term()->deleteAll('tags');
 
 ```php
 $term = Helper::term()->find('News', 'tags');
+```
+
+</details>
+
+
+### Translation
+
+[Source](src/Helpers/Translation.php)
+
+>  Interface translation helpers for deploy hooks.
+
+<details>
+  <summary>Add or update the translation of a source string for a language.<br/><code>set(string $source, string $langcode, string $translation, string $context = ''): void</code></summary>
+
+```php
+Helper::translation()->set('Submit', 'fr', 'Envoyer');
+// Disambiguate a source string that carries a context:
+Helper::translation()->set('May', 'fr', 'Mai', 'Long month name');
 ```
 
 </details>
