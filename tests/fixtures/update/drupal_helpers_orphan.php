@@ -33,7 +33,7 @@ $data = $connection->select('config', 'c')
   ->execute()
   ->fetchField();
 
-$extension = is_string($data) ? unserialize($data) : [];
+$extension = is_string($data) ? unserialize($data, ['allowed_classes' => FALSE]) : [];
 $extension = is_array($extension) ? $extension : [];
 $modules = isset($extension['module']) && is_array($extension['module']) ? $extension['module'] : [];
 $modules['drupal_helpers'] = 0;

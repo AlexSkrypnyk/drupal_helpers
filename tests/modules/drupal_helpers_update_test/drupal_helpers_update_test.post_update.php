@@ -12,14 +12,14 @@ use Drupal\drupal_helpers\Helper;
 /**
  * Uninstalls a module whose code is present, as a deploy hook would.
  */
-function drupal_helpers_update_test_post_update_1_uninstall_module(): ?string {
+function drupal_helpers_update_test_post_update_1_uninstall_module(): string {
   return Helper::module()->uninstall('drupal_helpers_test');
 }
 
 /**
  * Force-removes an orphaned module whose code was deleted from disk.
  */
-function drupal_helpers_update_test_post_update_2_force_remove_orphan(): ?string {
+function drupal_helpers_update_test_post_update_2_force_remove_orphan(): string {
   // update.php refuses to run while a module recorded in core.extension is
   // missing from disk, so the orphaned state is simulated here rather than
   // seeded in the fixture: register a codeless module before removing it.
