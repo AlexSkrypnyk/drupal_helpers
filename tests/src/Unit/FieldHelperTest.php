@@ -135,6 +135,31 @@ class FieldHelperTest extends TestCase {
   }
 
   /**
+   * Tests that create() rejects a type that conflicts with existing storage.
+   */
+  public function testCreateStorageTypeMismatch(): void {
+    $storage = $this->createMock(FieldStorageConfigInterface::class);
+    $storage->method('getType')->willReturn('string');
+
+    $field_config_storage = $this->createMock(EntityStorageInterface::class);
+    $field_config_storage->method('load')->willReturn(NULL);
+    $field_config_storage->expects($this->never())->method('create');
+
+    $field_storage_config_storage = $this->createMock(EntityStorageInterface::class);
+    $field_storage_config_storage->method('load')->willReturn($storage);
+
+    $this->entityTypeManager->method('getStorage')->willReturnMap([
+      ['field_config', $field_config_storage],
+      ['field_storage_config', $field_storage_config_storage],
+    ]);
+
+    $this->expectException(\InvalidArgumentException::class);
+    $this->expectExceptionMessage('Field storage "entity_test.field_subtitle" already exists with type "string" and cannot be created as "integer".');
+
+    $this->createField()->create('entity_test', 'entity_test', 'field_subtitle', ['type' => 'integer']);
+  }
+
+  /**
    * Tests that attachToBundles() rejects an unknown field storage.
    */
   public function testAttachToBundlesRequiresStorage(): void {

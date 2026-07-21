@@ -59,7 +59,8 @@ class Field extends HelperBase {
    *   The created field instance, or the existing one when it already exists.
    *
    * @throws \InvalidArgumentException
-   *   When the 'type' setting is missing.
+   *   When the 'type' setting is missing, or conflicts with an existing field
+   *   storage of a different type.
    */
   public function create(string $entity_type, string $bundle, string $field_name, array $settings): FieldConfigInterface {
     if (!isset($settings['type'])) {
@@ -228,6 +229,9 @@ class Field extends HelperBase {
    *
    * @return \Drupal\field\FieldStorageConfigInterface
    *   The existing or newly created field storage.
+   *
+   * @throws \InvalidArgumentException
+   *   When an existing storage has a field type different from the requested one.
    */
   protected function ensureStorage(string $entity_type, string $field_name, array $settings): FieldStorageConfigInterface {
     $field_storage_config_storage = $this->entityTypeManager->getStorage('field_storage_config');
@@ -236,6 +240,13 @@ class Field extends HelperBase {
     $field_storage = $field_storage_config_storage->load($entity_type . '.' . $field_name);
 
     if ($field_storage instanceof FieldStorageConfigInterface) {
+      // A storage's type is immutable and shared across every bundle, so a
+      // requested type that differs from the existing one cannot be honored and
+      // would otherwise be silently ignored.
+      if ($field_storage->getType() !== $settings['type']) {
+        throw new \InvalidArgumentException(sprintf('Field storage "%s.%s" already exists with type "%s" and cannot be created as "%s".', $entity_type, $field_name, $field_storage->getType(), $settings['type']));
+      }
+
       return $field_storage;
     }
 

@@ -179,6 +179,19 @@ class FieldHelperTest extends KernelTestBase {
   }
 
   /**
+   * Tests that create() rejects a type conflicting with existing storage.
+   */
+  public function testCreateStorageTypeMismatch(): void {
+    $this->createBundle('page');
+    $this->fieldHelper->create('entity_test', 'entity_test', 'field_subtitle', ['type' => 'string']);
+
+    $this->expectException(\InvalidArgumentException::class);
+    $this->expectExceptionMessage('already exists with type "string"');
+
+    $this->fieldHelper->create('entity_test', 'page', 'field_subtitle', ['type' => 'integer']);
+  }
+
+  /**
    * Tests attaching an existing field storage to multiple bundles.
    */
   public function testAttachToBundles(): void {
