@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\drupal_helpers\Helpers;
 
 use Drupal\Core\Language\LanguageInterface;
+use Drupal\drupal_helpers\Report\Reporter;
 use Drupal\path_alias\PathAliasInterface;
 
 /**
@@ -44,7 +45,7 @@ class Alias extends HelperBase {
     if ($skip_existing) {
       $existing = $this->findByPath($path, $langcode);
       if ($existing instanceof PathAliasInterface) {
-        $this->messenger->addStatus($this->t('Alias for "@path" already exists - skipped.', [
+        $this->reporter->skipped($this->t('Alias for "@path" already exists - skipped.', [
           '@path' => $path,
         ]));
 
@@ -53,7 +54,7 @@ class Alias extends HelperBase {
 
       $taken = $this->findByAlias($alias, $langcode);
       if ($taken instanceof PathAliasInterface) {
-        $this->messenger->addStatus($this->t('Alias "@alias" is already in use - skipped.', [
+        $this->reporter->skipped($this->t('Alias "@alias" is already in use - skipped.', [
           '@alias' => $alias,
         ]));
 
@@ -69,7 +70,7 @@ class Alias extends HelperBase {
     ]);
     $path_alias->save();
 
-    $this->messenger->addStatus($this->t('Created alias: "@path" -> "@alias".', [
+    $this->reporter->created($this->t('Created alias: "@path" -> "@alias".', [
       '@path' => $path,
       '@alias' => $alias,
     ]));
@@ -174,7 +175,7 @@ class Alias extends HelperBase {
     $path_alias = $this->findByPath($path, $langcode);
 
     if (!$path_alias instanceof PathAliasInterface) {
-      $this->messenger->addStatus($this->t('No alias found for path "@path" - nothing to update.', [
+      $this->reporter->skipped($this->t('No alias found for path "@path" - nothing to update.', [
         '@path' => $path,
       ]));
 
@@ -184,7 +185,7 @@ class Alias extends HelperBase {
     $path_alias->setAlias($alias);
     $path_alias->save();
 
-    $this->messenger->addStatus($this->t('Updated alias for path "@path" -> "@alias".', [
+    $this->reporter->updated($this->t('Updated alias for path "@path" -> "@alias".', [
       '@path' => $path,
       '@alias' => $alias,
     ]));
@@ -218,7 +219,7 @@ class Alias extends HelperBase {
     $path_alias = $this->findByAlias($alias, $langcode);
 
     if (!$path_alias instanceof PathAliasInterface) {
-      $this->messenger->addStatus($this->t('No alias "@alias" found - nothing to update.', [
+      $this->reporter->skipped($this->t('No alias "@alias" found - nothing to update.', [
         '@alias' => $alias,
       ]));
 
@@ -228,7 +229,7 @@ class Alias extends HelperBase {
     $path_alias->setPath($path);
     $path_alias->save();
 
-    $this->messenger->addStatus($this->t('Retargeted alias "@alias" -> "@path".', [
+    $this->reporter->updated($this->t('Retargeted alias "@alias" -> "@path".', [
       '@alias' => $alias,
       '@path' => $path,
     ]));
@@ -287,7 +288,7 @@ class Alias extends HelperBase {
   public function deleteAll(): ?string {
     return $this->batchEntity('path_alias', NULL, function ($path_alias): void {
       $path_alias->delete();
-    });
+    }, status: Reporter::DELETED);
   }
 
   /**
@@ -353,9 +354,11 @@ class Alias extends HelperBase {
       $rows = [];
     }
 
+    // The per-row create() already reports each alias, so the batch itself
+    // records no count to avoid double counting.
     return $this->batch($rows, function (array $row): void {
       $this->create($row['path'], $row['alias'], $row['langcode']);
-    }, 'aliases');
+    }, 'aliases', status: NULL);
   }
 
   /**
@@ -414,11 +417,11 @@ class Alias extends HelperBase {
     $storage->delete($path_aliases);
 
     $count = count($path_aliases);
-    $this->messenger->addStatus($this->t('Deleted @count alias(es) matching @property "@value".', [
+    $this->reporter->deleted($this->t('Deleted @count alias(es) matching @property "@value".', [
       '@count' => $count,
       '@property' => $property,
       '@value' => $value,
-    ]));
+    ]), $count);
 
     return $count;
   }

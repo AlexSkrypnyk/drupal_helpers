@@ -9,9 +9,11 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\drupal_helpers\Helpers\Entity;
+use Drupal\drupal_helpers\Report\Reporter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -37,6 +39,11 @@ class EntityHelperTest extends TestCase {
   protected MockObject $messenger;
 
   /**
+   * The reporter forwarding to the messenger mock.
+   */
+  protected Reporter $reporter;
+
+  /**
    * The entity helper under test.
    */
   protected Entity $entityHelper;
@@ -49,8 +56,9 @@ class EntityHelperTest extends TestCase {
 
     $this->entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $this->messenger = $this->createMock(MessengerInterface::class);
+    $this->reporter = new Reporter($this->createMock(LoggerChannelInterface::class), $this->messenger);
 
-    $this->entityHelper = new Entity($this->entityTypeManager, $this->messenger);
+    $this->entityHelper = new Entity($this->entityTypeManager, $this->reporter);
 
     $translation = $this->createMock(TranslationInterface::class);
     $translation->method('translateString')->willReturnCallback(fn($input): string => (string) $input->getUntranslatedString());

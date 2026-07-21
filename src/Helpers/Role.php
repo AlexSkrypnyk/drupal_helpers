@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Drupal\drupal_helpers\Helpers;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\drupal_helpers\Report\Reporter;
 use Drupal\user\PermissionHandlerInterface;
 use Drupal\user\RoleInterface;
 
@@ -18,10 +18,10 @@ class Role extends HelperBase {
 
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
-    MessengerInterface $messenger,
+    Reporter $reporter,
     protected ?PermissionHandlerInterface $permissionHandler = NULL,
   ) {
-    parent::__construct($entity_type_manager, $messenger);
+    parent::__construct($entity_type_manager, $reporter);
   }
 
   /**
@@ -53,7 +53,7 @@ class Role extends HelperBase {
     $role = $storage->load($id);
 
     if ($role instanceof RoleInterface) {
-      $this->messenger->addStatus($this->t('Role "@id" already exists - skipped.', [
+      $this->reporter->skipped($this->t('Role "@id" already exists - skipped.', [
         '@id' => $id,
       ]));
 
@@ -64,7 +64,7 @@ class Role extends HelperBase {
     $role = $storage->create(['id' => $id, 'label' => $label]);
     $role->save();
 
-    $this->messenger->addStatus($this->t('Created role "@id".', ['@id' => $id]));
+    $this->reporter->created($this->t('Created role "@id".', ['@id' => $id]));
 
     return $role;
   }
@@ -84,7 +84,7 @@ class Role extends HelperBase {
     $role = $this->entityTypeManager->getStorage('user_role')->load($id);
 
     if (!$role instanceof RoleInterface) {
-      $this->messenger->addStatus($this->t('Role "@id" does not exist - skipped.', [
+      $this->reporter->skipped($this->t('Role "@id" does not exist - skipped.', [
         '@id' => $id,
       ]));
 
@@ -93,7 +93,7 @@ class Role extends HelperBase {
 
     $role->delete();
 
-    $this->messenger->addStatus($this->t('Deleted role "@id".', ['@id' => $id]));
+    $this->reporter->deleted($this->t('Deleted role "@id".', ['@id' => $id]));
   }
 
   /**
@@ -130,7 +130,7 @@ class Role extends HelperBase {
 
     $role->save();
 
-    $this->messenger->addStatus($this->t('Granted @count permission(s) to role "@id".', [
+    $this->reporter->updated($this->t('Granted @count permission(s) to role "@id".', [
       '@count' => count($permissions),
       '@id' => $id,
     ]));
@@ -168,7 +168,7 @@ class Role extends HelperBase {
 
     $role->save();
 
-    $this->messenger->addStatus($this->t('Revoked @count permission(s) from role "@id".', [
+    $this->reporter->updated($this->t('Revoked @count permission(s) from role "@id".', [
       '@count' => count($permissions),
       '@id' => $id,
     ]));

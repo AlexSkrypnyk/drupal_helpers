@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\drupal_helpers\Helpers;
 
+use Drupal\drupal_helpers\Report\Reporter;
 use Drupal\taxonomy\TermInterface;
 
 /**
@@ -61,7 +62,7 @@ class Term extends HelperBase {
         $existing = $storage->loadByProperties(['vid' => $vocabulary, 'name' => $name]);
         if ($existing) {
           $term = reset($existing);
-          $this->messenger->addStatus($this->t('Term "@name" already exists in "@vocabulary" — skipped.', [
+          $this->reporter->skipped($this->t('Term "@name" already exists in "@vocabulary" — skipped.', [
             '@name' => $name,
             '@vocabulary' => $vocabulary,
           ]));
@@ -86,7 +87,7 @@ class Term extends HelperBase {
       ]);
       $term->save();
 
-      $this->messenger->addStatus($this->t('Created term "@name" (tid: @tid) in "@vocabulary".', [
+      $this->reporter->created($this->t('Created term "@name" (tid: @tid) in "@vocabulary".', [
         '@name' => $name,
         '@tid' => $term->id(),
         '@vocabulary' => $vocabulary,
@@ -120,7 +121,7 @@ class Term extends HelperBase {
   public function deleteAll(string $vocabulary): ?string {
     return $this->batchEntity('taxonomy_term', NULL, function ($term): void {
       $term->delete();
-    }, ['vid' => $vocabulary]);
+    }, ['vid' => $vocabulary], status: Reporter::DELETED);
   }
 
   /**

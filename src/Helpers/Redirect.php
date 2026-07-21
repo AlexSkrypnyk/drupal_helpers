@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Drupal\drupal_helpers\Helpers;
 
+use Drupal\drupal_helpers\Report\Reporter;
+
 /**
  * Redirect helpers for deploy hooks.
  *
@@ -47,7 +49,7 @@ class Redirect extends HelperBase {
     if ($skip_existing) {
       $existing = $storage->loadByProperties(['redirect_source__path' => $source_path]);
       if ($existing) {
-        $this->messenger->addStatus($this->t('Redirect from "@source" already exists — skipped.', [
+        $this->reporter->skipped($this->t('Redirect from "@source" already exists — skipped.', [
           '@source' => $source_path,
         ]));
 
@@ -64,7 +66,7 @@ class Redirect extends HelperBase {
     ]);
     $redirect->save();
 
-    $this->messenger->addStatus($this->t('Created @code redirect: "@source" -> "@target".', [
+    $this->reporter->created($this->t('Created @code redirect: "@source" -> "@target".', [
       '@code' => $status_code,
       '@source' => $source_path,
       '@target' => $redirect_path,
@@ -135,10 +137,10 @@ class Redirect extends HelperBase {
     $storage->delete($redirects);
 
     $count = count($redirects);
-    $this->messenger->addStatus($this->t('Deleted @count redirects for "@source".', [
+    $this->reporter->deleted($this->t('Deleted @count redirects for "@source".', [
       '@count' => $count,
       '@source' => $source_path,
-    ]));
+    ]), $count);
 
     return $count;
   }
@@ -156,7 +158,7 @@ class Redirect extends HelperBase {
   public function deleteAll(): ?string {
     return $this->batchEntity('redirect', NULL, function ($redirect): void {
       $redirect->delete();
-    });
+    }, status: Reporter::DELETED);
   }
 
   /**
@@ -220,9 +222,11 @@ class Redirect extends HelperBase {
       $rows = [];
     }
 
+    // The per-row create() already reports each redirect, so the batch itself
+    // records no count to avoid double counting.
     return $this->batch($rows, function (array $row): void {
       $this->create($row['source'], $row['target'], $row['status_code']);
-    }, 'redirects');
+    }, 'redirects', status: NULL);
   }
 
   /**

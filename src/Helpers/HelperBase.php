@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Drupal\drupal_helpers\Helpers;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\drupal_helpers\Report\Reporter;
 use Drupal\drupal_helpers\Traits\BatchTrait;
 
 /**
@@ -19,7 +19,7 @@ abstract class HelperBase {
 
   public function __construct(
     protected EntityTypeManagerInterface $entityTypeManager,
-    protected MessengerInterface $messenger,
+    protected Reporter $reporter,
   ) {}
 
   /**
@@ -32,8 +32,8 @@ abstract class HelperBase {
   /**
    * {@inheritdoc}
    */
-  protected function getMessenger(): MessengerInterface {
-    return $this->messenger;
+  protected function getReporter(): Reporter {
+    return $this->reporter;
   }
 
   /**

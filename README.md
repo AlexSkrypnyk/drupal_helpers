@@ -77,6 +77,31 @@ function my_module_deploy_003(array &$sandbox): ?string {
 </details>
 
 <details>
+  <summary>📊 <strong>Operation logging and result reporting</strong></summary>
+
+Every helper feeds a shared reporter that tallies what a run created, updated,
+skipped, deleted, or failed, logs each operation to a dedicated `drupal_helpers`
+logger channel, and surfaces it through the messenger. Return the tally from a
+deploy hook with `Helper::report()` - it renders as a single line for both drush
+and `update.php`, then resets so the next hook starts clean.
+
+```php
+use Drupal\drupal_helpers\Helper;
+
+function my_module_deploy_001(array &$sandbox): ?string {
+  Helper::term()->createTree('topics', $large_tree);
+  // e.g. "Created 12, skipped 3."
+  return Helper::report();
+}
+```
+
+Pass `continue_on_error: TRUE` to the batch helpers to tolerate per-item
+failures: each is reported as a warning and counted, and the run keeps going
+instead of aborting.
+
+</details>
+
+<details>
   <summary>🧰 <strong>Taxonomy, menu, field, entity, config, user, role, redirect, and URL alias helpers</strong></summary>
 
 Common deploy hook operations covered out of the box:
@@ -538,7 +563,7 @@ function my_module_deploy_001(array &$sandbox): ?string {
 </details>
 
 <details>
-  <summary>Process entities matching an entity query with optional sandbox batching.<br/><code>batchQuery(QueryInterface $query, callable $callback, bool $continue_on_error = FALSE): ?string</code></summary>
+  <summary>Process entities matching an entity query with optional sandbox batching.<br/><code>batchQuery(QueryInterface $query, callable $callback, bool $continue_on_error = FALSE, ?string $status = Reporter::PROCESSED): ?string</code></summary>
 
 ```php
 // Migrate a value on every legacy article, tolerating per-item failures:

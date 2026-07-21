@@ -7,8 +7,8 @@ namespace Drupal\drupal_helpers\Helpers;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\StorageInterface;
 use Drupal\Core\Extension\ModuleExtensionList;
-use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\drupal_helpers\Report\Reporter;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -22,7 +22,7 @@ class Config {
     protected ConfigFactoryInterface $configFactory,
     protected StorageInterface $configStorage,
     protected ModuleExtensionList $moduleExtensionList,
-    protected MessengerInterface $messenger,
+    protected Reporter $reporter,
   ) {}
 
   /**
@@ -42,7 +42,7 @@ class Config {
   public function set(string $config_name, string $key, mixed $value): void {
     $this->configFactory->getEditable($config_name)->set($key, $value)->save();
 
-    $this->messenger->addStatus($this->t('Set "@key" in "@config".', [
+    $this->reporter->updated($this->t('Set "@key" in "@config".', [
       '@key' => $key,
       '@config' => $config_name,
     ]));
@@ -81,16 +81,16 @@ class Config {
     $config = $this->configFactory->getEditable($config_name);
 
     if ($config->isNew()) {
-      $this->messenger->addWarning($this->t('Config "@config" does not exist — skipped.', [
+      $this->reporter->skipped($this->t('Config "@config" does not exist — skipped.', [
         '@config' => $config_name,
-      ]));
+      ]), severity: Reporter::SEVERITY_WARNING);
 
       return;
     }
 
     $config->delete();
 
-    $this->messenger->addStatus($this->t('Deleted config "@config".', [
+    $this->reporter->deleted($this->t('Deleted config "@config".', [
       '@config' => $config_name,
     ]));
   }
@@ -117,21 +117,30 @@ class Config {
     $file_path = $module_path . '/config/' . $subdirectory . '/' . $config_name . '.yml';
 
     if (!file_exists($file_path)) {
-      $this->messenger->addError($this->t('Config file "@file" not found.', [
+      $this->reporter->failed($this->t('Config file "@file" not found.', [
         '@file' => $file_path,
-      ]));
+      ]), severity: Reporter::SEVERITY_ERROR);
 
       return;
     }
 
     $data = Yaml::parseFile($file_path);
     $config = $this->configFactory->getEditable($config_name);
+    $existed = !$config->isNew();
     $config->setData($data)->save();
 
-    $this->messenger->addStatus($this->t('Imported config "@config" from @module.', [
+    $message = $this->t('Imported config "@config" from @module.', [
       '@config' => $config_name,
       '@module' => $module_name,
-    ]));
+    ]);
+
+    if ($existed) {
+      $this->reporter->updated($message);
+
+      return;
+    }
+
+    $this->reporter->created($message);
   }
 
   /**
@@ -174,7 +183,7 @@ class Config {
 
     $this->set('system.site', 'page.front', $path);
 
-    $this->messenger->addStatus($this->t('Set front page to "@path".', [
+    $this->reporter->message($this->t('Set front page to "@path".', [
       '@path' => $path,
     ]));
   }

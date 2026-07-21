@@ -1,37 +1,43 @@
 services:
+  logger.channel.drupal_helpers:
+    parent: logger.channel_base
+    arguments: ['drupal_helpers']
+  drupal_helpers.reporter:
+    class: Drupal\drupal_helpers\Report\Reporter
+    arguments: ['@logger.channel.drupal_helpers', '@messenger']
   drupal_helpers.term:
     class: Drupal\drupal_helpers\Helpers\Term
-    arguments: ['@entity_type.manager', '@messenger']
+    arguments: ['@entity_type.manager', '@drupal_helpers.reporter']
   drupal_helpers.menu:
     class: Drupal\drupal_helpers\Helpers\Menu
-    arguments: ['@entity_type.manager', '@messenger']
+    arguments: ['@entity_type.manager', '@drupal_helpers.reporter']
   drupal_helpers.field:
     class: Drupal\drupal_helpers\Helpers\Field
-    arguments: ['@entity_type.manager', '@messenger', '@entity_field.deleted_fields_repository', '@entity_display.repository', '@?Drupal\Core\Field\FieldPurger']
+    arguments: ['@entity_type.manager', '@drupal_helpers.reporter', '@entity_field.deleted_fields_repository', '@entity_display.repository', '@?Drupal\Core\Field\FieldPurger']
   drupal_helpers.entity:
     class: Drupal\drupal_helpers\Helpers\Entity
-    arguments: ['@entity_type.manager', '@messenger']
+    arguments: ['@entity_type.manager', '@drupal_helpers.reporter']
   drupal_helpers.config:
     class: Drupal\drupal_helpers\Helpers\Config
-    arguments: ['@config.factory', '@config.storage', '@extension.list.module', '@messenger']
+    arguments: ['@config.factory', '@config.storage', '@extension.list.module', '@drupal_helpers.reporter']
   drupal_helpers.user:
     class: Drupal\drupal_helpers\Helpers\User
-    arguments: ['@entity_type.manager', '@messenger', '@password_generator']
+    arguments: ['@entity_type.manager', '@drupal_helpers.reporter', '@password_generator']
   drupal_helpers.redirect:
     class: Drupal\drupal_helpers\Helpers\Redirect
-    arguments: ['@entity_type.manager', '@messenger']
+    arguments: ['@entity_type.manager', '@drupal_helpers.reporter']
   drupal_helpers.alias:
     class: Drupal\drupal_helpers\Helpers\Alias
-    arguments: ['@entity_type.manager', '@messenger']
+    arguments: ['@entity_type.manager', '@drupal_helpers.reporter']
   drupal_helpers.block:
     class: Drupal\drupal_helpers\Helpers\Block
-    arguments: ['@entity_type.manager', '@messenger']
+    arguments: ['@entity_type.manager', '@drupal_helpers.reporter']
   drupal_helpers.role:
     class: Drupal\drupal_helpers\Helpers\Role
-    arguments: ['@entity_type.manager', '@messenger', '@?user.permissions']
+    arguments: ['@entity_type.manager', '@drupal_helpers.reporter', '@?user.permissions']
   drupal_helpers.display:
     class: Drupal\drupal_helpers\Helpers\Display
-    arguments: ['@entity_display.repository', '@messenger']
+    arguments: ['@entity_display.repository', '@drupal_helpers.reporter']
   drupal_helpers.module:
     class: Drupal\drupal_helpers\Helpers\Module
-    arguments: ['@module_installer', '@extension.list.module', '@config.factory', '@config.manager', '@config.storage', '@update.update_hook_registry', '@update.post_update_registry', '@router.builder', '@messenger']
+    arguments: ['@module_installer', '@extension.list.module', '@config.factory', '@config.manager', '@config.storage', '@update.update_hook_registry', '@update.post_update_registry', '@router.builder', '@drupal_helpers.reporter']
