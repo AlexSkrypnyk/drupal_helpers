@@ -576,6 +576,27 @@ function my_module_deploy_001(array &$sandbox): ?string {
 >  Field helpers for deploy hooks.
 
 <details>
+  <summary>Create a field storage and instance on a bundle from a settings array.<br/><code>create(string $entity_type, string $bundle, string $field_name, array $settings): FieldConfigInterface</code></summary>
+
+```php
+Helper::field()->create('node', 'article', 'field_subtitle', [
+  'type' => 'string',
+  'label' => 'Subtitle',
+]);
+```
+
+</details>
+
+<details>
+  <summary>Attach an existing field storage to one or more additional bundles.<br/><code>attachToBundles(string $field_name, string $entity_type, array $bundles): array</code></summary>
+
+```php
+Helper::field()->attachToBundles('field_subtitle', 'node', ['page', 'landing']);
+```
+
+</details>
+
+<details>
   <summary>Delete a field from all entity bundles and purge its data.<br/><code>delete(string $field_name): void</code></summary>
 
 ```php

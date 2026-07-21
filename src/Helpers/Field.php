@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Drupal\drupal_helpers\Helpers;
 
 use Drupal\Component\Utility\DeprecationHelper;
+use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\DeletedFieldsRepositoryInterface;
 use Drupal\Core\Field\FieldPurger;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\field\FieldConfigInterface;
+use Drupal\field\FieldStorageConfigInterface;
 
 /**
  * Field helpers for deploy hooks.
@@ -19,9 +22,117 @@ class Field extends HelperBase {
     EntityTypeManagerInterface $entity_type_manager,
     MessengerInterface $messenger,
     protected DeletedFieldsRepositoryInterface $deletedFieldsRepository,
+    protected EntityDisplayRepositoryInterface $entityDisplayRepository,
     protected ?FieldPurger $fieldPurger = NULL,
   ) {
     parent::__construct($entity_type_manager, $messenger);
+  }
+
+  /**
+   * Create a field storage and instance on a bundle from a settings array.
+   *
+   * The default widget and formatter for the field type are applied to the
+   * default form and view displays unless a 'widget' or 'formatter' override is
+   * given, so a single call yields an immediately usable field. Re-running with
+   * an instance that already exists is a safe no-op.
+   *
+   * @code
+   * Helper::field()->create('node', 'article', 'field_subtitle', [
+   *   'type' => 'string',
+   *   'label' => 'Subtitle',
+   * ]);
+   * @endcode
+   *
+   * @param string $entity_type
+   *   Entity type ID.
+   * @param string $bundle
+   *   Bundle machine name.
+   * @param string $field_name
+   *   Machine name of the field.
+   * @param array $settings
+   *   Field settings. Storage keys: 'type' (required), 'cardinality',
+   *   'storage_settings'. Instance keys: 'label' (defaults to a humanized field
+   *   name), 'description', 'required', 'settings', 'default_value'. Display
+   *   keys: 'widget', 'formatter' (component options; omit for type defaults).
+   *
+   * @return \Drupal\field\FieldConfigInterface
+   *   The created field instance, or the existing one when it already exists.
+   *
+   * @throws \InvalidArgumentException
+   *   When the 'type' setting is missing.
+   */
+  public function create(string $entity_type, string $bundle, string $field_name, array $settings): FieldConfigInterface {
+    if (!isset($settings['type'])) {
+      throw new \InvalidArgumentException(sprintf('The "type" setting is required to create field "%s".', $field_name));
+    }
+
+    $field_config_storage = $this->entityTypeManager->getStorage('field_config');
+
+    /** @var \Drupal\field\FieldConfigInterface|null $instance */
+    $instance = $field_config_storage->load($entity_type . '.' . $bundle . '.' . $field_name);
+
+    if ($instance instanceof FieldConfigInterface) {
+      $this->messenger->addStatus($this->t('Field "@field" already exists on @entity_type.@bundle - skipped.', [
+        '@field' => $field_name,
+        '@entity_type' => $entity_type,
+        '@bundle' => $bundle,
+      ]));
+
+      return $instance;
+    }
+
+    $this->ensureStorage($entity_type, $field_name, $settings);
+    $instance = $this->createInstance($entity_type, $bundle, $field_name, $settings);
+    $this->setDisplayDefaults($entity_type, $bundle, $field_name, $settings);
+
+    $this->messenger->addStatus($this->t('Created field "@field" on @entity_type.@bundle.', [
+      '@field' => $field_name,
+      '@entity_type' => $entity_type,
+      '@bundle' => $bundle,
+    ]));
+
+    return $instance;
+  }
+
+  /**
+   * Attach an existing field storage to one or more additional bundles.
+   *
+   * Each bundle receives a field instance reusing the shared storage, with the
+   * field type's default widget and formatter wired onto its displays. Bundles
+   * that already have the instance are skipped.
+   *
+   * @code
+   * Helper::field()->attachToBundles('field_subtitle', 'node', ['page', 'landing']);
+   * @endcode
+   *
+   * @param string $field_name
+   *   Machine name of an existing field storage.
+   * @param string $entity_type
+   *   Entity type ID the storage belongs to.
+   * @param string[] $bundles
+   *   Bundle machine names to attach the field to.
+   *
+   * @return \Drupal\field\FieldConfigInterface[]
+   *   The field instances keyed by bundle.
+   *
+   * @throws \InvalidArgumentException
+   *   When the field storage does not exist.
+   */
+  public function attachToBundles(string $field_name, string $entity_type, array $bundles): array {
+    /** @var \Drupal\field\FieldStorageConfigInterface|null $field_storage */
+    $field_storage = $this->entityTypeManager->getStorage('field_storage_config')->load($entity_type . '.' . $field_name);
+
+    if (!$field_storage instanceof FieldStorageConfigInterface) {
+      throw new \InvalidArgumentException(sprintf('Field storage "%s.%s" does not exist; create it before attaching to bundles.', $entity_type, $field_name));
+    }
+
+    $instances = [];
+
+    foreach ($bundles as $bundle) {
+      $instances[$bundle] = $this->create($entity_type, $bundle, $field_name, ['type' => $field_storage->getType()]);
+    }
+
+    return $instances;
   }
 
   /**
@@ -102,6 +213,124 @@ class Field extends HelperBase {
       '@entity_type' => $entity_type,
       '@bundle' => $bundle,
     ]));
+  }
+
+  /**
+   * Load the field storage, creating it from the settings when absent.
+   *
+   * @param string $entity_type
+   *   Entity type ID.
+   * @param string $field_name
+   *   Machine name of the field.
+   * @param array $settings
+   *   Field settings; 'type' is required, 'cardinality' and 'storage_settings'
+   *   are optional storage-level keys.
+   *
+   * @return \Drupal\field\FieldStorageConfigInterface
+   *   The existing or newly created field storage.
+   */
+  protected function ensureStorage(string $entity_type, string $field_name, array $settings): FieldStorageConfigInterface {
+    $field_storage_config_storage = $this->entityTypeManager->getStorage('field_storage_config');
+
+    /** @var \Drupal\field\FieldStorageConfigInterface|null $field_storage */
+    $field_storage = $field_storage_config_storage->load($entity_type . '.' . $field_name);
+
+    if ($field_storage instanceof FieldStorageConfigInterface) {
+      return $field_storage;
+    }
+
+    $values = [
+      'field_name' => $field_name,
+      'entity_type' => $entity_type,
+      'type' => $settings['type'],
+    ];
+
+    if (isset($settings['cardinality'])) {
+      $values['cardinality'] = $settings['cardinality'];
+    }
+
+    if (isset($settings['storage_settings'])) {
+      $values['settings'] = $settings['storage_settings'];
+    }
+
+    /** @var \Drupal\field\FieldStorageConfigInterface $field_storage */
+    $field_storage = $field_storage_config_storage->create($values);
+    $field_storage->save();
+
+    return $field_storage;
+  }
+
+  /**
+   * Create and save a field instance on a bundle from the settings.
+   *
+   * @param string $entity_type
+   *   Entity type ID.
+   * @param string $bundle
+   *   Bundle machine name.
+   * @param string $field_name
+   *   Machine name of the field.
+   * @param array $settings
+   *   Field settings; the instance-level keys 'label', 'description',
+   *   'required', 'settings' and 'default_value' are used when present.
+   *
+   * @return \Drupal\field\FieldConfigInterface
+   *   The saved field instance.
+   */
+  protected function createInstance(string $entity_type, string $bundle, string $field_name, array $settings): FieldConfigInterface {
+    $values = [
+      'field_name' => $field_name,
+      'entity_type' => $entity_type,
+      'bundle' => $bundle,
+      'label' => $settings['label'] ?? $this->humanize($field_name),
+    ];
+
+    foreach (['description', 'required', 'settings', 'default_value'] as $key) {
+      if (isset($settings[$key])) {
+        $values[$key] = $settings[$key];
+      }
+    }
+
+    /** @var \Drupal\field\FieldConfigInterface $instance */
+    $instance = $this->entityTypeManager->getStorage('field_config')->create($values);
+    $instance->save();
+
+    return $instance;
+  }
+
+  /**
+   * Wire the field onto the default form and view displays.
+   *
+   * An empty component options array lets core fill in the field type's default
+   * widget and formatter; a 'widget' or 'formatter' setting overrides them.
+   *
+   * @param string $entity_type
+   *   Entity type ID.
+   * @param string $bundle
+   *   Bundle machine name.
+   * @param string $field_name
+   *   Machine name of the field.
+   * @param array $settings
+   *   Field settings; the optional 'widget' and 'formatter' keys are passed as
+   *   component options to the form and view displays respectively.
+   */
+  protected function setDisplayDefaults(string $entity_type, string $bundle, string $field_name, array $settings): void {
+    $this->entityDisplayRepository->getFormDisplay($entity_type, $bundle)->setComponent($field_name, $settings['widget'] ?? [])->save();
+    $this->entityDisplayRepository->getViewDisplay($entity_type, $bundle)->setComponent($field_name, $settings['formatter'] ?? [])->save();
+  }
+
+  /**
+   * Build a human-readable label from a field machine name.
+   *
+   * @param string $field_name
+   *   Machine name of the field, e.g. 'field_subtitle'.
+   *
+   * @return string
+   *   A humanized label, e.g. 'Subtitle'.
+   */
+  protected function humanize(string $field_name): string {
+    $label = preg_replace('/^field_/', '', $field_name);
+
+    return ucfirst(str_replace('_', ' ', (string) $label));
   }
 
   /**
