@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Drupal\Tests\drupal_helpers\Kernel;
 
 use Drupal\Core\Entity\Display\EntityDisplayInterface;
+use Drupal\Core\Entity\Display\EntityFormDisplayInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\drupal_helpers\Helpers\Display;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
@@ -63,7 +65,7 @@ class DisplayHelperTest extends KernelTestBase {
       'weight' => 5,
     ]);
 
-    $this->assertInstanceOf(EntityDisplayInterface::class, $display);
+    $this->assertInstanceOf(EntityFormDisplayInterface::class, $display);
 
     $component = $display->getComponent('field_subtitle');
     $this->assertIsArray($component);
@@ -86,7 +88,7 @@ class DisplayHelperTest extends KernelTestBase {
       'weight' => 3,
     ]);
 
-    $this->assertInstanceOf(EntityDisplayInterface::class, $display);
+    $this->assertInstanceOf(EntityViewDisplayInterface::class, $display);
 
     $component = $display->getComponent('field_subtitle');
     $this->assertIsArray($component);
@@ -109,7 +111,7 @@ class DisplayHelperTest extends KernelTestBase {
 
     $display = $this->displayHelper->hideFormComponent('entity_test', 'entity_test', 'default', 'field_subtitle');
 
-    $this->assertInstanceOf(EntityDisplayInterface::class, $display);
+    $this->assertInstanceOf(EntityFormDisplayInterface::class, $display);
     $this->assertNull($display->getComponent('field_subtitle'));
 
     $this->assertNull($this->reloadFormDisplay()->getComponent('field_subtitle'));
@@ -125,7 +127,7 @@ class DisplayHelperTest extends KernelTestBase {
 
     $display = $this->displayHelper->hideViewComponent('entity_test', 'entity_test', 'default', 'field_subtitle');
 
-    $this->assertInstanceOf(EntityDisplayInterface::class, $display);
+    $this->assertInstanceOf(EntityViewDisplayInterface::class, $display);
     $this->assertNull($display->getComponent('field_subtitle'));
 
     $this->assertNull($this->reloadViewDisplay()->getComponent('field_subtitle'));
