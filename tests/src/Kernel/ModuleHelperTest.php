@@ -135,16 +135,30 @@ class ModuleHelperTest extends KernelTestBase {
     $this->container->get('config.storage')->write('ghost_module.settings', ['foo' => 'bar']);
     $this->container->get('config.storage')->createCollection('language.xx')->write('ghost_module.settings', ['foo' => 'bar']);
 
-    $called = NULL;
-    $result = Helper::module()->uninstall('ghost_module', function (string $module) use (&$called): void {
-      $called = $module;
+    // Seed a custom table the module's hook_install() would have created. The
+    // helper cannot know about it, so the callback stands in for the module's
+    // unavailable hook_uninstall() and drops it.
+    $schema = $this->container->get('database')->schema();
+    $schema->createTable('ghost_module_data', ['fields' => ['id' => ['type' => 'int', 'not null' => TRUE]]]);
+    $this->assertTrue($schema->tableExists('ghost_module_data'));
+
+    $result = Helper::module()->uninstall('ghost_module', function (string $module): void {
+      \Drupal::database()->schema()->dropTable($module . '_data');
+      \Drupal::state()->set('ghost_module_removed', $module);
     });
 
-    $this->assertSame('ghost_module', $called);
+    // The codeless module is gone from the database.
     $this->assertArrayNotHasKey('ghost_module', $this->installedModules());
     $this->assertSame(UpdateHookRegistry::SCHEMA_UNINSTALLED, $this->updateHookRegistry()->getInstalledVersion('ghost_module'));
+
+    // The helper removed the module's own config from both collections.
     $this->assertTrue($this->container->get('config.factory')->get('ghost_module.settings')->isNew());
     $this->assertFalse($this->container->get('config.storage')->createCollection('language.xx')->exists('ghost_module.settings'));
+
+    // The callback cleaned up what the helper could not: the planted table.
+    $this->assertSame('ghost_module', $this->container->get('state')->get('ghost_module_removed'));
+    $this->assertFalse($this->container->get('database')->schema()->tableExists('ghost_module_data'));
+
     $this->assertStringContainsString("Force-removed orphaned module 'ghost_module'", $result);
   }
 
