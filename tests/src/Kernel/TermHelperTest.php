@@ -9,6 +9,7 @@ use Drupal\taxonomy\TermInterface;
 use Drupal\drupal_helpers\Helpers\Term;
 use Drupal\KernelTests\KernelTestBase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Drupal\Component\Serialization\Yaml;
 
 /**
  * Kernel tests for the Term helper service.
@@ -133,6 +134,151 @@ class TermHelperTest extends KernelTestBase {
     $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
     $all_news = $storage->loadByProperties(['vid' => 'tags', 'name' => 'News']);
     $this->assertCount(2, $all_news);
+  }
+
+  /**
+   * Tests adding children beneath an already-existing parent term.
+   */
+  public function testCreateTreePreserveExistingWithChildren(): void {
+    $this->termHelper->createTree('tags', ['Finance' => ['Budgets']]);
+
+    // 'Finance' already exists; a second call adds children beneath it.
+    $this->termHelper->createTree('tags', ['Finance' => ['Grants']]);
+
+    $this->assertSame(['Finance' => ['Budgets', 'Grants']], $this->termHelper->exportTree('tags'));
+  }
+
+  /**
+   * Tests exporting a flat vocabulary to a tree array.
+   */
+  public function testExportTreeFlat(): void {
+    $this->termHelper->createTree('tags', ['News', 'Events', 'Blog']);
+
+    $this->assertSame(['News', 'Events', 'Blog'], $this->termHelper->exportTree('tags'));
+  }
+
+  /**
+   * Tests exporting a nested vocabulary preserves hierarchy and order.
+   */
+  public function testExportTreeNested(): void {
+    $tree = [
+      'Finance' => [
+        'Budgets',
+        'Grants',
+      ],
+      'Governance' => [
+        'Policy' => [
+          'Internal',
+          'External',
+        ],
+        // phpcs:ignore Squiz.Arrays.ArrayDeclaration.NoKeySpecified
+        'Compliance',
+      ],
+      // phpcs:ignore Squiz.Arrays.ArrayDeclaration.NoKeySpecified
+      'Operations',
+    ];
+
+    $this->termHelper->createTree('tags', $tree);
+
+    $this->assertSame($tree, $this->termHelper->exportTree('tags'));
+  }
+
+  /**
+   * Tests exporting an empty vocabulary returns an empty array.
+   */
+  public function testExportTreeEmpty(): void {
+    $this->assertSame([], $this->termHelper->exportTree('tags'));
+  }
+
+  /**
+   * Tests that exporting then re-creating reproduces the structure.
+   */
+  public function testExportTreeRoundTrip(): void {
+    $tree = [
+      'Finance' => [
+        'Budgets',
+        'Grants',
+      ],
+      // phpcs:ignore Squiz.Arrays.ArrayDeclaration.NoKeySpecified
+      'Operations',
+    ];
+    $this->termHelper->createTree('tags', $tree);
+    $exported = $this->termHelper->exportTree('tags');
+    $this->assertIsArray($exported);
+
+    // Wipe the vocabulary and rebuild it from the exported structure.
+    $this->termHelper->deleteAll('tags');
+    $this->termHelper->createTree('tags', $exported);
+
+    $this->assertSame($tree, $this->termHelper->exportTree('tags'));
+  }
+
+  /**
+   * Tests exporting a vocabulary as a ready-to-paste PHP array literal.
+   */
+  public function testExportTreePhp(): void {
+    $this->termHelper->createTree('tags', [
+      'Finance' => [
+        'Budgets',
+        'Grants',
+      ],
+      // phpcs:ignore Squiz.Arrays.ArrayDeclaration.NoKeySpecified
+      'Operations',
+    ]);
+
+    $expected = <<<'PHP'
+    [
+      'Finance' => [
+        'Budgets',
+        'Grants',
+      ],
+      'Operations',
+    ]
+    PHP;
+
+    $this->assertSame($expected, $this->termHelper->exportTree('tags', Term::FORMAT_PHP));
+  }
+
+  /**
+   * Tests exporting a vocabulary as YAML.
+   */
+  public function testExportTreeYaml(): void {
+    $this->termHelper->createTree('tags', ['News', 'Events']);
+
+    $yaml = $this->termHelper->exportTree('tags', Term::FORMAT_YAML);
+    $this->assertIsString($yaml);
+
+    $this->assertSame(['News', 'Events'], Yaml::decode($yaml));
+  }
+
+  /**
+   * Tests exporting orders terms by weight, not by creation order.
+   */
+  public function testExportTreeOrdersByWeight(): void {
+    $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
+    $storage->create(['vid' => 'tags', 'name' => 'Third', 'weight' => 10])->save();
+    $storage->create(['vid' => 'tags', 'name' => 'First', 'weight' => -5])->save();
+    $storage->create(['vid' => 'tags', 'name' => 'Second', 'weight' => 0])->save();
+
+    $this->assertSame(['First', 'Second', 'Third'], $this->termHelper->exportTree('tags'));
+  }
+
+  /**
+   * Tests exporting warns when sibling parent terms share a name.
+   */
+  public function testExportTreeDuplicateNameWarns(): void {
+    $storage = $this->container->get('entity_type.manager')->getStorage('taxonomy_term');
+    $first = $storage->create(['vid' => 'tags', 'name' => 'Dup', 'weight' => 0]);
+    $first->save();
+    $second = $storage->create(['vid' => 'tags', 'name' => 'Dup', 'weight' => 1]);
+    $second->save();
+    $storage->create(['vid' => 'tags', 'name' => 'ChildA', 'parent' => $first->id()])->save();
+    $storage->create(['vid' => 'tags', 'name' => 'ChildB', 'parent' => $second->id()])->save();
+
+    $this->termHelper->exportTree('tags');
+
+    $messages = $this->container->get('messenger')->messagesByType('warning');
+    $this->assertNotEmpty($messages);
   }
 
   /**

@@ -667,6 +667,20 @@ Helper::menu()->createTree('main', $tree);
 </details>
 
 <details>
+  <summary>Export a menu to the nested tree accepted by createTree().<br/><code>exportTree(string $menu_name, string $format = self::FORMAT_ARRAY): array|string</code></summary>
+
+```php
+// Snapshot structure as data:
+$tree = Helper::menu()->exportTree('main');
+
+// Render as ready-to-paste PHP or YAML:
+$php = Helper::menu()->exportTree('main', Menu::FORMAT_PHP);
+$yaml = Helper::menu()->exportTree('main', Menu::FORMAT_YAML);
+```
+
+</details>
+
+<details>
   <summary>Delete all menu links from a menu.<br/><code>deleteTree(string $menu_name): ?string</code></summary>
 
 ```php
@@ -862,6 +876,20 @@ Helper::term()->createTree('topics', [
   ],
   'Operations',
 ]);
+```
+
+</details>
+
+<details>
+  <summary>Export a vocabulary to the nested tree accepted by createTree().<br/><code>exportTree(string $vocabulary, string $format = self::FORMAT_ARRAY): array|string</code></summary>
+
+```php
+// Snapshot structure as data:
+$tree = Helper::term()->exportTree('topics');
+
+// Render as ready-to-paste PHP or YAML:
+$php = Helper::term()->exportTree('topics', Term::FORMAT_PHP);
+$yaml = Helper::term()->exportTree('topics', Term::FORMAT_YAML);
 ```
 
 </details>

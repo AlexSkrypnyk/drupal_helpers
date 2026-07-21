@@ -185,9 +185,12 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
 
+      # Only Drupal 11 jobs (PHPUnit 10+) record coverage from kernel tests;
+      # Drupal 10 (PHPUnit 9) does not, so uploading its partial report would
+      # make Codecov undercount patch coverage. Upload from Drupal 11 only.
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
-        if: ${{ env.CODECOV_TOKEN != '' }}
+        if: ${{ env.CODECOV_TOKEN != '' && startsWith(matrix.drupal-version, '11') }}
         with:
           directory: ./.logs/coverage
           fail_ci_if_error: true

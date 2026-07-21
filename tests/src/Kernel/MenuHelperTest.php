@@ -116,6 +116,170 @@ class MenuHelperTest extends KernelTestBase {
   }
 
   /**
+   * Tests creating a menu link from a path without a leading slash.
+   */
+  public function testCreateTreeRelativePath(): void {
+    $this->menuHelper->createTree('main', ['About' => 'about']);
+
+    $this->assertSame(['About' => '/about'], $this->menuHelper->exportTree('main'));
+  }
+
+  /**
+   * Tests exporting a flat menu to a tree array.
+   */
+  public function testExportTreeFlat(): void {
+    $this->menuHelper->createTree('main', [
+      'Home' => '/',
+      'About' => '/about',
+    ]);
+
+    $this->assertSame(['Home' => '/', 'About' => '/about'], $this->menuHelper->exportTree('main'));
+  }
+
+  /**
+   * Tests exporting a nested menu preserves hierarchy and order.
+   */
+  public function testExportTreeNested(): void {
+    $tree = [
+      'Home' => '/',
+      'About' => [
+        'path' => '/about',
+        'children' => [
+          'Team' => '/about/team',
+          'Contact' => '/about/contact',
+        ],
+      ],
+      'External' => 'https://example.com',
+    ];
+
+    $this->menuHelper->createTree('main', $tree);
+
+    $this->assertSame($tree, $this->menuHelper->exportTree('main'));
+  }
+
+  /**
+   * Tests exporting an external link round-trips the URL.
+   */
+  public function testExportTreeExternalLink(): void {
+    $this->menuHelper->createTree('main', ['External' => 'https://example.com']);
+
+    $this->assertSame(['External' => 'https://example.com'], $this->menuHelper->exportTree('main'));
+  }
+
+  /**
+   * Tests exporting round-trips non-HTTP scheme links such as mailto and tel.
+   */
+  public function testExportTreeSchemeRoundTrip(): void {
+    $tree = [
+      'Email' => 'mailto:info@example.com',
+      'Phone' => 'tel:+15551234567',
+    ];
+    $this->menuHelper->createTree('main', $tree);
+    $exported = $this->menuHelper->exportTree('main');
+    $this->assertIsArray($exported);
+
+    $this->menuHelper->deleteTree('main');
+    $this->menuHelper->createTree('main', $exported);
+
+    $this->assertSame($tree, $this->menuHelper->exportTree('main'));
+  }
+
+  /**
+   * Tests exporting a route link round-trips the token path.
+   */
+  public function testExportTreeFront(): void {
+    $this->menuHelper->createTree('main', ['Home' => '<front>']);
+
+    $this->assertSame(['Home' => '<front>'], $this->menuHelper->exportTree('main'));
+  }
+
+  /**
+   * Tests exporting an empty menu returns an empty array.
+   */
+  public function testExportTreeEmpty(): void {
+    $this->assertSame([], $this->menuHelper->exportTree('main'));
+  }
+
+  /**
+   * Tests that exporting then re-creating reproduces the structure.
+   */
+  public function testExportTreeRoundTrip(): void {
+    $tree = [
+      'Home' => '/',
+      'About' => [
+        'path' => '/about',
+        'children' => [
+          'Team' => '/about/team',
+        ],
+      ],
+    ];
+    $this->menuHelper->createTree('main', $tree);
+    $exported = $this->menuHelper->exportTree('main');
+    $this->assertIsArray($exported);
+
+    // Wipe the menu and rebuild it from the exported structure.
+    $this->menuHelper->deleteTree('main');
+    $this->menuHelper->createTree('main', $exported);
+
+    $this->assertSame($tree, $this->menuHelper->exportTree('main'));
+  }
+
+  /**
+   * Tests exporting a menu as a ready-to-paste PHP array literal.
+   */
+  public function testExportTreePhp(): void {
+    $this->menuHelper->createTree('main', [
+      'Home' => '/',
+      'About' => [
+        'path' => '/about',
+        'children' => [
+          'Team' => '/about/team',
+        ],
+      ],
+    ]);
+
+    $expected = <<<'PHP'
+    [
+      'Home' => '/',
+      'About' => [
+        'path' => '/about',
+        'children' => [
+          'Team' => '/about/team',
+        ],
+      ],
+    ]
+    PHP;
+
+    $this->assertSame($expected, $this->menuHelper->exportTree('main', Menu::FORMAT_PHP));
+  }
+
+  /**
+   * Tests exporting orders links by weight, not by creation order.
+   */
+  public function testExportTreeOrdersByWeight(): void {
+    $storage = $this->container->get('entity_type.manager')->getStorage('menu_link_content');
+    $storage->create(['menu_name' => 'main', 'title' => 'Third', 'link' => ['uri' => 'internal:/c'], 'weight' => 10])->save();
+    $storage->create(['menu_name' => 'main', 'title' => 'First', 'link' => ['uri' => 'internal:/a'], 'weight' => -5])->save();
+    $storage->create(['menu_name' => 'main', 'title' => 'Second', 'link' => ['uri' => 'internal:/b'], 'weight' => 0])->save();
+
+    $this->assertSame(['First' => '/a', 'Second' => '/b', 'Third' => '/c'], $this->menuHelper->exportTree('main'));
+  }
+
+  /**
+   * Tests exporting warns when sibling links share a title.
+   */
+  public function testExportTreeDuplicateTitleWarns(): void {
+    $storage = $this->container->get('entity_type.manager')->getStorage('menu_link_content');
+    $storage->create(['menu_name' => 'main', 'title' => 'Docs', 'link' => ['uri' => 'internal:/a'], 'weight' => 0])->save();
+    $storage->create(['menu_name' => 'main', 'title' => 'Docs', 'link' => ['uri' => 'internal:/b'], 'weight' => 1])->save();
+
+    $this->menuHelper->exportTree('main');
+
+    $messages = $this->container->get('messenger')->messagesByType('warning');
+    $this->assertNotEmpty($messages);
+  }
+
+  /**
    * Tests deleting all menu links from a menu.
    */
   public function testDeleteTree(): void {

@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Drupal\drupal_helpers\Helpers;
 
 use Drupal\drupal_helpers\Report\Reporter;
+use Drupal\drupal_helpers\Traits\TreeExportTrait;
 use Drupal\menu_link_content\MenuLinkContentInterface;
 
 /**
  * Menu link helpers for deploy hooks.
  */
 class Menu extends HelperBase {
+
+  use TreeExportTrait;
 
   /**
    * Create menu links from a nested tree structure.
@@ -87,6 +90,99 @@ class Menu extends HelperBase {
     }
 
     return $links;
+  }
+
+  /**
+   * Export a menu to the nested tree accepted by createTree().
+   *
+   * Sibling links that share a title cannot both be represented and are
+   * reported with a warning during export.
+   *
+   * @code
+   * // Snapshot structure as data:
+   * $tree = Helper::menu()->exportTree('main');
+   *
+   * // Render as ready-to-paste PHP or YAML:
+   * $php = Helper::menu()->exportTree('main', Menu::FORMAT_PHP);
+   * $yaml = Helper::menu()->exportTree('main', Menu::FORMAT_YAML);
+   * @endcode
+   *
+   * @param string $menu_name
+   *   Menu machine name.
+   * @param string $format
+   *   Output format: self::FORMAT_ARRAY (default), self::FORMAT_PHP or
+   *   self::FORMAT_YAML.
+   *
+   * @return array|string
+   *   The nested tree array, or a rendered PHP/YAML string.
+   */
+  public function exportTree(string $menu_name, string $format = self::FORMAT_ARRAY): array|string {
+    $storage = $this->entityTypeManager->getStorage('menu_link_content');
+
+    $children_by_parent = [];
+    foreach ($storage->loadByProperties(['menu_name' => $menu_name]) as $link) {
+      $children_by_parent[$link->getParentId()][] = $link;
+    }
+
+    foreach ($children_by_parent as &$links) {
+      usort($links, $this->compareLinks(...));
+    }
+    unset($links);
+
+    $tree = $this->buildMenuTree($children_by_parent, '');
+
+    return $format === self::FORMAT_ARRAY ? $tree : $this->renderTree($tree, $format);
+  }
+
+  /**
+   * Build a nested menu tree from links grouped by parent.
+   *
+   * @param array $children_by_parent
+   *   Menu link entities keyed by parent plugin ID, each level ordered by
+   *   weight then title.
+   * @param string $parent_id
+   *   Parent menu link plugin ID whose level is being built ('' for the top
+   *   level).
+   *
+   * @return array
+   *   Nested tree keyed by link title, matching the structure accepted by
+   *   createTree(). Leaf links map to a path string; links with children map to
+   *   an array with 'path' and 'children'.
+   */
+  protected function buildMenuTree(array $children_by_parent, string $parent_id): array {
+    $tree = [];
+
+    foreach ($children_by_parent[$parent_id] ?? [] as $link) {
+      $title = $link->getTitle();
+
+      if (isset($tree[$title])) {
+        $this->reporter->skipped($this->t('Menu links share the title "@title" at the same level; the exported tree can only keep one.', [
+          '@title' => $title,
+        ]), severity: Reporter::SEVERITY_WARNING);
+      }
+
+      $path = $this->uriToPath($link->get('link')->first()->get('uri')->getValue());
+      $children = $this->buildMenuTree($children_by_parent, 'menu_link_content:' . $link->uuid());
+
+      $tree[$title] = $children !== [] ? ['path' => $path, 'children' => $children] : $path;
+    }
+
+    return $tree;
+  }
+
+  /**
+   * Compare two menu links by weight, then by title.
+   *
+   * @param \Drupal\menu_link_content\MenuLinkContentInterface $a
+   *   First menu link.
+   * @param \Drupal\menu_link_content\MenuLinkContentInterface $b
+   *   Second menu link.
+   *
+   * @return int
+   *   Negative, zero or positive per the usort() contract.
+   */
+  protected function compareLinks(MenuLinkContentInterface $a, MenuLinkContentInterface $b): int {
+    return $this->compareByWeight($a->getWeight(), $a->getTitle(), $b->getWeight(), $b->getTitle());
   }
 
   /**
@@ -191,11 +287,9 @@ class Menu extends HelperBase {
    *   URI string (internal:/, entity:node/1, or https://...).
    */
   protected function pathToUri(string $path): string {
-    if (str_starts_with($path, 'internal:') || str_starts_with($path, 'entity:') || str_starts_with($path, 'route:') || str_starts_with($path, 'base:')) {
-      return $path;
-    }
-
-    if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+    // Pass through anything already carrying a URI scheme (internal:, entity:,
+    // mailto:, tel:, https:, ...) so it round-trips with uriToPath().
+    if (preg_match('#^[a-z][a-z0-9+.\-]*:#i', $path) === 1) {
       return $path;
     }
 
@@ -208,6 +302,32 @@ class Menu extends HelperBase {
     }
 
     return 'internal:' . $path;
+  }
+
+  /**
+   * Convert a menu link URI back to a path string.
+   *
+   * Inverse of pathToUri(): 'internal:/about' becomes '/about' and
+   * 'route:<front>' becomes '<front>'. External, 'entity:' and other 'route:'
+   * or 'base:' URIs are returned unchanged.
+   *
+   * @param string $uri
+   *   A menu link URI like 'internal:/about', 'route:<front>' or
+   *   'https://example.com'.
+   *
+   * @return string
+   *   Path string suitable for pathToUri().
+   */
+  protected function uriToPath(string $uri): string {
+    if (str_starts_with($uri, 'internal:')) {
+      return substr($uri, strlen('internal:'));
+    }
+
+    if (str_starts_with($uri, 'route:<') && str_ends_with($uri, '>')) {
+      return substr($uri, strlen('route:'));
+    }
+
+    return $uri;
   }
 
 }
