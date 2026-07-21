@@ -14,6 +14,7 @@ use Drupal\drupal_helpers\Helpers\Field;
 use Drupal\drupal_helpers\Helpers\Menu;
 use Drupal\drupal_helpers\Helpers\Module;
 use Drupal\drupal_helpers\Helpers\Redirect;
+use Drupal\drupal_helpers\Helpers\Role;
 use Drupal\drupal_helpers\Helpers\Term;
 use Drupal\drupal_helpers\Helpers\User;
 use Drupal\KernelTests\KernelTestBase;
@@ -72,6 +73,7 @@ class HelperFacadeTest extends KernelTestBase {
       'user' => ['user', User::class],
       'redirect' => ['redirect', Redirect::class],
       'alias' => ['alias', Alias::class],
+      'role' => ['role', Role::class],
       'module' => ['module', Module::class],
     ];
   }

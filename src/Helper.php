@@ -12,6 +12,7 @@ use Drupal\drupal_helpers\Helpers\HelperBase;
 use Drupal\drupal_helpers\Helpers\Menu;
 use Drupal\drupal_helpers\Helpers\Module;
 use Drupal\drupal_helpers\Helpers\Redirect;
+use Drupal\drupal_helpers\Helpers\Role;
 use Drupal\drupal_helpers\Helpers\Term;
 use Drupal\drupal_helpers\Helpers\User;
 
@@ -116,6 +117,14 @@ class Helper {
   public static function alias(?array &$sandbox = NULL, int $batch_size = 50): Alias {
     /** @var \Drupal\drupal_helpers\Helpers\Alias */
     return static::service('alias', $sandbox, $batch_size);
+  }
+
+  /**
+   * Get the role helper service.
+   */
+  public static function role(): Role {
+    /** @var \Drupal\drupal_helpers\Helpers\Role */
+    return static::service('role');
   }
 
   /**
