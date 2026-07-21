@@ -98,6 +98,22 @@ class AliasHelperTest extends KernelTestBase {
   }
 
   /**
+   * Tests that reusing an alias string for another path is skipped.
+   */
+  public function testCreateSkipExistingAlias(): void {
+    $first = $this->aliasHelper->create('/node/1', '/about-us');
+    $second = $this->aliasHelper->create('/node/2', '/about-us');
+
+    $this->assertInstanceOf(PathAliasInterface::class, $first);
+    $this->assertInstanceOf(PathAliasInterface::class, $second);
+    $this->assertEquals($first->id(), $second->id());
+
+    $storage = $this->container->get('entity_type.manager')->getStorage('path_alias');
+    $this->assertCount(1, $storage->loadByProperties(['alias' => '/about-us']));
+    $this->assertNull($this->aliasHelper->findByPath('/node/2'));
+  }
+
+  /**
    * Tests creating multiple aliases.
    */
   public function testCreateMultiple(): void {

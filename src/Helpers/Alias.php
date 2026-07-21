@@ -29,7 +29,8 @@ class Alias extends HelperBase {
    * @param string|null $langcode
    *   Language code. Defaults to language-neutral when NULL.
    * @param bool $skip_existing
-   *   If TRUE, skip creating when an alias for this system path already exists.
+   *   If TRUE, skip creating when an alias for this system path already exists,
+   *   or when the alias string is already in use for the given language.
    *   Defaults to TRUE.
    *
    * @return \Drupal\path_alias\PathAliasInterface|null
@@ -48,6 +49,15 @@ class Alias extends HelperBase {
         ]));
 
         return $existing;
+      }
+
+      $taken = $this->findByAlias($alias, $langcode);
+      if ($taken) {
+        $this->messenger->addStatus($this->t('Alias "@alias" is already in use - skipped.', [
+          '@alias' => $alias,
+        ]));
+
+        return $taken;
       }
     }
 
