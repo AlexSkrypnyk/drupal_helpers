@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Drupal\drupal_helpers\Helpers\HelperBase;
 use Drupal\drupal_helpers\Helper;
 use Drupal\drupal_helpers\Helpers\Alias;
+use Drupal\drupal_helpers\Helpers\Block;
 use Drupal\drupal_helpers\Helpers\Config;
 use Drupal\drupal_helpers\Helpers\Entity;
 use Drupal\drupal_helpers\Helpers\Field;
@@ -31,7 +32,7 @@ class HelperFacadeTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['drupal_helpers', 'system', 'taxonomy', 'menu_link_content', 'link', 'node', 'user', 'field', 'text', 'redirect', 'path_alias'];
+  protected static $modules = ['drupal_helpers', 'system', 'taxonomy', 'menu_link_content', 'link', 'node', 'user', 'field', 'text', 'redirect', 'path_alias', 'block'];
 
   /**
    * {@inheritdoc}
@@ -73,6 +74,7 @@ class HelperFacadeTest extends KernelTestBase {
       'user' => ['user', User::class],
       'redirect' => ['redirect', Redirect::class],
       'alias' => ['alias', Alias::class],
+      'block' => ['block', Block::class],
       'role' => ['role', Role::class],
       'module' => ['module', Module::class],
     ];

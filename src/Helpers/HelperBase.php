@@ -48,4 +48,23 @@ abstract class HelperBase {
     return [];
   }
 
+  /**
+   * Assert that an entity type is available.
+   *
+   * Lets a single method declare a dependency narrower than the whole service
+   * (see requiredModules()): an entity type is defined only while its providing
+   * module is installed.
+   *
+   * @param string $entity_type_id
+   *   Entity type ID to require (e.g., 'block_content').
+   *
+   * @throws \RuntimeException
+   *   If the entity type is not defined.
+   */
+  protected function requireEntityType(string $entity_type_id): void {
+    if ($this->entityTypeManager->getDefinition($entity_type_id, FALSE) === NULL) {
+      throw new \RuntimeException(sprintf('The "%s" entity type is unavailable; install its providing module.', $entity_type_id));
+    }
+  }
+
 }

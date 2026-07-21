@@ -140,6 +140,7 @@ function my_module_deploy_001(array &$sandbox): ?string {
 | Helper | Description |
 | --- | --- |
 | [Alias](#alias) | URL alias helpers for deploy hooks. |
+| [Block](#block) | Block placement and block content helpers for deploy hooks. |
 | [Config](#config) | Configuration helpers for deploy hooks. |
 | [Entity](#entity) | Entity helpers for deploy hooks. |
 | [Field](#field) | Field helpers for deploy hooks. |
@@ -253,6 +254,99 @@ Helper::alias()->importFromCsv('/path/to/aliases.csv');
 function my_module_deploy_001(array &$sandbox): ?string {
   return Helper::alias($sandbox)->importFromCsv('/path/to/aliases.csv');
 }
+```
+
+</details>
+
+
+### Block
+
+[Source](src/Helpers/Block.php)
+
+>  Block placement and block content helpers for deploy hooks.
+
+<details>
+  <summary>Place a plugin block into a theme region.<br/><code>place(string $plugin_id, string $theme, string $region, array $options = [], bool $skip_existing = TRUE): ?EntityInterface</code></summary>
+
+```php
+Helper::block()->place('system_powered_by_block', 'olivero', 'footer', [
+  'weight' => 10,
+]);
+
+// With visibility conditions:
+Helper::block()->place('system_branding_block', 'olivero', 'header', [
+  'visibility' => [
+    'request_path' => [
+      'id' => 'request_path',
+      'pages' => '/admin/*',
+      'negate' => TRUE,
+    ],
+  ],
+]);
+```
+
+</details>
+
+<details>
+  <summary>Place multiple plugin blocks.<br/><code>placeMultiple(array $blocks): int</code></summary>
+
+```php
+Helper::block()->placeMultiple([
+  [
+    'plugin' => 'system_powered_by_block',
+    'theme' => 'olivero',
+    'region' => 'footer',
+  ],
+  [
+    'plugin' => 'system_branding_block',
+    'theme' => 'olivero',
+    'region' => 'header',
+    'options' => ['weight' => -10],
+  ],
+]);
+```
+
+</details>
+
+<details>
+  <summary>Remove a placed block.<br/><code>remove(string $id): bool</code></summary>
+
+```php
+Helper::block()->remove('olivero_system_powered_by_block');
+```
+
+</details>
+
+<details>
+  <summary>Create a block content entity.<br/><code>createContent(string $bundle, array $values = [], bool $skip_existing = TRUE): ?EntityInterface</code></summary>
+
+```php
+Helper::block()->createContent('basic', [
+  'info' => 'Footer contact',
+  'body' => 'Call us on 1234',
+]);
+```
+
+</details>
+
+<details>
+  <summary>Create multiple block content entities.<br/><code>createContentMultiple(array $blocks): int</code></summary>
+
+```php
+Helper::block()->createContentMultiple([
+  ['type' => 'basic', 'info' => 'Footer contact', 'body' => 'Call us'],
+  ['type' => 'basic', 'info' => 'Opening hours', 'body' => '9am - 5pm'],
+]);
+```
+
+</details>
+
+<details>
+  <summary>Delete block content by info label.<br/><code>deleteContent(string $info, ?string $bundle = NULL): int</code></summary>
+
+```php
+Helper::block()->deleteContent('Footer contact');
+Helper::block()->deleteContent('Footer contact', 'basic');
 ```
 
 </details>
