@@ -133,4 +133,76 @@ class EntityHelperTest extends KernelTestBase {
     $this->assertStringContainsString('No node entities to process', $result);
   }
 
+  /**
+   * Tests batchQuery processes only the entities selected by the query.
+   */
+  public function testBatchQueryTargeting(): void {
+    for ($i = 0; $i < 5; $i++) {
+      Node::create(['type' => 'article', 'title' => 'Article ' . $i, 'sticky' => $i < 2 ? 1 : 0])->save();
+    }
+
+    // The query intentionally omits accessCheck() - batchQuery must apply it.
+    $query = \Drupal::entityQuery('node')->condition('sticky', 1);
+
+    $processed = [];
+    $result = $this->entityHelper->batchQuery($query, function ($node) use (&$processed): void {
+      $processed[] = $node->id();
+    });
+
+    $this->assertStringContainsString('Processed 2 node entities', $result);
+    $this->assertCount(2, $processed);
+  }
+
+  /**
+   * Tests batchQuery collects per-item failures without aborting the run.
+   */
+  public function testBatchQueryContinueOnError(): void {
+    for ($i = 0; $i < 4; $i++) {
+      Node::create(['type' => 'article', 'title' => 'Article ' . $i])->save();
+    }
+
+    $sandbox = [];
+    $this->entityHelper->setSandbox($sandbox);
+
+    $query = \Drupal::entityQuery('node')->condition('type', 'article');
+
+    $processed = [];
+    $result = $this->entityHelper->batchQuery($query, function ($node) use (&$processed): void {
+      if (in_array($node->getTitle(), ['Article 1', 'Article 3'], TRUE)) {
+        throw new \RuntimeException('cannot process ' . $node->getTitle());
+      }
+      $processed[] = $node->getTitle();
+    }, TRUE);
+
+    $this->assertStringContainsString('Processed 4 node entities, 2 failed', $result);
+    $this->assertCount(2, $processed);
+    $this->assertCount(2, $sandbox['errors']);
+  }
+
+  /**
+   * Tests batchSetField sets a field value across every matched entity.
+   */
+  public function testBatchSetField(): void {
+    $ids = [];
+    for ($i = 0; $i < 3; $i++) {
+      $node = Node::create(['type' => 'article', 'title' => 'Article ' . $i, 'status' => 1]);
+      $node->save();
+      $ids[] = $node->id();
+    }
+
+    $query = \Drupal::entityQuery('node')->condition('type', 'article');
+
+    $result = $this->entityHelper->batchSetField($query, 'status', 0);
+
+    $this->assertStringContainsString('Processed 3 node entities', $result);
+
+    $storage = $this->container->get('entity_type.manager')->getStorage('node');
+    $storage->resetCache();
+
+    foreach ($ids as $id) {
+      $node = $storage->load($id);
+      $this->assertFalse($node->isPublished());
+    }
+  }
+
 }
