@@ -124,6 +124,8 @@ class RedirectHelperTest extends TestCase {
 
   /**
    * Tests status code parsing for valid values.
+   *
+   * @dataProvider dataProviderParseStatusCode
    */
   #[DataProvider('dataProviderParseStatusCode')]
   public function testParseStatusCode(string $value, int $expected): void {
@@ -132,6 +134,8 @@ class RedirectHelperTest extends TestCase {
 
   /**
    * Tests status code parsing rejects non-3xx values.
+   *
+   * @dataProvider dataProviderParseStatusCodeInvalid
    */
   #[DataProvider('dataProviderParseStatusCodeInvalid')]
   public function testParseStatusCodeInvalid(string $value): void {
