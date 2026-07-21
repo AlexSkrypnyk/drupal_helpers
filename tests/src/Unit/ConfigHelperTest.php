@@ -121,6 +121,8 @@ class ConfigHelperTest extends TestCase {
 
   /**
    * Tests that mismatch messages format each value type readably.
+   *
+   * @dataProvider dataProviderSetIfExpectedFormatsMismatchValue
    */
   #[DataProvider('dataProviderSetIfExpectedFormatsMismatchValue')]
   public function testSetIfExpectedFormatsMismatchValue(mixed $current, string $needle): void {
