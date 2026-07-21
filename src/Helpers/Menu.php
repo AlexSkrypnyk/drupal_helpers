@@ -156,9 +156,9 @@ class Menu extends HelperBase {
       $title = $link->getTitle();
 
       if (isset($tree[$title])) {
-        $this->messenger->addWarning($this->t('Menu links share the title "@title" at the same level; the exported tree can only keep one.', [
+        $this->reporter->skipped($this->t('Menu links share the title "@title" at the same level; the exported tree can only keep one.', [
           '@title' => $title,
-        ]));
+        ]), severity: Reporter::SEVERITY_WARNING);
       }
 
       $path = $this->uriToPath($link->get('link')->first()->get('uri')->getValue());

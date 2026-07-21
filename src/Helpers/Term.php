@@ -177,9 +177,9 @@ class Term extends HelperBase {
       }
 
       if (isset($tree[$name])) {
-        $this->messenger->addWarning($this->t('Parent terms share the name "@name" at the same level; the exported tree can only keep one.', [
+        $this->reporter->skipped($this->t('Parent terms share the name "@name" at the same level; the exported tree can only keep one.', [
           '@name' => $name,
-        ]));
+        ]), severity: Reporter::SEVERITY_WARNING);
       }
 
       $tree[$name] = $children;
