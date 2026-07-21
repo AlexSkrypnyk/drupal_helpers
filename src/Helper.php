@@ -9,6 +9,7 @@ use Drupal\drupal_helpers\Helpers\Entity;
 use Drupal\drupal_helpers\Helpers\Field;
 use Drupal\drupal_helpers\Helpers\HelperBase;
 use Drupal\drupal_helpers\Helpers\Menu;
+use Drupal\drupal_helpers\Helpers\Module;
 use Drupal\drupal_helpers\Helpers\Redirect;
 use Drupal\drupal_helpers\Helpers\Term;
 use Drupal\drupal_helpers\Helpers\User;
@@ -82,6 +83,14 @@ class Helper {
   public static function config(): Config {
     /** @var \Drupal\drupal_helpers\Helpers\Config */
     return \Drupal::service('drupal_helpers.config');
+  }
+
+  /**
+   * Get the module helper service.
+   */
+  public static function module(): Module {
+    /** @var \Drupal\drupal_helpers\Helpers\Module */
+    return \Drupal::service('drupal_helpers.module');
   }
 
   /**

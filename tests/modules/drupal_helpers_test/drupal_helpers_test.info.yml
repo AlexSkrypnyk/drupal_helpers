@@ -1,0 +1,6 @@
+name: 'Drupal Helpers Test'
+type: module
+description: 'Support module for drupal_helpers tests.'
+core_version_requirement: ^10.3 || ^11
+package: Testing
+hidden: true

@@ -1,0 +1,8 @@
+name: 'Drupal Helpers Update Test'
+type: module
+description: 'Support module for drupal_helpers update-path tests.'
+core_version_requirement: ^10.3 || ^11
+package: Testing
+hidden: true
+dependencies:
+  - 'drupal_helpers:drupal_helpers'

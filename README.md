@@ -141,6 +141,7 @@ function my_module_deploy_001(array &$sandbox): ?string {
 | [Entity](#entity) | Entity helpers for deploy hooks. |
 | [Field](#field) | Field helpers for deploy hooks. |
 | [Menu](#menu) | Menu link helpers for deploy hooks. |
+| [Module](#module) | Module install and uninstall helpers for deploy hooks. |
 | [Redirect](#redirect) | Redirect helpers for deploy hooks. |
 | [Term](#term) | Taxonomy term helpers for deploy hooks. |
 | [User](#user) | User helpers for deploy hooks. |
@@ -310,6 +311,36 @@ Helper::menu()->updateItem('main', ['title' => 'About'], [
   'path' => '/about-us',
   'weight' => 5,
 ]);
+```
+
+</details>
+
+
+### Module
+
+[Source](src/Helpers/Module.php)
+
+>  Module install and uninstall helpers for deploy hooks.
+
+<details>
+  <summary>Install a module and its dependencies.<br/><code>install(string $module): string</code></summary>
+
+```php
+Helper::module()->install('pathauto');
+```
+
+</details>
+
+<details>
+  <summary>Uninstall a module.<br/><code>uninstall(string $module, ?callable $callback = NULL): string</code></summary>
+
+```php
+Helper::module()->uninstall('legacy_feature');
+
+// Orphaned module (code removed, still in the database):
+Helper::module()->uninstall('ghost_module', function (string $module): void {
+  \Drupal::database()->schema()->dropTable('ghost_module_data');
+});
 ```
 
 </details>
