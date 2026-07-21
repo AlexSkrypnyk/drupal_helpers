@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\drupal_helpers\Unit;
 
+use Drupal\Component\Render\MarkupInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\drupal_helpers\Report\Reporter;
@@ -110,6 +111,29 @@ class ReporterTest extends TestCase {
     $this->reporter->record(Reporter::CREATED, 'Bulk.', 5);
 
     $this->assertSame(5, $this->reporter->count(Reporter::CREATED));
+  }
+
+  /**
+   * Tests that a non-positive count records nothing and surfaces nothing.
+   */
+  public function testRecordIgnoresNonPositiveCount(): void {
+    $this->messenger->expects($this->never())->method('addStatus');
+
+    $this->reporter->record(Reporter::CREATED, 'ignored', 0);
+
+    $this->assertSame(0, $this->reporter->count(Reporter::CREATED));
+    $this->assertSame([], $this->reporter->messages());
+  }
+
+  /**
+   * Tests that markup is passed through to the messenger unflattened.
+   */
+  public function testSurfacePreservesMarkup(): void {
+    $markup = $this->createMock(MarkupInterface::class);
+    $markup->method('__toString')->willReturn('rendered');
+    $this->messenger->expects($this->once())->method('addStatus')->with($this->identicalTo($markup));
+
+    $this->reporter->created($markup);
   }
 
   /**

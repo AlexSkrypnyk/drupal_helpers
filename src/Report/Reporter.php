@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\drupal_helpers\Report;
 
+use Drupal\Component\Render\MarkupInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 
@@ -152,6 +153,10 @@ class Reporter {
    *   everything else is a status message).
    */
   public function record(string $status, string|\Stringable $message, int $count = 1, ?string $severity = NULL): void {
+    if ($count < 1) {
+      return;
+    }
+
     $this->counts[$status] = ($this->counts[$status] ?? 0) + $count;
     $this->messages[] = ['status' => $status, 'message' => (string) $message];
 
@@ -249,22 +254,27 @@ class Reporter {
    *   One of the SEVERITY_* constants.
    */
   protected function surface(string|\Stringable $message, string $severity): void {
+    $text = (string) $message;
+    // Markup is preserved so the messenger renders it safely; any other
+    // Stringable is flattened to a plain string it can accept.
+    $display = $message instanceof MarkupInterface ? $message : $text;
+
     if ($severity === self::SEVERITY_ERROR) {
-      $this->logger->error('@message', ['@message' => (string) $message]);
-      $this->messenger->addError($message);
+      $this->logger->error('@message', ['@message' => $text]);
+      $this->messenger->addError($display);
 
       return;
     }
 
     if ($severity === self::SEVERITY_WARNING) {
-      $this->logger->warning('@message', ['@message' => (string) $message]);
-      $this->messenger->addWarning($message);
+      $this->logger->warning('@message', ['@message' => $text]);
+      $this->messenger->addWarning($display);
 
       return;
     }
 
-    $this->logger->info('@message', ['@message' => (string) $message]);
-    $this->messenger->addStatus($message);
+    $this->logger->info('@message', ['@message' => $text]);
+    $this->messenger->addStatus($display);
   }
 
 }
