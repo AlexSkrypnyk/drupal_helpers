@@ -136,6 +136,7 @@ class TranslationHelperTest extends KernelTestBase {
 
     $this->translationHelper->set('Submit', 'fr', 'Soumettre');
     $this->assertEquals(1, $reporter->count(Reporter::UPDATED));
+    $this->assertEquals(1, $reporter->count(Reporter::CREATED));
   }
 
   /**
