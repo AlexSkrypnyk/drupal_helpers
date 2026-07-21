@@ -122,7 +122,7 @@ class ConfigHelperTest extends TestCase {
   /**
    * Tests that mismatch messages format each value type readably.
    */
-  #[DataProvider('dataProviderFormatValue')]
+  #[DataProvider('dataProviderSetIfExpectedFormatsMismatchValue')]
   public function testSetIfExpectedFormatsMismatchValue(mixed $current, string $needle): void {
     $editable = $this->createMock(CoreConfig::class);
     $editable->method('get')->willReturn($current);
@@ -145,7 +145,7 @@ class ConfigHelperTest extends TestCase {
    * @return array<string, array{mixed, string}>
    *   Each case is the live value and the token expected in the message.
    */
-  public static function dataProviderFormatValue(): array {
+  public static function dataProviderSetIfExpectedFormatsMismatchValue(): array {
     return [
       'boolean true' => [TRUE, 'TRUE'],
       'boolean false' => [FALSE, 'FALSE'],
