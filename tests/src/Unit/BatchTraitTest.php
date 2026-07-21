@@ -471,9 +471,15 @@ class BatchTraitTest extends TestCase {
     $storage = $this->createMock(EntityStorageInterface::class);
     $storage->method('load')->willReturn($entity1);
 
+    $captured = [];
     $query = $this->createMock(QueryInterface::class);
     $query->method('accessCheck')->willReturnSelf();
-    $query->expects($this->exactly(3))->method('condition')->willReturnSelf();
+    $query->method('getEntityTypeId')->willReturn('node');
+    $query->method('condition')->willReturnCallback(function (string $field, mixed $value) use (&$captured, $query): QueryInterface {
+      $captured[$field] = $value;
+
+      return $query;
+    });
     $query->method('execute')->willReturn([1]);
     $storage->method('getQuery')->willReturn($query);
 
@@ -490,6 +496,7 @@ class BatchTraitTest extends TestCase {
 
     $this->assertNotNull($result);
     $this->assertCount(1, $processed);
+    $this->assertSame(['type' => 'article', 'status' => 1, 'field_x' => 'y'], $captured);
   }
 
   /**

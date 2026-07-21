@@ -137,8 +137,13 @@ class EntityHelperTest extends KernelTestBase {
    * Tests batchQuery processes only the entities selected by the query.
    */
   public function testBatchQueryTargeting(): void {
+    $sticky_ids = [];
     for ($i = 0; $i < 5; $i++) {
-      Node::create(['type' => 'article', 'title' => 'Article ' . $i, 'sticky' => $i < 2 ? 1 : 0])->save();
+      $node = Node::create(['type' => 'article', 'title' => 'Article ' . $i, 'sticky' => $i < 2 ? 1 : 0]);
+      $node->save();
+      if ($i < 2) {
+        $sticky_ids[] = $node->id();
+      }
     }
 
     // The query intentionally omits accessCheck() - batchQuery must apply it.
@@ -150,7 +155,7 @@ class EntityHelperTest extends KernelTestBase {
     });
 
     $this->assertStringContainsString('Processed 2 node entities', $result);
-    $this->assertCount(2, $processed);
+    $this->assertEqualsCanonicalizing($sticky_ids, $processed);
   }
 
   /**
@@ -190,6 +195,11 @@ class EntityHelperTest extends KernelTestBase {
       $ids[] = $node->id();
     }
 
+    // A published page the article-only query must leave untouched.
+    $page = Node::create(['type' => 'page', 'title' => 'Page', 'status' => 1]);
+    $page->save();
+    $page_id = $page->id();
+
     $query = \Drupal::entityQuery('node')->condition('type', 'article');
 
     $result = $this->entityHelper->batchSetField($query, 'status', 0);
@@ -203,6 +213,8 @@ class EntityHelperTest extends KernelTestBase {
       $node = $storage->load($id);
       $this->assertFalse($node->isPublished());
     }
+
+    $this->assertTrue($storage->load($page_id)->isPublished());
   }
 
 }
