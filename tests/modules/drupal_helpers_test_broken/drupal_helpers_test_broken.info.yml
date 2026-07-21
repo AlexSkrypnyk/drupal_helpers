@@ -3,5 +3,6 @@ type: module
 description: 'Support module with an unresolvable dependency.'
 core_version_requirement: ^10.3 || ^11
 package: Testing
+hidden: true
 dependencies:
   - 'drupal:drupal_helpers_nonexistent'

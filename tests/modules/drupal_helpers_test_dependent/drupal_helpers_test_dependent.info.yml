@@ -3,5 +3,6 @@ type: module
 description: 'Support module that depends on drupal_helpers_test.'
 core_version_requirement: ^10.3 || ^11
 package: Testing
+hidden: true
 dependencies:
   - 'drupal_helpers:drupal_helpers_test'
