@@ -133,44 +133,42 @@ class Term extends HelperBase {
    *   The nested tree array, or a rendered PHP/YAML string.
    */
   public function exportTree(string $vocabulary, string $format = self::FORMAT_ARRAY): array|string {
-    $tree = $this->buildTermTree($vocabulary, 0);
+    $storage = $this->entityTypeManager->getStorage('taxonomy_term');
+
+    $children_by_parent = [];
+    foreach ($storage->loadByProperties(['vid' => $vocabulary]) as $term) {
+      $children_by_parent[$this->termParentId($term)][] = $term;
+    }
+
+    foreach ($children_by_parent as &$terms) {
+      usort($terms, fn(TermInterface $a, TermInterface $b): int => ($a->getWeight() <=> $b->getWeight()) ?: strcmp($a->getName(), $b->getName()));
+    }
+    unset($terms);
+
+    $tree = $this->buildTermTree($children_by_parent, 0);
 
     return $format === self::FORMAT_ARRAY ? $tree : $this->renderTree($tree, $format);
   }
 
   /**
-   * Build a nested term tree for one level of a vocabulary.
+   * Build a nested term tree from terms grouped by parent.
    *
-   * @param string $vocabulary
-   *   Vocabulary machine name.
+   * @param array $children_by_parent
+   *   Term entities keyed by parent term ID, each level ordered by weight then
+   *   name.
    * @param int $parent_tid
-   *   Parent term ID whose direct children are being built (0 for the root
-   *   level).
+   *   Parent term ID whose level is being built (0 for the root level).
    *
    * @return array
    *   Nested tree where parent terms are string keys and leaf terms are scalar
    *   values, matching the structure accepted by createTree().
    */
-  protected function buildTermTree(string $vocabulary, int $parent_tid): array {
-    $storage = $this->entityTypeManager->getStorage('taxonomy_term');
-
-    $query = $storage->getQuery()->accessCheck(FALSE);
-    $query->condition('vid', $vocabulary);
-    $query->condition('parent', $parent_tid);
-    $query->sort('weight');
-    $query->sort('name');
-
+  protected function buildTermTree(array $children_by_parent, int $parent_tid): array {
     $tree = [];
 
-    foreach ($query->execute() as $tid) {
-      $term = $storage->load($tid);
-
-      if (!$term instanceof TermInterface) {
-        continue;
-      }
-
+    foreach ($children_by_parent[$parent_tid] ?? [] as $term) {
       $name = $term->getName();
-      $children = $this->buildTermTree($vocabulary, (int) $term->id());
+      $children = $this->buildTermTree($children_by_parent, (int) $term->id());
 
       if ($children === []) {
         $tree[] = $name;
@@ -188,6 +186,21 @@ class Term extends HelperBase {
     }
 
     return $tree;
+  }
+
+  /**
+   * Get the parent term ID of a term (0 when it is a root term).
+   *
+   * @param \Drupal\taxonomy\TermInterface $term
+   *   The term.
+   *
+   * @return int
+   *   Parent term ID, or 0 when the term has no parent.
+   */
+  protected function termParentId(TermInterface $term): int {
+    $value = $term->get('parent')->getValue();
+
+    return (int) ($value[0]['target_id'] ?? 0);
   }
 
   /**
