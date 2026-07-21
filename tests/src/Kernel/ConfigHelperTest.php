@@ -215,11 +215,11 @@ class ConfigHelperTest extends KernelTestBase {
     $this->assertEquals(['a' => 1, 'b' => 3], $this->config('drupal_helpers.test_guard')->get('data'));
 
     // A mismatch on a nested structure leaves the value untouched and reports
-    // both values as inline YAML.
+    // both values in full as inline YAML.
     $result = $this->configHelper->setIfExpected('drupal_helpers.test_guard', 'data', ['a' => 9], ['a' => 1, 'b' => 99]);
     $this->assertEquals(['a' => 1, 'b' => 3], $this->config('drupal_helpers.test_guard')->get('data'));
-    $this->assertStringContainsString('a: 9', $result);
-    $this->assertStringContainsString('a: 1', $result);
+    $this->assertStringContainsString('{ a: 9 }', $result);
+    $this->assertStringContainsString('{ a: 1, b: 3 }', $result);
   }
 
   /**

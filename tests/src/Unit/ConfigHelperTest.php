@@ -126,12 +126,17 @@ class ConfigHelperTest extends TestCase {
   public function testSetIfExpectedFormatsMismatchValue(mixed $current, string $needle): void {
     $editable = $this->createMock(CoreConfig::class);
     $editable->method('get')->willReturn($current);
+    $editable->expects($this->never())->method('set');
     $editable->expects($this->never())->method('save');
     $this->configFactory->method('getEditable')->willReturn($editable);
+
+    $this->messenger->expects($this->once())->method('addWarning');
 
     $result = $this->createConfigHelper()->setIfExpected('config', 'key', '__expected__', '__value__');
 
     $this->assertStringContainsString($needle, $result);
+    // The summary must stay single-line regardless of the value's content.
+    $this->assertStringNotContainsString("\n", $result);
   }
 
   /**
@@ -149,6 +154,7 @@ class ConfigHelperTest extends TestCase {
       'float' => [3.5, '3.5'],
       'string' => ['zzz', 'zzz'],
       'array' => [['x' => 7], 'x: 7'],
+      'multiline string' => ["first\nsecond", 'first\nsecond'],
     ];
   }
 

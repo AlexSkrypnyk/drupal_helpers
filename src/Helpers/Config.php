@@ -258,7 +258,8 @@ class Config {
    *
    * @return string
    *   A compact, single-line representation: booleans as TRUE/FALSE, NULL as
-   *   NULL, arrays as inline YAML, and scalars as their string form.
+   *   NULL, arrays as inline YAML, and scalars as their string form with line
+   *   breaks escaped.
    */
   protected function formatValue(mixed $value): string {
     if (is_bool($value)) {
@@ -270,7 +271,8 @@ class Config {
     }
 
     if (is_scalar($value)) {
-      return (string) $value;
+      // Escape line breaks so the reporter's single-line summary stays intact.
+      return str_replace(["\r\n", "\r", "\n"], '\n', (string) $value);
     }
 
     return 'NULL';
