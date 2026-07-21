@@ -125,7 +125,7 @@ class Menu extends HelperBase {
     }
 
     foreach ($children_by_parent as &$links) {
-      usort($links, fn(MenuLinkContentInterface $a, MenuLinkContentInterface $b): int => ($a->getWeight() <=> $b->getWeight()) ?: strcmp($a->getTitle(), $b->getTitle()));
+      usort($links, $this->compareLinks(...));
     }
     unset($links);
 
@@ -168,6 +168,21 @@ class Menu extends HelperBase {
     }
 
     return $tree;
+  }
+
+  /**
+   * Compare two menu links by weight, then by title.
+   *
+   * @param \Drupal\menu_link_content\MenuLinkContentInterface $a
+   *   First menu link.
+   * @param \Drupal\menu_link_content\MenuLinkContentInterface $b
+   *   Second menu link.
+   *
+   * @return int
+   *   Negative, zero or positive per the usort() contract.
+   */
+  protected function compareLinks(MenuLinkContentInterface $a, MenuLinkContentInterface $b): int {
+    return $this->compareByWeight($a->getWeight(), $a->getTitle(), $b->getWeight(), $b->getTitle());
   }
 
   /**

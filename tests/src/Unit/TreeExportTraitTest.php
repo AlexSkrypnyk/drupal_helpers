@@ -87,6 +87,31 @@ class TreeExportTraitTest extends TestCase {
     $this->helper->doRenderTree(['News'], 'xml');
   }
 
+  /**
+   * Tests comparing nodes by weight, then by secondary key.
+   *
+   * @dataProvider dataProviderCompareByWeight
+   */
+  #[DataProvider('dataProviderCompareByWeight')]
+  public function testCompareByWeight(int $weight_a, string $key_a, int $weight_b, string $key_b, int $expected_sign): void {
+    $result = $this->helper->doCompareByWeight($weight_a, $key_a, $weight_b, $key_b);
+
+    $this->assertSame($expected_sign, $result <=> 0);
+  }
+
+  /**
+   * Data provider for testCompareByWeight.
+   */
+  public static function dataProviderCompareByWeight(): array {
+    return [
+      'lower weight first' => [0, 'b', 5, 'a', -1],
+      'higher weight last' => [5, 'a', 0, 'b', 1],
+      'equal weight sorts by key ascending' => [0, 'Apple', 0, 'Banana', -1],
+      'equal weight sorts by key descending' => [0, 'Banana', 0, 'Apple', 1],
+      'equal weight and key' => [3, 'same', 3, 'same', 0],
+    ];
+  }
+
 }
 
 /**
@@ -109,6 +134,25 @@ class TreeExportTraitTestHelper {
    */
   public function doRenderTree(array $tree, string $format): string {
     return $this->renderTree($tree, $format);
+  }
+
+  /**
+   * Exposes compareByWeight() for testing.
+   *
+   * @param int $weight_a
+   *   Weight of the first node.
+   * @param string $key_a
+   *   Secondary key of the first node.
+   * @param int $weight_b
+   *   Weight of the second node.
+   * @param string $key_b
+   *   Secondary key of the second node.
+   *
+   * @return int
+   *   Comparison result.
+   */
+  public function doCompareByWeight(int $weight_a, string $key_a, int $weight_b, string $key_b): int {
+    return $this->compareByWeight($weight_a, $key_a, $weight_b, $key_b);
   }
 
 }

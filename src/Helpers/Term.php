@@ -141,7 +141,7 @@ class Term extends HelperBase {
     }
 
     foreach ($children_by_parent as &$terms) {
-      usort($terms, fn(TermInterface $a, TermInterface $b): int => ($a->getWeight() <=> $b->getWeight()) ?: strcmp($a->getName(), $b->getName()));
+      usort($terms, $this->compareTerms(...));
     }
     unset($terms);
 
@@ -201,6 +201,21 @@ class Term extends HelperBase {
     $value = $term->get('parent')->getValue();
 
     return (int) ($value[0]['target_id'] ?? 0);
+  }
+
+  /**
+   * Compare two terms by weight, then by name.
+   *
+   * @param \Drupal\taxonomy\TermInterface $a
+   *   First term.
+   * @param \Drupal\taxonomy\TermInterface $b
+   *   Second term.
+   *
+   * @return int
+   *   Negative, zero or positive per the usort() contract.
+   */
+  protected function compareTerms(TermInterface $a, TermInterface $b): int {
+    return $this->compareByWeight($a->getWeight(), $a->getName(), $b->getWeight(), $b->getName());
   }
 
   /**

@@ -76,4 +76,23 @@ trait TreeExportTrait {
     return '[' . PHP_EOL . implode(PHP_EOL, $lines) . PHP_EOL . str_repeat('  ', $depth) . ']';
   }
 
+  /**
+   * Compare two nodes by weight, falling back to a secondary string key.
+   *
+   * @param int $weight_a
+   *   Weight of the first node.
+   * @param string $key_a
+   *   Secondary sort key of the first node.
+   * @param int $weight_b
+   *   Weight of the second node.
+   * @param string $key_b
+   *   Secondary sort key of the second node.
+   *
+   * @return int
+   *   Negative, zero or positive per the usort() contract.
+   */
+  protected function compareByWeight(int $weight_a, string $key_a, int $weight_b, string $key_b): int {
+    return ($weight_a <=> $weight_b) ?: strcmp($key_a, $key_b);
+  }
+
 }
