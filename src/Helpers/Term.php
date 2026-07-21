@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Drupal\drupal_helpers\Helpers;
 
 use Drupal\drupal_helpers\Report\Reporter;
+use Drupal\drupal_helpers\Traits\TreeExportTrait;
 use Drupal\taxonomy\TermInterface;
 
 /**
  * Taxonomy term helpers for deploy hooks.
  */
 class Term extends HelperBase {
+
+  use TreeExportTrait;
 
   /**
    * Create terms from a nested tree structure.
@@ -103,6 +106,77 @@ class Term extends HelperBase {
     }
 
     return $terms;
+  }
+
+  /**
+   * Export a vocabulary to the nested tree accepted by createTree().
+   *
+   * @code
+   * // Snapshot structure as data:
+   * $tree = Helper::term()->exportTree('topics');
+   *
+   * // Render as ready-to-paste PHP or YAML:
+   * $php = Helper::term()->exportTree('topics', Term::FORMAT_PHP);
+   * $yaml = Helper::term()->exportTree('topics', Term::FORMAT_YAML);
+   * @endcode
+   *
+   * @param string $vocabulary
+   *   Vocabulary machine name.
+   * @param string $format
+   *   Output format: self::FORMAT_ARRAY (default), self::FORMAT_PHP or
+   *   self::FORMAT_YAML.
+   *
+   * @return array|string
+   *   The nested tree array, or a rendered PHP/YAML string.
+   */
+  public function exportTree(string $vocabulary, string $format = self::FORMAT_ARRAY): array|string {
+    $tree = $this->buildTermTree($vocabulary, 0);
+
+    return $format === self::FORMAT_ARRAY ? $tree : $this->renderTree($tree, $format);
+  }
+
+  /**
+   * Build a nested term tree for one level of a vocabulary.
+   *
+   * @param string $vocabulary
+   *   Vocabulary machine name.
+   * @param int $parent_tid
+   *   Parent term ID whose direct children are being built (0 for the root
+   *   level).
+   *
+   * @return array
+   *   Nested tree where parent terms are string keys and leaf terms are scalar
+   *   values, matching the structure accepted by createTree().
+   */
+  protected function buildTermTree(string $vocabulary, int $parent_tid): array {
+    $storage = $this->entityTypeManager->getStorage('taxonomy_term');
+
+    $query = $storage->getQuery()->accessCheck(FALSE);
+    $query->condition('vid', $vocabulary);
+    $query->condition('parent', $parent_tid);
+    $query->sort('weight');
+    $query->sort('name');
+
+    $tree = [];
+
+    foreach ($query->execute() as $tid) {
+      $term = $storage->load($tid);
+
+      if (!$term instanceof TermInterface) {
+        continue;
+      }
+
+      $children = $this->buildTermTree($vocabulary, (int) $term->id());
+
+      if ($children !== []) {
+        $tree[$term->getName()] = $children;
+      }
+      else {
+        $tree[] = $term->getName();
+      }
+    }
+
+    return $tree;
   }
 
   /**
