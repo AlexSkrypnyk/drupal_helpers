@@ -137,6 +137,18 @@ class TermHelperTest extends KernelTestBase {
   }
 
   /**
+   * Tests adding children beneath an already-existing parent term.
+   */
+  public function testCreateTreePreserveExistingWithChildren(): void {
+    $this->termHelper->createTree('tags', ['Finance' => ['Budgets']]);
+
+    // 'Finance' already exists; a second call adds children beneath it.
+    $this->termHelper->createTree('tags', ['Finance' => ['Grants']]);
+
+    $this->assertSame(['Finance' => ['Budgets', 'Grants']], $this->termHelper->exportTree('tags'));
+  }
+
+  /**
    * Tests exporting a flat vocabulary to a tree array.
    */
   public function testExportTreeFlat(): void {

@@ -116,6 +116,15 @@ class MenuHelperTest extends KernelTestBase {
   }
 
   /**
+   * Tests creating a menu link from a path without a leading slash.
+   */
+  public function testCreateTreeRelativePath(): void {
+    $this->menuHelper->createTree('main', ['About' => 'about']);
+
+    $this->assertSame(['About' => '/about'], $this->menuHelper->exportTree('main'));
+  }
+
+  /**
    * Tests exporting a flat menu to a tree array.
    */
   public function testExportTreeFlat(): void {
