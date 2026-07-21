@@ -77,7 +77,7 @@ function my_module_deploy_003(array &$sandbox): ?string {
 </details>
 
 <details>
-  <summary>🧰 <strong>Taxonomy, menu, field, entity, config, user, and redirect helpers</strong></summary>
+  <summary>🧰 <strong>Taxonomy, menu, field, entity, config, user, redirect, and URL alias helpers</strong></summary>
 
 Common deploy hook operations covered out of the box:
 - Create taxonomy term trees (flat or nested) with duplicate detection.
@@ -86,6 +86,7 @@ Common deploy hook operations covered out of the box:
 - Import config YAML from modules.
 - Create users with roles and auto-generated passwords.
 - Create, import (CSV), and clean up redirects.
+- Create, find, update, import (CSV), and clean up URL aliases (core, no contrib).
 
 </details>
 
@@ -137,6 +138,7 @@ function my_module_deploy_001(array &$sandbox): ?string {
 
 | Helper | Description |
 | --- | --- |
+| [Alias](#alias) | URL alias helpers for deploy hooks. |
 | [Config](#config) | Configuration helpers for deploy hooks. |
 | [Entity](#entity) | Entity helpers for deploy hooks. |
 | [Field](#field) | Field helpers for deploy hooks. |
@@ -147,6 +149,112 @@ function my_module_deploy_001(array &$sandbox): ?string {
 | [User](#user) | User helpers for deploy hooks. |
 
 ---
+
+### Alias
+
+[Source](src/Helpers/Alias.php)
+
+>  URL alias helpers for deploy hooks.
+
+<details>
+  <summary>Create a URL alias.<br/><code>create(string $path, string $alias, ?string $langcode = NULL, bool $skip_existing = TRUE): ?PathAliasInterface</code></summary>
+
+```php
+Helper::alias()->create('/node/1', '/about-us');
+Helper::alias()->create('/node/2', '/a-propos', 'fr');
+```
+
+</details>
+
+<details>
+  <summary>Create multiple URL aliases.<br/><code>createMultiple(array $aliases): int</code></summary>
+
+```php
+Helper::alias()->createMultiple([
+  ['path' => '/node/1', 'alias' => '/about-us'],
+  ['path' => '/node/2', 'alias' => '/a-propos', 'langcode' => 'fr'],
+]);
+```
+
+</details>
+
+<details>
+  <summary>Find an alias by system path.<br/><code>findByPath(string $path, ?string $langcode = NULL): ?PathAliasInterface</code></summary>
+
+```php
+$alias = Helper::alias()->findByPath('/node/1');
+```
+
+</details>
+
+<details>
+  <summary>Find an alias by its alias string.<br/><code>findByAlias(string $alias, ?string $langcode = NULL): ?PathAliasInterface</code></summary>
+
+```php
+$alias = Helper::alias()->findByAlias('/about-us');
+```
+
+</details>
+
+<details>
+  <summary>Rename the alias for a system path.<br/><code>updateByPath(string $path, string $alias, ?string $langcode = NULL): ?PathAliasInterface</code></summary>
+
+```php
+Helper::alias()->updateByPath('/node/1', '/about-us');
+```
+
+</details>
+
+<details>
+  <summary>Retarget an alias to a new system path.<br/><code>updateByAlias(string $alias, string $path, ?string $langcode = NULL): ?PathAliasInterface</code></summary>
+
+```php
+Helper::alias()->updateByAlias('/about-us', '/node/5');
+```
+
+</details>
+
+<details>
+  <summary>Delete aliases by system path.<br/><code>deleteByPath(string $path, ?string $langcode = NULL): int</code></summary>
+
+```php
+Helper::alias()->deleteByPath('/node/1');
+```
+
+</details>
+
+<details>
+  <summary>Delete aliases by their alias string.<br/><code>deleteByAlias(string $alias, ?string $langcode = NULL): int</code></summary>
+
+```php
+Helper::alias()->deleteByAlias('/about-us');
+```
+
+</details>
+
+<details>
+  <summary>Delete all URL aliases.<br/><code>deleteAll(): ?string</code></summary>
+
+```php
+Helper::alias()->deleteAll();
+```
+
+</details>
+
+<details>
+  <summary>Import URL aliases from a CSV file.<br/><code>importFromCsv(string $file_path): ?string</code></summary>
+
+```php
+Helper::alias()->importFromCsv('/path/to/aliases.csv');
+
+// With sandbox for large files:
+function my_module_deploy_001(array &$sandbox): ?string {
+  return Helper::alias($sandbox)->importFromCsv('/path/to/aliases.csv');
+}
+```
+
+</details>
+
 
 ### Config
 
