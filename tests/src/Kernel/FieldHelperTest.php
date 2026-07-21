@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\drupal_helpers\Kernel;
 
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\drupal_helpers\Helpers\Field;
 use Drupal\entity_test\EntityTestHelper;
 use Drupal\field\Entity\FieldConfig;
@@ -94,6 +95,151 @@ class FieldHelperTest extends KernelTestBase {
       'bundle' => $bundle,
       'label' => ucfirst(str_replace('_', ' ', $field_name)),
     ])->save();
+  }
+
+  /**
+   * Tests creating a field with default widget, formatter and label.
+   */
+  public function testCreate(): void {
+    $instance = $this->fieldHelper->create('entity_test', 'entity_test', 'field_subtitle', ['type' => 'string']);
+
+    $this->assertEquals('field_subtitle', $instance->getName());
+
+    $storage = FieldStorageConfig::loadByName('entity_test', 'field_subtitle');
+    $this->assertNotNull($storage);
+    $this->assertEquals('string', $storage->getType());
+
+    $config = FieldConfig::loadByName('entity_test', 'entity_test', 'field_subtitle');
+    $this->assertNotNull($config);
+    // The label defaults to a humanized field name.
+    $this->assertEquals('Subtitle', $config->label());
+
+    $form_display = $this->displayRepository()->getFormDisplay('entity_test', 'entity_test');
+    $widget = $form_display->getComponent('field_subtitle');
+    $this->assertIsArray($widget);
+    $this->assertEquals('string_textfield', $widget['type']);
+
+    $view_display = $this->displayRepository()->getViewDisplay('entity_test', 'entity_test');
+    $formatter = $view_display->getComponent('field_subtitle');
+    $this->assertIsArray($formatter);
+    $this->assertEquals('string', $formatter['type']);
+  }
+
+  /**
+   * Tests creating a field with explicit storage, instance and display config.
+   */
+  public function testCreateWithExplicitSettings(): void {
+    $this->fieldHelper->create('entity_test', 'entity_test', 'field_tagline', [
+      'type' => 'string',
+      'label' => 'Tagline',
+      'cardinality' => 3,
+      'required' => TRUE,
+      'storage_settings' => ['max_length' => 100],
+      'widget' => ['type' => 'string_textfield', 'weight' => 7],
+      'formatter' => ['type' => 'string', 'weight' => 4],
+    ]);
+
+    $storage = FieldStorageConfig::loadByName('entity_test', 'field_tagline');
+    $this->assertEquals(3, $storage->getCardinality());
+    $this->assertEquals(100, $storage->getSetting('max_length'));
+
+    $config = FieldConfig::loadByName('entity_test', 'entity_test', 'field_tagline');
+    $this->assertEquals('Tagline', $config->label());
+    $this->assertTrue($config->isRequired());
+
+    $widget = $this->displayRepository()->getFormDisplay('entity_test', 'entity_test')->getComponent('field_tagline');
+    $this->assertEquals('string_textfield', $widget['type']);
+    $this->assertEquals(7, $widget['weight']);
+
+    $formatter = $this->displayRepository()->getViewDisplay('entity_test', 'entity_test')->getComponent('field_tagline');
+    $this->assertEquals('string', $formatter['type']);
+    $this->assertEquals(4, $formatter['weight']);
+  }
+
+  /**
+   * Tests that recreating an existing field is a safe no-op.
+   */
+  public function testCreateAlreadyExists(): void {
+    $first = $this->fieldHelper->create('entity_test', 'entity_test', 'field_subtitle', ['type' => 'string', 'label' => 'Subtitle']);
+
+    // A second call with conflicting settings must leave the field untouched.
+    $second = $this->fieldHelper->create('entity_test', 'entity_test', 'field_subtitle', ['type' => 'integer', 'label' => 'Changed']);
+
+    $this->assertEquals($first->id(), $second->id());
+
+    $storage = FieldStorageConfig::loadByName('entity_test', 'field_subtitle');
+    $this->assertEquals('string', $storage->getType());
+
+    $config = FieldConfig::loadByName('entity_test', 'entity_test', 'field_subtitle');
+    $this->assertEquals('Subtitle', $config->label());
+
+    $messages = $this->container->get('messenger')->messagesByType('status');
+    $this->assertStringContainsString('already exists', (string) end($messages));
+  }
+
+  /**
+   * Tests that create() rejects a type conflicting with existing storage.
+   */
+  public function testCreateStorageTypeMismatch(): void {
+    $this->createBundle('page');
+    $this->fieldHelper->create('entity_test', 'entity_test', 'field_subtitle', ['type' => 'string']);
+
+    $this->expectException(\InvalidArgumentException::class);
+    $this->expectExceptionMessage('already exists with type "string"');
+
+    $this->fieldHelper->create('entity_test', 'page', 'field_subtitle', ['type' => 'integer']);
+  }
+
+  /**
+   * Tests attaching an existing field storage to multiple bundles.
+   */
+  public function testAttachToBundles(): void {
+    $this->createBundle('page');
+    $this->createBundle('landing');
+
+    $this->fieldHelper->create('entity_test', 'entity_test', 'field_subtitle', ['type' => 'string']);
+
+    $instances = $this->fieldHelper->attachToBundles('field_subtitle', 'entity_test', ['page', 'landing']);
+
+    $this->assertArrayHasKey('page', $instances);
+    $this->assertArrayHasKey('landing', $instances);
+
+    // A single storage is shared across every bundle.
+    $storages = $this->container->get('entity_type.manager')
+      ->getStorage('field_storage_config')
+      ->loadByProperties(['entity_type' => 'entity_test', 'field_name' => 'field_subtitle']);
+    $this->assertCount(1, $storages);
+
+    foreach (['page', 'landing'] as $bundle) {
+      $config = FieldConfig::loadByName('entity_test', $bundle, 'field_subtitle');
+      $this->assertNotNull($config);
+
+      $widget = $this->displayRepository()->getFormDisplay('entity_test', $bundle)->getComponent('field_subtitle');
+      $this->assertEquals('string_textfield', $widget['type']);
+
+      $formatter = $this->displayRepository()->getViewDisplay('entity_test', $bundle)->getComponent('field_subtitle');
+      $this->assertEquals('string', $formatter['type']);
+    }
+  }
+
+  /**
+   * Tests that attaching to a missing field storage throws.
+   */
+  public function testAttachToBundlesMissingStorage(): void {
+    $this->expectException(\InvalidArgumentException::class);
+    $this->expectExceptionMessage('Field storage "entity_test.field_ghost" does not exist');
+
+    $this->fieldHelper->attachToBundles('field_ghost', 'entity_test', ['entity_test']);
+  }
+
+  /**
+   * Returns the entity display repository service.
+   *
+   * @return \Drupal\Core\Entity\EntityDisplayRepositoryInterface
+   *   The entity display repository.
+   */
+  protected function displayRepository(): EntityDisplayRepositoryInterface {
+    return $this->container->get('entity_display.repository');
   }
 
   /**

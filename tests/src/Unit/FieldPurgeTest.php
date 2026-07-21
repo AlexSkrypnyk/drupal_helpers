@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\drupal_helpers\Unit;
 
+use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\DeletedFieldsRepositoryInterface;
 use Drupal\Core\Messenger\MessengerInterface;
@@ -28,6 +29,7 @@ class FieldPurgeTest extends TestCase {
       $this->createMock(EntityTypeManagerInterface::class),
       $this->createMock(MessengerInterface::class),
       $this->createMock(DeletedFieldsRepositoryInterface::class),
+      $this->createMock(EntityDisplayRepositoryInterface::class),
     );
 
     $method = new \ReflectionMethod($field, 'purgeViaService');
