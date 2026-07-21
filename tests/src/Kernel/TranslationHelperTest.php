@@ -79,11 +79,12 @@ class TranslationHelperTest extends KernelTestBase {
    * Tests that set() creates the source string only when it is missing.
    */
   public function testSetCreatesSourceWhenMissing(): void {
-    $this->assertNull($this->storage->findString(['source' => 'Save', 'context' => '']));
+    $this->assertCount(0, $this->storage->getStrings(['source' => 'Save']));
 
     $this->translationHelper->set('Save', 'fr', 'Enregistrer');
 
-    $this->assertInstanceOf(SourceString::class, $this->storage->findString(['source' => 'Save', 'context' => '']));
+    $source = $this->storage->findString(['source' => 'Save', 'context' => '']);
+    $this->assertInstanceOf(SourceString::class, $source);
   }
 
   /**
@@ -106,8 +107,7 @@ class TranslationHelperTest extends KernelTestBase {
   }
 
   /**
-   * Tests that set() keeps translations of the same source but different
-   * contexts separate.
+   * Tests that set() separates translations of one source by context.
    */
   public function testSetKeepsContextsSeparate(): void {
     $this->translationHelper->set('May', 'fr', 'Mai', 'Long month name');
@@ -143,6 +143,7 @@ class TranslationHelperTest extends KernelTestBase {
    * Tests that the facade returns the helper when locale is installed.
    */
   public function testFacadeReturnsTranslation(): void {
+    /** @phpstan-ignore method.alreadyNarrowedType */
     $this->assertInstanceOf(Translation::class, Helper::translation());
   }
 
