@@ -6,8 +6,8 @@ namespace Drupal\drupal_helpers\Helpers;
 
 use Drupal\Core\Entity\Display\EntityDisplayInterface;
 use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
-use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\drupal_helpers\Report\Reporter;
 
 /**
  * Entity form and view display helpers for deploy hooks.
@@ -18,7 +18,7 @@ class Display {
 
   public function __construct(
     protected EntityDisplayRepositoryInterface $entityDisplayRepository,
-    protected MessengerInterface $messenger,
+    protected Reporter $reporter,
   ) {}
 
   /**
@@ -152,7 +152,7 @@ class Display {
   protected function set(EntityDisplayInterface $display, string $field_name, array $options, string $type): EntityDisplayInterface {
     $display->setComponent($field_name, $options)->save();
 
-    $this->messenger->addStatus($this->t('Set component "@field" on the @type display "@display".', [
+    $this->reporter->updated($this->t('Set component "@field" on the @type display "@display".', [
       '@field' => $field_name,
       '@type' => $type,
       '@display' => $display->id(),
@@ -177,7 +177,7 @@ class Display {
   protected function hide(EntityDisplayInterface $display, string $field_name, string $type): EntityDisplayInterface {
     $display->removeComponent($field_name)->save();
 
-    $this->messenger->addStatus($this->t('Hid component "@field" on the @type display "@display".', [
+    $this->reporter->updated($this->t('Hid component "@field" on the @type display "@display".', [
       '@field' => $field_name,
       '@type' => $type,
       '@display' => $display->id(),

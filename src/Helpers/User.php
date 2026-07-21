@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Drupal\drupal_helpers\Helpers;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Password\PasswordGeneratorInterface;
+use Drupal\drupal_helpers\Report\Reporter;
 use Drupal\user\UserInterface;
 
 /**
@@ -16,10 +16,10 @@ class User extends HelperBase {
 
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
-    MessengerInterface $messenger,
+    Reporter $reporter,
     protected PasswordGeneratorInterface $passwordGenerator,
   ) {
-    parent::__construct($entityTypeManager, $messenger);
+    parent::__construct($entityTypeManager, $reporter);
   }
 
   /**
@@ -64,7 +64,7 @@ class User extends HelperBase {
 
     $user->save();
 
-    $this->messenger->addStatus($this->t('Created user "@name" (uid: @uid).', [
+    $this->reporter->created($this->t('Created user "@name" (uid: @uid).', [
       '@name' => $user->getAccountName(),
       '@uid' => $user->id(),
     ]));
@@ -118,9 +118,9 @@ class User extends HelperBase {
     $user = $this->findUser($user_identifier);
 
     if (!$user instanceof UserInterface) {
-      $this->messenger->addWarning($this->t('User "@identifier" not found — skipped.', [
+      $this->reporter->skipped($this->t('User "@identifier" not found — skipped.', [
         '@identifier' => $user_identifier,
-      ]));
+      ]), severity: Reporter::SEVERITY_WARNING);
 
       return;
     }
@@ -131,7 +131,7 @@ class User extends HelperBase {
 
     $user->save();
 
-    $this->messenger->addStatus($this->t('Assigned @count roles to "@name".', [
+    $this->reporter->updated($this->t('Assigned @count roles to "@name".', [
       '@count' => count($roles),
       '@name' => $user->getAccountName(),
     ]));
@@ -153,9 +153,9 @@ class User extends HelperBase {
     $user = $this->findUser($user_identifier);
 
     if (!$user instanceof UserInterface) {
-      $this->messenger->addWarning($this->t('User "@identifier" not found — skipped.', [
+      $this->reporter->skipped($this->t('User "@identifier" not found — skipped.', [
         '@identifier' => $user_identifier,
-      ]));
+      ]), severity: Reporter::SEVERITY_WARNING);
 
       return;
     }
@@ -166,7 +166,7 @@ class User extends HelperBase {
 
     $user->save();
 
-    $this->messenger->addStatus($this->t('Removed @count roles from "@name".', [
+    $this->reporter->updated($this->t('Removed @count roles from "@name".', [
       '@count' => count($roles),
       '@name' => $user->getAccountName(),
     ]));

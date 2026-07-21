@@ -10,9 +10,11 @@ use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\DeletedFieldsRepositoryInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\drupal_helpers\Helpers\Field;
+use Drupal\drupal_helpers\Report\Reporter;
 use Drupal\field\FieldConfigInterface;
 use Drupal\field\FieldStorageConfigInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -47,6 +49,11 @@ class FieldHelperTest extends TestCase {
   protected MockObject $entityDisplayRepository;
 
   /**
+   * The reporter forwarding to the messenger mock.
+   */
+  protected Reporter $reporter;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -55,6 +62,7 @@ class FieldHelperTest extends TestCase {
     $this->entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $this->messenger = $this->createMock(MessengerInterface::class);
     $this->entityDisplayRepository = $this->createMock(EntityDisplayRepositoryInterface::class);
+    $this->reporter = new Reporter($this->createMock(LoggerChannelInterface::class), $this->messenger);
   }
 
   /**
@@ -216,7 +224,7 @@ class FieldHelperTest extends TestCase {
   protected function createField(): Field {
     $field = new Field(
       $this->entityTypeManager,
-      $this->messenger,
+      $this->reporter,
       $this->createMock(DeletedFieldsRepositoryInterface::class),
       $this->entityDisplayRepository,
     );

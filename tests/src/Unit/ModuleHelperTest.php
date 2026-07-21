@@ -13,12 +13,14 @@ use Drupal\Core\Config\StorageInterface;
 use Drupal\Core\Extension\MissingDependencyException;
 use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\Extension\ModuleInstallerInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Routing\RouteBuilderInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Update\UpdateHookRegistry;
 use Drupal\Core\Update\UpdateRegistry;
 use Drupal\drupal_helpers\Helpers\Module;
+use Drupal\drupal_helpers\Report\Reporter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -94,6 +96,11 @@ class ModuleHelperTest extends TestCase {
   protected MockObject $messenger;
 
   /**
+   * The reporter forwarding to the messenger mock.
+   */
+  protected Reporter $reporter;
+
+  /**
    * The immutable core.extension config mock.
    *
    * @var \Drupal\Core\Config\ImmutableConfig&\PHPUnit\Framework\MockObject\MockObject
@@ -123,6 +130,7 @@ class ModuleHelperTest extends TestCase {
     $this->postUpdateRegistry = $this->createMock(UpdateRegistry::class);
     $this->routeBuilder = $this->createMock(RouteBuilderInterface::class);
     $this->messenger = $this->createMock(MessengerInterface::class);
+    $this->reporter = new Reporter($this->createMock(LoggerChannelInterface::class), $this->messenger);
 
     $this->immutableConfig = $this->createMock(ImmutableConfig::class);
     $this->configFactory->method('get')->willReturn($this->immutableConfig);
@@ -144,7 +152,7 @@ class ModuleHelperTest extends TestCase {
       $this->updateHookRegistry,
       $this->postUpdateRegistry,
       $this->routeBuilder,
-      $this->messenger,
+      $this->reporter,
     );
     $module->setStringTranslation($this->translation);
 
@@ -344,7 +352,7 @@ class ModuleHelperTest extends TestCase {
         $this->updateHookRegistry,
         $this->postUpdateRegistry,
         $this->routeBuilder,
-        $this->messenger,
+        $this->reporter,
       ])
       ->onlyMethods(['flushCaches'])
       ->getMock();

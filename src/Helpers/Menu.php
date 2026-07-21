@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\drupal_helpers\Helpers;
 
+use Drupal\drupal_helpers\Report\Reporter;
 use Drupal\menu_link_content\MenuLinkContentInterface;
 
 /**
@@ -71,7 +72,7 @@ class Menu extends HelperBase {
       $link = $storage->create($values);
       $link->save();
 
-      $this->messenger->addStatus($this->t('Created menu link "@title" in "@menu".', [
+      $this->reporter->created($this->t('Created menu link "@title" in "@menu".', [
         '@title' => $title,
         '@menu' => $menu_name,
       ]));
@@ -104,7 +105,7 @@ class Menu extends HelperBase {
   public function deleteTree(string $menu_name): ?string {
     return $this->batchEntity('menu_link_content', NULL, function ($link): void {
       $link->delete();
-    }, ['menu_name' => $menu_name]);
+    }, ['menu_name' => $menu_name], status: Reporter::DELETED);
   }
 
   /**
@@ -154,9 +155,9 @@ class Menu extends HelperBase {
     $link = $this->findItem($menu_name, $find_properties);
 
     if (!$link instanceof MenuLinkContentInterface) {
-      $this->messenger->addWarning($this->t('Menu link not found in "@menu" — skipped update.', [
+      $this->reporter->skipped($this->t('Menu link not found in "@menu" — skipped update.', [
         '@menu' => $menu_name,
-      ]));
+      ]), severity: Reporter::SEVERITY_WARNING);
 
       return NULL;
     }
@@ -172,7 +173,7 @@ class Menu extends HelperBase {
 
     $link->save();
 
-    $this->messenger->addStatus($this->t('Updated menu link "@title" in "@menu".', [
+    $this->reporter->updated($this->t('Updated menu link "@title" in "@menu".', [
       '@title' => $link->getTitle(),
       '@menu' => $menu_name,
     ]));

@@ -6,6 +6,7 @@ namespace Drupal\drupal_helpers\Helpers;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
+use Drupal\drupal_helpers\Report\Reporter;
 
 /**
  * Entity helpers for deploy hooks.
@@ -56,7 +57,7 @@ class Entity extends HelperBase {
 
       if ($existing) {
         $entity = reset($existing);
-        $this->messenger->addStatus($this->t('@type "@value" already exists - skipped.', [
+        $this->reporter->skipped($this->t('@type "@value" already exists - skipped.', [
           '@type' => $entity_type,
           '@value' => $values[$identity],
         ]));
@@ -72,7 +73,7 @@ class Entity extends HelperBase {
     $entity = $storage->create($values);
     $entity->save();
 
-    $this->messenger->addStatus($this->t('Created @type (id: @id).', [
+    $this->reporter->created($this->t('Created @type (id: @id).', [
       '@type' => $entity_type,
       '@id' => $entity->id(),
     ]));
@@ -110,9 +111,11 @@ class Entity extends HelperBase {
    *   Status message when finished, or NULL while in progress.
    */
   public function createMultiple(string $entity_type, string $bundle, array $rows, ?string $identity = NULL): ?string {
+    // The per-row create() already reports each entity, so the batch itself
+    // records no count to avoid double counting.
     return $this->batch($rows, function (array $row) use ($entity_type, $bundle, $identity): void {
       $this->create($entity_type, $bundle, $row, $identity);
-    }, $entity_type . ' entities');
+    }, $entity_type . ' entities', status: NULL);
   }
 
   /**
@@ -144,7 +147,7 @@ class Entity extends HelperBase {
         $entity->set($field, $value);
       }
       $entity->save();
-    }, $properties);
+    }, $properties, status: Reporter::UPDATED);
   }
 
   /**
@@ -170,7 +173,7 @@ class Entity extends HelperBase {
   public function deleteAll(string $entity_type, ?string $bundle = NULL): ?string {
     return $this->batchEntity($entity_type, $bundle, function ($entity): void {
       $entity->delete();
-    });
+    }, status: Reporter::DELETED);
   }
 
   /**
@@ -200,14 +203,17 @@ class Entity extends HelperBase {
    * @param bool $continue_on_error
    *   TRUE to collect per-item failures into the summary and keep processing;
    *   FALSE (default) to abort on the first error.
+   * @param string|null $status
+   *   Reporter status the processed entities are counted under (defaults to
+   *   'processed'). Pass NULL when the callback already reports each entity.
    *
    * @return string|null
    *   Status message when finished, or NULL while in progress.
    */
-  public function batchQuery(QueryInterface $query, callable $callback, bool $continue_on_error = FALSE): ?string {
+  public function batchQuery(QueryInterface $query, callable $callback, bool $continue_on_error = FALSE, ?string $status = Reporter::PROCESSED): ?string {
     $query->accessCheck(FALSE);
 
-    return $this->batchEntityQuery($query, $callback, $continue_on_error);
+    return $this->batchEntityQuery($query, $callback, $continue_on_error, $status);
   }
 
   /**
@@ -241,7 +247,7 @@ class Entity extends HelperBase {
     return $this->batchQuery($query, function ($entity) use ($field_name, $value): void {
       $entity->set($field_name, $value);
       $entity->save();
-    }, $continue_on_error);
+    }, $continue_on_error, Reporter::UPDATED);
   }
 
 }

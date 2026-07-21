@@ -7,8 +7,10 @@ namespace Drupal\Tests\drupal_helpers\Unit;
 use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\DeletedFieldsRepositoryInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\drupal_helpers\Helpers\Field;
+use Drupal\drupal_helpers\Report\Reporter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -27,7 +29,7 @@ class FieldPurgeTest extends TestCase {
   public function testPurgeViaServiceRequiresPurger(): void {
     $field = new Field(
       $this->createMock(EntityTypeManagerInterface::class),
-      $this->createMock(MessengerInterface::class),
+      new Reporter($this->createMock(LoggerChannelInterface::class), $this->createMock(MessengerInterface::class)),
       $this->createMock(DeletedFieldsRepositoryInterface::class),
       $this->createMock(EntityDisplayRepositoryInterface::class),
     );

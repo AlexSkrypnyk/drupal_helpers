@@ -6,7 +6,7 @@ namespace Drupal\drupal_helpers\Traits;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
-use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\drupal_helpers\Report\Reporter;
 
 /**
  * Provides sandbox batching support for helper services.
@@ -39,12 +39,12 @@ trait BatchTrait {
   abstract protected function getEntityTypeManager(): EntityTypeManagerInterface;
 
   /**
-   * Get the messenger service.
+   * Get the reporter.
    *
-   * @return \Drupal\Core\Messenger\MessengerInterface
-   *   The messenger service.
+   * @return \Drupal\drupal_helpers\Report\Reporter
+   *   The reporter service.
    */
-  abstract protected function getMessenger(): MessengerInterface;
+  abstract protected function getReporter(): Reporter;
 
   /**
    * Set the sandbox array.
@@ -96,16 +96,20 @@ trait BatchTrait {
    * @param bool $continue_on_error
    *   TRUE to record per-item failures and keep processing; FALSE (default) to
    *   let a thrown error abort the run.
+   * @param string|null $status
+   *   Reporter status the processed items are counted under (defaults to
+   *   'processed'). Pass NULL when the callback already reports each item, to
+   *   avoid double counting.
    *
    * @return string|null
    *   Status message when finished, or NULL while in progress.
    */
-  public function batch(array $items, callable $callback, string $label = 'items', bool $continue_on_error = FALSE): ?string {
+  public function batch(array $items, callable $callback, string $label = 'items', bool $continue_on_error = FALSE, ?string $status = Reporter::PROCESSED): ?string {
     // Non-sandbox mode: process all items at once.
     if ($this->sandbox === NULL) {
       if (empty($items)) {
         $message = $this->t('No @label to process.', ['@label' => $label]);
-        $this->getMessenger()->addStatus($message);
+        $this->getReporter()->message($message);
 
         return (string) $message;
       }
@@ -118,7 +122,7 @@ trait BatchTrait {
         $this->batchInvoke($callback, $item, ['index' => $index, 'total' => $total, 'results' => &$results], $continue_on_error, $errors);
       }
 
-      return $this->batchFinish($label, $total, $errors);
+      return $this->batchFinish($label, $total, $errors, $status);
     }
 
     // Sandbox mode: process items in batches.
@@ -132,7 +136,7 @@ trait BatchTrait {
       if ($this->sandbox['total'] === 0) {
         $this->sandbox['#finished'] = 1;
         $message = $this->t('No @label to process.', ['@label' => $label]);
-        $this->getMessenger()->addStatus($message);
+        $this->getReporter()->message($message);
 
         return (string) $message;
       }
@@ -152,7 +156,7 @@ trait BatchTrait {
     $this->sandbox['#finished'] = $this->sandbox['total'] > 0 ? $this->sandbox['current'] / $this->sandbox['total'] : 1;
 
     if ($this->sandbox['#finished'] >= 1) {
-      return $this->batchFinish($label, $this->sandbox['total'], $this->sandbox['errors']);
+      return $this->batchFinish($label, $this->sandbox['total'], $this->sandbox['errors'], $status);
     }
 
     return NULL;
@@ -175,14 +179,17 @@ trait BatchTrait {
    * @param bool $continue_on_error
    *   TRUE to record per-item failures and keep processing; FALSE (default) to
    *   let a thrown error abort the run.
+   * @param string|null $status
+   *   Reporter status the processed entities are counted under (defaults to
+   *   'processed'). Pass NULL when the callback already reports each entity.
    *
    * @return string|null
    *   Status message when finished, or NULL while in progress.
    */
-  public function batchEntity(string $entity_type, ?string $bundle, callable $callback, array $conditions = [], bool $continue_on_error = FALSE): ?string {
+  public function batchEntity(string $entity_type, ?string $bundle, callable $callback, array $conditions = [], bool $continue_on_error = FALSE, ?string $status = Reporter::PROCESSED): ?string {
     $query = $this->buildEntityQuery($entity_type, $bundle, $conditions);
 
-    return $this->batchEntityQuery($query, $callback, $continue_on_error);
+    return $this->batchEntityQuery($query, $callback, $continue_on_error, $status);
   }
 
   /**
@@ -198,11 +205,14 @@ trait BatchTrait {
    * @param bool $continue_on_error
    *   TRUE to record per-item failures and keep processing; FALSE (default) to
    *   let a thrown error abort the run.
+   * @param string|null $status
+   *   Reporter status the processed entities are counted under (defaults to
+   *   'processed'). Pass NULL when the callback already reports each entity.
    *
    * @return string|null
    *   Status message when finished, or NULL while in progress.
    */
-  protected function batchEntityQuery(QueryInterface $query, callable $callback, bool $continue_on_error = FALSE): ?string {
+  protected function batchEntityQuery(QueryInterface $query, callable $callback, bool $continue_on_error = FALSE, ?string $status = Reporter::PROCESSED): ?string {
     $entity_type = $query->getEntityTypeId();
     $ids = [];
 
@@ -221,7 +231,7 @@ trait BatchTrait {
       if ($entity) {
         $callback($entity, $context);
       }
-    }, $entity_type . ' entities', $continue_on_error);
+    }, $entity_type . ' entities', $continue_on_error, $status);
   }
 
   /**
@@ -287,7 +297,7 @@ trait BatchTrait {
   }
 
   /**
-   * Build the completion message, add it to the messenger and report failures.
+   * Build the completion message, report it and record any failures.
    *
    * @param string $label
    *   Human-readable label for status messages.
@@ -295,12 +305,16 @@ trait BatchTrait {
    *   Total number of items processed.
    * @param array $errors
    *   Records of caught per-item failures.
+   * @param string|null $status
+   *   Reporter status the successful items are counted under, or NULL to report
+   *   the completion message without counting.
    *
    * @return string
    *   The completion status message.
    */
-  protected function batchFinish(string $label, int $total, array $errors): string {
+  protected function batchFinish(string $label, int $total, array $errors, ?string $status): string {
     $failed = count($errors);
+    $success = $total - $failed;
 
     if ($failed > 0) {
       $message = (string) $this->t('Processed @total @label, @failed failed.', [
@@ -313,10 +327,15 @@ trait BatchTrait {
       $message = (string) $this->t('Processed @total @label.', ['@total' => $total, '@label' => $label]);
     }
 
-    $this->getMessenger()->addStatus($message);
+    if ($status !== NULL && $success > 0) {
+      $this->getReporter()->record($status, $message, $success);
+    }
+    else {
+      $this->getReporter()->message($message);
+    }
 
     if ($failed > 0) {
-      $this->getMessenger()->addWarning($this->batchErrorSummary($errors));
+      $this->getReporter()->failed($this->batchErrorSummary($errors), $failed);
     }
 
     return $message;

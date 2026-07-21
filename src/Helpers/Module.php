@@ -11,11 +11,11 @@ use Drupal\Core\Config\StorageInterface;
 use Drupal\Core\Extension\MissingDependencyException;
 use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\Extension\ModuleInstallerInterface;
-use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Routing\RouteBuilderInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Update\UpdateHookRegistry;
 use Drupal\Core\Update\UpdateRegistry;
+use Drupal\drupal_helpers\Report\Reporter;
 
 /**
  * Module install and uninstall helpers for deploy hooks.
@@ -33,7 +33,7 @@ class Module {
     protected UpdateHookRegistry $updateHookRegistry,
     protected UpdateRegistry $postUpdateRegistry,
     protected RouteBuilderInterface $routeBuilder,
-    protected MessengerInterface $messenger,
+    protected Reporter $reporter,
   ) {}
 
   /**
@@ -57,7 +57,7 @@ class Module {
   public function install(string $module): string {
     if ($this->isInstalled($module)) {
       $message = $this->t("Module '@module' is already enabled. Skipped.", ['@module' => $module]);
-      $this->messenger->addStatus($message);
+      $this->reporter->skipped($message);
 
       return (string) $message;
     }
@@ -88,7 +88,7 @@ class Module {
       $message = $this->t("Installed module '@module'.", ['@module' => $module]);
     }
 
-    $this->messenger->addStatus($message);
+    $this->reporter->created($message);
 
     return (string) $message;
   }
@@ -127,7 +127,7 @@ class Module {
   public function uninstall(string $module, ?callable $callback = NULL): string {
     if (!$this->isInstalled($module)) {
       $message = $this->t("Module '@module' is already uninstalled. Skipped.", ['@module' => $module]);
-      $this->messenger->addStatus($message);
+      $this->reporter->skipped($message);
 
       return (string) $message;
     }
@@ -155,7 +155,7 @@ class Module {
       $message = $this->t("Uninstalled module '@module'.", ['@module' => $module]);
     }
 
-    $this->messenger->addStatus($message);
+    $this->reporter->deleted($message);
 
     return (string) $message;
   }
@@ -197,7 +197,7 @@ class Module {
     $this->routeBuilder->rebuild();
 
     $message = $this->t("Force-removed orphaned module '@module' because its code is missing.", ['@module' => $module]);
-    $this->messenger->addStatus($message);
+    $this->reporter->deleted($message);
 
     return (string) $message;
   }

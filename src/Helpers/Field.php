@@ -9,7 +9,7 @@ use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\DeletedFieldsRepositoryInterface;
 use Drupal\Core\Field\FieldPurger;
-use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\drupal_helpers\Report\Reporter;
 use Drupal\field\FieldConfigInterface;
 use Drupal\field\FieldStorageConfigInterface;
 
@@ -20,12 +20,12 @@ class Field extends HelperBase {
 
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
-    MessengerInterface $messenger,
+    Reporter $reporter,
     protected DeletedFieldsRepositoryInterface $deletedFieldsRepository,
     protected EntityDisplayRepositoryInterface $entityDisplayRepository,
     protected ?FieldPurger $fieldPurger = NULL,
   ) {
-    parent::__construct($entity_type_manager, $messenger);
+    parent::__construct($entity_type_manager, $reporter);
   }
 
   /**
@@ -73,7 +73,7 @@ class Field extends HelperBase {
     $instance = $field_config_storage->load($entity_type . '.' . $bundle . '.' . $field_name);
 
     if ($instance instanceof FieldConfigInterface) {
-      $this->messenger->addStatus($this->t('Field "@field" already exists on @entity_type.@bundle - skipped.', [
+      $this->reporter->skipped($this->t('Field "@field" already exists on @entity_type.@bundle - skipped.', [
         '@field' => $field_name,
         '@entity_type' => $entity_type,
         '@bundle' => $bundle,
@@ -86,7 +86,7 @@ class Field extends HelperBase {
     $instance = $this->createInstance($entity_type, $bundle, $field_name, $settings);
     $this->setDisplayDefaults($entity_type, $bundle, $field_name, $settings);
 
-    $this->messenger->addStatus($this->t('Created field "@field" on @entity_type.@bundle.', [
+    $this->reporter->created($this->t('Created field "@field" on @entity_type.@bundle.', [
       '@field' => $field_name,
       '@entity_type' => $entity_type,
       '@bundle' => $bundle,
@@ -156,9 +156,9 @@ class Field extends HelperBase {
       // Try loading by entity_type.field_name pattern.
       $storages = $field_storage_config_storage->loadByProperties(['field_name' => $field_name]);
       if (empty($storages)) {
-        $this->messenger->addWarning($this->t('Field storage "@field" not found — skipped.', [
+        $this->reporter->skipped($this->t('Field storage "@field" not found — skipped.', [
           '@field' => $field_name,
-        ]));
+        ]), severity: Reporter::SEVERITY_WARNING);
 
         return;
       }
@@ -170,7 +170,7 @@ class Field extends HelperBase {
     $field_storage->delete();
     $this->purge();
 
-    $this->messenger->addStatus($this->t('Deleted field storage "@field" and purged data.', [
+    $this->reporter->deleted($this->t('Deleted field storage "@field" and purged data.', [
       '@field' => $field_name,
     ]));
   }
@@ -197,11 +197,11 @@ class Field extends HelperBase {
     $field_config = $field_config_storage->load($id);
 
     if ($field_config === NULL) {
-      $this->messenger->addWarning($this->t('Field instance "@field" not found on @entity_type.@bundle — skipped.', [
+      $this->reporter->skipped($this->t('Field instance "@field" not found on @entity_type.@bundle — skipped.', [
         '@field' => $field_name,
         '@entity_type' => $entity_type,
         '@bundle' => $bundle,
-      ]));
+      ]), severity: Reporter::SEVERITY_WARNING);
 
       return;
     }
@@ -209,7 +209,7 @@ class Field extends HelperBase {
     $field_config->delete();
     $this->purge();
 
-    $this->messenger->addStatus($this->t('Deleted field instance "@field" from @entity_type.@bundle.', [
+    $this->reporter->deleted($this->t('Deleted field instance "@field" from @entity_type.@bundle.', [
       '@field' => $field_name,
       '@entity_type' => $entity_type,
       '@bundle' => $bundle,

@@ -6,9 +6,11 @@ namespace Drupal\Tests\drupal_helpers\Unit;
 
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\drupal_helpers\Helpers\Role;
+use Drupal\drupal_helpers\Report\Reporter;
 use Drupal\user\PermissionHandlerInterface;
 use Drupal\user\RoleInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -36,6 +38,11 @@ class RoleHelperTest extends TestCase {
   protected MockObject $messenger;
 
   /**
+   * The reporter forwarding to the messenger mock.
+   */
+  protected Reporter $reporter;
+
+  /**
    * The permission handler mock.
    *
    * @var \Drupal\user\PermissionHandlerInterface&\PHPUnit\Framework\MockObject\MockObject
@@ -57,6 +64,7 @@ class RoleHelperTest extends TestCase {
 
     $this->entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $this->messenger = $this->createMock(MessengerInterface::class);
+    $this->reporter = new Reporter($this->createMock(LoggerChannelInterface::class), $this->messenger);
     $this->permissionHandler = $this->createMock(PermissionHandlerInterface::class);
 
     $this->translation = $this->createMock(TranslationInterface::class);
@@ -244,7 +252,7 @@ class RoleHelperTest extends TestCase {
    *   The permission handler, or NULL to simulate the missing service.
    */
   protected function buildRole(?PermissionHandlerInterface $permission_handler): Role {
-    $role = new Role($this->entityTypeManager, $this->messenger, $permission_handler);
+    $role = new Role($this->entityTypeManager, $this->reporter, $permission_handler);
     $role->setStringTranslation($this->translation);
 
     return $role;

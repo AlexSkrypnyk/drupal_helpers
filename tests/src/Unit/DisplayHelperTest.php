@@ -7,9 +7,11 @@ namespace Drupal\Tests\drupal_helpers\Unit;
 use Drupal\Core\Entity\Display\EntityFormDisplayInterface;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\drupal_helpers\Helpers\Display;
+use Drupal\drupal_helpers\Report\Reporter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -35,6 +37,11 @@ class DisplayHelperTest extends TestCase {
   protected MockObject $messenger;
 
   /**
+   * The reporter forwarding to the messenger mock.
+   */
+  protected Reporter $reporter;
+
+  /**
    * The Display helper under test.
    */
   protected Display $display;
@@ -47,11 +54,12 @@ class DisplayHelperTest extends TestCase {
 
     $this->entityDisplayRepository = $this->createMock(EntityDisplayRepositoryInterface::class);
     $this->messenger = $this->createMock(MessengerInterface::class);
+    $this->reporter = new Reporter($this->createMock(LoggerChannelInterface::class), $this->messenger);
 
     $translation = $this->createMock(TranslationInterface::class);
     $translation->method('translateString')->willReturnCallback(fn($input): string => (string) $input->getUntranslatedString());
 
-    $this->display = new Display($this->entityDisplayRepository, $this->messenger);
+    $this->display = new Display($this->entityDisplayRepository, $this->reporter);
     $this->display->setStringTranslation($translation);
   }
 

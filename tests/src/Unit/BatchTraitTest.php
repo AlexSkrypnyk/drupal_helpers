@@ -10,9 +10,11 @@ use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\drupal_helpers\Report\Reporter;
 use Drupal\drupal_helpers\Traits\BatchTrait;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -39,6 +41,11 @@ class BatchTraitTest extends TestCase {
   protected MockObject $messenger;
 
   /**
+   * The reporter forwarding to the messenger mock.
+   */
+  protected Reporter $reporter;
+
+  /**
    * The test helper instance using BatchTrait.
    */
   protected BatchTraitTestHelper $helper;
@@ -51,8 +58,9 @@ class BatchTraitTest extends TestCase {
 
     $this->entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $this->messenger = $this->createMock(MessengerInterface::class);
+    $this->reporter = new Reporter($this->createMock(LoggerChannelInterface::class), $this->messenger);
 
-    $this->helper = new BatchTraitTestHelper($this->entityTypeManager, $this->messenger);
+    $this->helper = new BatchTraitTestHelper($this->entityTypeManager, $this->reporter);
 
     $translation = $this->createMock(TranslationInterface::class);
     $translation->method('translateString')->willReturnCallback(fn($input): string => (string) $input->getUntranslatedString());
@@ -547,8 +555,8 @@ class BatchTraitTestHelper {
    * Constructs a BatchTraitTestHelper.
    */
   public function __construct(
-    private EntityTypeManagerInterface $entityTypeManager,
-    private MessengerInterface $messenger,
+    protected EntityTypeManagerInterface $entityTypeManager,
+    protected Reporter $reporter,
   ) {
   }
 
@@ -562,8 +570,8 @@ class BatchTraitTestHelper {
   /**
    * {@inheritdoc}
    */
-  protected function getMessenger(): MessengerInterface {
-    return $this->messenger;
+  protected function getReporter(): Reporter {
+    return $this->reporter;
   }
 
 }

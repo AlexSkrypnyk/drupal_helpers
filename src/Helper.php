@@ -17,6 +17,7 @@ use Drupal\drupal_helpers\Helpers\Redirect;
 use Drupal\drupal_helpers\Helpers\Role;
 use Drupal\drupal_helpers\Helpers\Term;
 use Drupal\drupal_helpers\Helpers\User;
+use Drupal\drupal_helpers\Report\Reporter;
 
 /**
  * Static facade for drupal_helpers services.
@@ -143,6 +144,39 @@ class Helper {
   public static function display(): Display {
     /** @var \Drupal\drupal_helpers\Helpers\Display */
     return \Drupal::service('drupal_helpers.display');
+  }
+
+  /**
+   * Get the shared reporter service.
+   *
+   * @code
+   * Helper::reporter()->created($this->t('Created something.'));
+   * @endcode
+   */
+  public static function reporter(): Reporter {
+    /** @var \Drupal\drupal_helpers\Report\Reporter */
+    return \Drupal::service('drupal_helpers.reporter');
+  }
+
+  /**
+   * Return the run summary as a deploy hook output string.
+   *
+   * Reading the summary also resets the tally, so each deploy hook that ends
+   * with `return Helper::report();` reports only its own operations.
+   *
+   * @code
+   * function my_module_deploy_001(array &$sandbox): ?string {
+   *   Helper::term()->createTree('topics', $large_tree);
+   *   return Helper::report();
+   * }
+   * @endcode
+   */
+  public static function report(): string {
+    $reporter = static::reporter();
+    $summary = $reporter->summary();
+    $reporter->reset();
+
+    return $summary;
   }
 
   /**
