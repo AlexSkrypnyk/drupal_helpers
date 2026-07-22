@@ -18,6 +18,14 @@ class Config {
 
   use StringTranslationTrait;
 
+  /**
+   * Sentinel marking an omitted expected value.
+   *
+   * Lets a guarded write be told apart from an unconditional one even when the
+   * caller's expected value is NULL, since NULL is itself a valid config value.
+   */
+  protected const NO_EXPECTED = '__drupal_helpers_no_expected__';
+
   public function __construct(
     protected ConfigFactoryInterface $configFactory,
     protected StorageInterface $configStorage,
@@ -26,10 +34,21 @@ class Config {
   ) {}
 
   /**
-   * Set a value in a configuration object.
+   * Set a value in a configuration object, optionally guarded.
+   *
+   * With no $expected argument the value is written unconditionally. Pass
+   * $expected to guard the write against clobbering a value that has drifted
+   * from what the caller assumed: the change applies only when the live value
+   * equals $expected. On a mismatch the write is skipped and reported as a
+   * warning describing the difference; when the target value is already in
+   * place the call is an idempotent no-op that still reports success. Any
+   * $expected value enables the guard, including NULL.
    *
    * @code
+   * // Unconditional write:
    * Helper::config()->set('system.site', 'name', 'My Site');
+   * // Guarded - applies only while the live value is still 'Old Name':
+   * return Helper::config()->set('system.site', 'name', 'New Name', 'Old Name');
    * @endcode
    *
    * @param string $config_name
@@ -38,14 +57,52 @@ class Config {
    *   Dot-separated key path (e.g., 'page.front').
    * @param mixed $value
    *   Value to set.
+   * @param mixed $expected
+   *   When provided, the value the live config must currently hold for the
+   *   write to apply. Omit to write unconditionally.
+   *
+   * @return string
+   *   A human-readable description of the outcome, suitable for returning
+   *   directly as a deploy hook's output.
    */
-  public function set(string $config_name, string $key, mixed $value): void {
-    $this->configFactory->getEditable($config_name)->set($key, $value)->save();
+  public function set(string $config_name, string $key, mixed $value, mixed $expected = self::NO_EXPECTED): string {
+    $config = $this->configFactory->getEditable($config_name);
 
-    $this->reporter->updated($this->t('Set "@key" in "@config".', [
+    if ($expected !== self::NO_EXPECTED) {
+      $current = $config->get($key);
+
+      if ($current === $value) {
+        $message = $this->t('Value "@key" in "@config" already set - skipped.', [
+          '@key' => $key,
+          '@config' => $config_name,
+        ]);
+        $this->reporter->skipped($message);
+
+        return (string) $message;
+      }
+
+      if ($current !== $expected) {
+        $message = $this->t('Value "@key" in "@config" is "@current" but expected "@expected" - skipped.', [
+          '@key' => $key,
+          '@config' => $config_name,
+          '@current' => $this->formatValue($current),
+          '@expected' => $this->formatValue($expected),
+        ]);
+        $this->reporter->skipped($message, severity: Reporter::SEVERITY_WARNING);
+
+        return (string) $message;
+      }
+    }
+
+    $config->set($key, $value)->save();
+
+    $message = $this->t('Set "@key" in "@config".', [
       '@key' => $key,
       '@config' => $config_name,
-    ]));
+    ]);
+    $this->reporter->updated($message);
+
+    return (string) $message;
   }
 
   /**
@@ -186,6 +243,34 @@ class Config {
     $this->reporter->message($this->t('Set front page to "@path".', [
       '@path' => $path,
     ]));
+  }
+
+  /**
+   * Format a config value for display in an operation message.
+   *
+   * @param mixed $value
+   *   The value to format.
+   *
+   * @return string
+   *   A compact, single-line representation: booleans as TRUE/FALSE, NULL as
+   *   NULL, arrays as inline YAML, and scalars as their string form with line
+   *   breaks escaped.
+   */
+  protected function formatValue(mixed $value): string {
+    if (is_bool($value)) {
+      return $value ? 'TRUE' : 'FALSE';
+    }
+
+    if (is_array($value)) {
+      return Yaml::dump($value, 0);
+    }
+
+    if (is_scalar($value)) {
+      // Escape line breaks so the reporter's single-line summary stays intact.
+      return str_replace(["\r\n", "\r", "\n"], '\n', (string) $value);
+    }
+
+    return 'NULL';
   }
 
 }

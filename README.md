@@ -385,10 +385,13 @@ Helper::block()->deleteContent('Footer contact', 'basic');
 >  Configuration helpers for deploy hooks.
 
 <details>
-  <summary>Set a value in a configuration object.<br/><code>set(string $config_name, string $key, mixed $value): void</code></summary>
+  <summary>Set a value in a configuration object, optionally guarded.<br/><code>set(string $config_name, string $key, mixed $value, mixed $expected = self::NO_EXPECTED): string</code></summary>
 
 ```php
+// Unconditional write:
 Helper::config()->set('system.site', 'name', 'My Site');
+// Guarded - applies only while the live value is still 'Old Name':
+return Helper::config()->set('system.site', 'name', 'New Name', 'Old Name');
 ```
 
 </details>
