@@ -102,17 +102,21 @@ instead of aborting.
 </details>
 
 <details>
-  <summary>🧰 <strong>Taxonomy, menu, field, entity, config, user, role, redirect, and URL alias helpers</strong></summary>
+  <summary>🧰 <strong>Taxonomy, menu, block, display, field, entity, config, module, user, role, redirect, URL alias, and translation helpers</strong></summary>
 
 Common deploy hook operations covered out of the box:
-- Create taxonomy term trees (flat or nested) with duplicate detection.
-- Build menu link hierarchies from arrays.
-- Delete fields and field instances with automatic data purging.
+- Create taxonomy term trees (flat or nested) with safe, update, and sync reconciliation modes, plus export back to PHP or YAML.
+- Build menu link hierarchies from arrays with the same reconciliation modes and export.
+- Place theme blocks and create or delete block content.
+- Set or hide components on entity form and view displays.
+- Create fields with sensible display defaults, attach them to more bundles, and delete fields or instances with automatic data purging.
 - Import config YAML from modules.
+- Install and uninstall modules, including force-removal of orphaned modules whose code is gone.
 - Create users with roles and auto-generated passwords.
 - Create and delete roles and grant or revoke permissions (unknown permissions rejected).
 - Create, export, import (CSV round trip), delete, and clean up redirects.
 - Create, find, update, import (CSV), and clean up URL aliases (core, no contrib).
+- Add or update interface translations, with context support.
 
 </details>
 
@@ -142,6 +146,13 @@ these at access time and throws a clear error if a module is missing - no
 cryptic "service not found" exceptions.
 
 </details>
+
+## Installation
+
+```bash
+composer require drupal/drupal_helpers
+drush pm:install drupal_helpers
+```
 
 ## Usage
 
@@ -1021,7 +1032,7 @@ Helper::user()->removeRoles('admin@example.com', ['administrator']);
 
 ## Local development
 
-1. Install PHP with SQLite support and Composer
+1. Install PHP with SQLite support, Composer and [Ahoy](https://github.com/ahoy-cli/ahoy)
 2. Clone this repository
 3. Run `ahoy build`
 
@@ -1065,8 +1076,7 @@ automatically adjusted to match the specified Drupal version's stability.
 
 ### Patching dependencies
 
-To apply patches to the dependencies, add a patch to the `patches` section of
-`composer.json`. Local patches are sourced from the `patches` directory.
+To apply patches to the dependencies, add a patch to the `extra.patches` section of `composer.dev.json`. Local patches are sourced from the `patches` directory.
 
 ### Providing `GITHUB_TOKEN`
 
@@ -1123,8 +1133,7 @@ The `ahoy lint` command checks the codebase using multiple tools:
 - PHP code static analysis with PHPStan.
 - PHP deprecated code analysis and auto-fixing with Drupal Rector.
 - Twig code analysis with Twig CS Fixer.
-- JavaScript code analysis with ESLint.
-- CSS code analysis with Stylelint.
+- README API reference freshness check with `php docs.php --fail-on-change`.
 
 The configuration files for these tools are located in the root of the codebase.
 
@@ -1180,6 +1189,10 @@ cd build
 php -d pcov.directory=.. vendor/bin/phpunit tests/src/Unit/MyUnitTest.php
 php -d pcov.directory=.. vendor/bin/phpunit --group=wip
 ```
+
+## Updating the scaffold
+
+To pull the latest development-environment infrastructure from the template into this project, ask Claude Code to "update scaffold" - see [`AGENTS.md`](AGENTS.md) for details.
 
 ---
 _This repository was created using the [Drupal Extension Scaffold](https://github.com/AlexSkrypnyk/drupal_extension_scaffold) project template_

@@ -5,7 +5,7 @@
  * Documentation generator for drupal_helpers.
  *
  * Parses docblock comments from helper classes in src/Helpers/ and generates
- * API reference documentation in METHODS.md and README.md.
+ * API reference documentation in README.md.
  *
  * Run: php docs.php
  * Run with --fail-on-change to fail if documentation is outdated (for CI).

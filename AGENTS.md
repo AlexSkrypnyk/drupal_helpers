@@ -42,7 +42,7 @@ This is a Drupal Helpers template for creating contributed modules or themes. Th
 
 **Key Directories:**
 - `src/` - Extension source code (services, helpers, traits)
-- `tests/src/` - PHPUnit tests (Unit/, Kernel/)
+- `tests/src/` - PHPUnit tests (Unit/, Kernel/, Functional/)
 - `build/` - Assembled Drupal codebase (symlinked extension)
 - `.devtools/` - Build and deployment scripts used by CI
 
@@ -51,7 +51,7 @@ This is a Drupal Helpers template for creating contributed modules or themes. Th
 - **Service-based architecture**: Main functionality in services registered via `*.services.yml`
 - **Static facade**: `Helper::term()`, `Helper::config()`, etc. for clean deploy hook usage
 - **Batch processing**: Helpers accept a `$sandbox` array for batched operations
-- **Test coverage**: Unit and Kernel test examples provided
+- **Test coverage**: Unit, Kernel and Functional test examples provided
 
 ## Environment Variables
 
