@@ -921,12 +921,12 @@ $term = Helper::term()->find('News', 'tags');
 >  Interface translation helpers for deploy hooks.
 
 <details>
-  <summary>Add or update the translation of a source string for a language.<br/><code>set(string $source, string $langcode, string $translation, string $context = ''): void</code></summary>
+  <summary>Add or update the translation of a source string for a language.<br/><code>set(string $langcode, string $source, string $translation, string $context = ''): void</code></summary>
 
 ```php
-Helper::translation()->set('Submit', 'fr', 'Envoyer');
+Helper::translation()->set('fr', 'Submit', 'Envoyer');
 // Disambiguate a source string that carries a context:
-Helper::translation()->set('May', 'fr', 'Mai', 'Long month name');
+Helper::translation()->set('fr', 'May', 'Mai', 'Long month name');
 ```
 
 </details>

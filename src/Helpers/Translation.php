@@ -40,22 +40,22 @@ class Translation extends HelperBase {
    * as customized so a later translation import does not overwrite them.
    *
    * @code
-   * Helper::translation()->set('Submit', 'fr', 'Envoyer');
+   * Helper::translation()->set('fr', 'Submit', 'Envoyer');
    * // Disambiguate a source string that carries a context:
-   * Helper::translation()->set('May', 'fr', 'Mai', 'Long month name');
+   * Helper::translation()->set('fr', 'May', 'Mai', 'Long month name');
    * @endcode
    *
-   * @param string $source
-   *   The untranslated source string, exactly as passed to t().
    * @param string $langcode
    *   The target language code (e.g., 'fr').
+   * @param string $source
+   *   The untranslated source string, exactly as passed to t().
    * @param string $translation
    *   The translated string.
    * @param string $context
    *   (optional) The string context, matching the 'context' option of t().
    *   Defaults to an empty string.
    */
-  public function set(string $source, string $langcode, string $translation, string $context = ''): void {
+  public function set(string $langcode, string $source, string $translation, string $context = ''): void {
     $storage = $this->stringStorage();
 
     $string = $storage->findString(['source' => $source, 'context' => $context]);

@@ -94,7 +94,7 @@ class TranslationHelperTest extends TestCase {
     $storage->expects($this->never())->method('save');
     $this->messenger->expects($this->once())->method('addStatus');
 
-    $this->buildTranslation($storage)->set('Submit', 'fr', 'Envoyer');
+    $this->buildTranslation($storage)->set('fr', 'Submit', 'Envoyer');
 
     $this->assertEquals(1, $this->reporter->count(Reporter::CREATED));
   }
@@ -118,7 +118,7 @@ class TranslationHelperTest extends TestCase {
     $created->expects($this->once())->method('save');
     $storage->expects($this->once())->method('createTranslation')->with(['lid' => 9, 'language' => 'fr', 'translation' => 'Envoyer'])->willReturn($created);
 
-    $this->buildTranslation($storage)->set('Submit', 'fr', 'Envoyer');
+    $this->buildTranslation($storage)->set('fr', 'Submit', 'Envoyer');
 
     $this->assertEquals(1, $this->reporter->count(Reporter::CREATED));
   }
@@ -144,7 +144,7 @@ class TranslationHelperTest extends TestCase {
     $storage->expects($this->never())->method('createTranslation');
     $this->messenger->expects($this->once())->method('addStatus');
 
-    $this->buildTranslation($storage)->set('Submit', 'fr', 'Soumettre');
+    $this->buildTranslation($storage)->set('fr', 'Submit', 'Soumettre');
 
     $this->assertEquals(1, $this->reporter->count(Reporter::UPDATED));
   }
@@ -163,7 +163,7 @@ class TranslationHelperTest extends TestCase {
     $storage->method('findTranslation')->willReturn(NULL);
     $storage->method('createTranslation')->willReturn($this->createMock(TranslationString::class));
 
-    $this->buildTranslation($storage)->set('May', 'fr', 'Mai', 'Long month name');
+    $this->buildTranslation($storage)->set('fr', 'May', 'Mai', 'Long month name');
   }
 
   /**
@@ -173,7 +173,7 @@ class TranslationHelperTest extends TestCase {
     $this->expectException(\RuntimeException::class);
     $this->expectExceptionMessage('The "locale.storage" service is required; enable the locale module.');
 
-    $this->buildTranslation(NULL)->set('Submit', 'fr', 'Envoyer');
+    $this->buildTranslation(NULL)->set('fr', 'Submit', 'Envoyer');
   }
 
   /**

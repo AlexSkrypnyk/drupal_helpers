@@ -64,7 +64,7 @@ class TranslationHelperTest extends KernelTestBase {
    * Tests that set() creates the source string and a customized translation.
    */
   public function testSetCreatesTranslation(): void {
-    $this->translationHelper->set('Submit', 'fr', 'Envoyer');
+    $this->translationHelper->set('fr', 'Submit', 'Envoyer');
 
     $source = $this->storage->findString(['source' => 'Submit', 'context' => '']);
     $this->assertInstanceOf(SourceString::class, $source);
@@ -81,7 +81,7 @@ class TranslationHelperTest extends KernelTestBase {
   public function testSetCreatesSourceWhenMissing(): void {
     $this->assertCount(0, $this->storage->getStrings(['source' => 'Save']));
 
-    $this->translationHelper->set('Save', 'fr', 'Enregistrer');
+    $this->translationHelper->set('fr', 'Save', 'Enregistrer');
 
     $source = $this->storage->findString(['source' => 'Save', 'context' => '']);
     $this->assertInstanceOf(SourceString::class, $source);
@@ -91,8 +91,8 @@ class TranslationHelperTest extends KernelTestBase {
    * Tests that set() updates an existing translation in place.
    */
   public function testSetUpdatesExistingTranslation(): void {
-    $this->translationHelper->set('Submit', 'fr', 'Envoyer');
-    $this->translationHelper->set('Submit', 'fr', 'Soumettre');
+    $this->translationHelper->set('fr', 'Submit', 'Envoyer');
+    $this->translationHelper->set('fr', 'Submit', 'Soumettre');
 
     $translation = $this->storage->findTranslation(['language' => 'fr', 'source' => 'Submit', 'context' => '']);
     $this->assertInstanceOf(TranslationString::class, $translation);
@@ -110,8 +110,8 @@ class TranslationHelperTest extends KernelTestBase {
    * Tests that set() separates translations of one source by context.
    */
   public function testSetKeepsContextsSeparate(): void {
-    $this->translationHelper->set('May', 'fr', 'Mai', 'Long month name');
-    $this->translationHelper->set('May', 'fr', 'Peut', 'Uncertainty');
+    $this->translationHelper->set('fr', 'May', 'Mai', 'Long month name');
+    $this->translationHelper->set('fr', 'May', 'Peut', 'Uncertainty');
 
     $month = $this->storage->findTranslation(['language' => 'fr', 'source' => 'May', 'context' => 'Long month name']);
     $uncertainty = $this->storage->findTranslation(['language' => 'fr', 'source' => 'May', 'context' => 'Uncertainty']);
@@ -131,10 +131,10 @@ class TranslationHelperTest extends KernelTestBase {
   public function testSetReports(): void {
     $reporter = $this->container->get('drupal_helpers.reporter');
 
-    $this->translationHelper->set('Submit', 'fr', 'Envoyer');
+    $this->translationHelper->set('fr', 'Submit', 'Envoyer');
     $this->assertEquals(1, $reporter->count(Reporter::CREATED));
 
-    $this->translationHelper->set('Submit', 'fr', 'Soumettre');
+    $this->translationHelper->set('fr', 'Submit', 'Soumettre');
     $this->assertEquals(1, $reporter->count(Reporter::UPDATED));
     $this->assertEquals(1, $reporter->count(Reporter::CREATED));
   }
