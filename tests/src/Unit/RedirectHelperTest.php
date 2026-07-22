@@ -213,41 +213,24 @@ class RedirectHelperTest extends TestCase {
   }
 
   /**
-   * Tests the run summary reports only operations recorded since the baseline.
+   * Tests the CSV run summary is built from the accumulated tally.
    */
-  public function testSummariseSince(): void {
+  public function testSummariseCsvTally(): void {
     $redirect = $this->createRedirect();
 
-    $this->reporter->created('a');
-    $this->reporter->created('b');
+    $this->invokeOn($redirect, 'bumpTally', Reporter::CREATED);
+    $this->invokeOn($redirect, 'bumpTally', Reporter::CREATED);
+    $this->invokeOn($redirect, 'bumpTally', Reporter::UPDATED);
+    $this->invokeOn($redirect, 'bumpTally', Reporter::FAILED);
 
-    $this->invokeOn($redirect, 'rememberBaseline');
-
-    $this->reporter->created('c');
-    $this->reporter->updated('d');
-    $this->reporter->failed('e');
-
-    $this->assertSame('Created 1, updated 1, failed 1.', $this->invokeOn($redirect, 'summariseSince'));
+    $this->assertSame('Created 2, updated 1, failed 1.', $this->invokeOn($redirect, 'summariseCsvTally'));
   }
 
   /**
-   * Tests the run summary reports no changes when nothing was recorded.
+   * Tests the CSV run summary reports no changes for an empty tally.
    */
-  public function testSummariseSinceNoChanges(): void {
-    $redirect = $this->createRedirect();
-
-    $this->invokeOn($redirect, 'rememberBaseline');
-
-    $this->assertSame('No changes.', $this->invokeOn($redirect, 'summariseSince'));
-  }
-
-  /**
-   * Tests that failed rows are labelled with their line number.
-   */
-  public function testBatchItemLabel(): void {
-    $this->assertSame('line 7', $this->invoke('batchItemLabel', ['line' => 7, 'source' => 'x']));
-    $this->assertSame('scalar-item', $this->invoke('batchItemLabel', 'scalar-item'));
-    $this->assertSame('array', $this->invoke('batchItemLabel', ['no-line' => 1]));
+  public function testSummariseCsvTallyEmpty(): void {
+    $this->assertSame('No changes.', $this->invoke('summariseCsvTally'));
   }
 
   /**

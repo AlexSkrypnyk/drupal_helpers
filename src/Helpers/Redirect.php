@@ -27,11 +27,14 @@ class Redirect extends HelperBase {
   ];
 
   /**
-   * Reporter counts captured when a CSV run starts, keyed by status.
+   * Per-status counts for a non-sandbox CSV run, keyed by status.
+   *
+   * Sandbox runs persist the equivalent tally in the sandbox instead, so a
+   * resumed batch still reports the whole run rather than the last chunk only.
    *
    * @var array<string, int>
    */
-  protected array $csvBaseline = [];
+  protected array $csvTally = [];
 
   /**
    * {@inheritdoc}
@@ -270,9 +273,10 @@ class Redirect extends HelperBase {
    *   If the file cannot be read.
    */
   public function importFromCsv(string $file_path): ?string {
-    return $this->batchCsv($file_path, function (array $row): void {
+    return $this->batchCsv($file_path, function (array $row): string {
       [$source, $target, $status_code, $language] = $this->validateImportRow($row);
-      $this->upsert($source, $target, $status_code, $language);
+
+      return $this->upsert($source, $target, $status_code, $language);
     });
   }
 
@@ -303,9 +307,10 @@ class Redirect extends HelperBase {
    *   If the file cannot be read.
    */
   public function deleteFromCsv(string $file_path): ?string {
-    return $this->batchCsv($file_path, function (array $row): void {
+    return $this->batchCsv($file_path, function (array $row): string {
       [$source, $language] = $this->validateDeleteRow($row);
-      $this->deleteRow($source, $language);
+
+      return $this->deleteRow($source, $language);
     });
   }
 
@@ -313,15 +318,17 @@ class Redirect extends HelperBase {
    * Parse, validate and batch-process a redirect CSV file.
    *
    * Shared skeleton for importFromCsv() and deleteFromCsv(): the file is read
-   * once on the first call, the reporter baseline is captured, and each row is
-   * handed to the per-row handler through the batch runner with per-row error
-   * tolerance so a malformed row never aborts the run.
+   * once on the first call and each row is handed to the per-row handler. A
+   * handler that throws marks that row as failed - reported with its line
+   * number - without aborting the run. Per-status counts are accumulated in
+   * the sandbox, so a resumed batch still reports the whole run, not only the
+   * last chunk.
    *
    * @param string $file_path
    *   Absolute path to the CSV file.
    * @param callable $handler
-   *   Per-row callback receiving a parsed row record. It may throw to mark the
-   *   row as failed (reported with its line number).
+   *   Per-row callback receiving a parsed row record and returning the outcome
+   *   status. It may throw to mark the row as failed.
    *
    * @return string|null
    *   Summary message when finished, or NULL while in progress (sandbox mode).
@@ -329,15 +336,33 @@ class Redirect extends HelperBase {
   protected function batchCsv(string $file_path, callable $handler): ?string {
     if (!isset($this->sandbox['items'])) {
       $rows = $this->parseRows($file_path);
-      $this->rememberBaseline();
+
+      if ($this->sandbox === NULL) {
+        $this->csvTally = [];
+      }
     }
     else {
       $rows = [];
     }
 
-    $result = $this->batch($rows, $handler, 'redirects', continue_on_error: TRUE, status: NULL);
+    $process = function (array $row) use ($handler): void {
+      try {
+        $status = (string) $handler($row);
+      }
+      catch (\Throwable $exception) {
+        $this->reporter->failed($this->t('Line @line: @message', [
+          '@line' => $row['line'],
+          '@message' => $exception->getMessage(),
+        ]));
+        $status = Reporter::FAILED;
+      }
 
-    return $result === NULL ? NULL : $this->summariseSince();
+      $this->bumpTally($status);
+    };
+
+    $result = $this->batch($rows, $process, 'redirects', status: NULL);
+
+    return $result === NULL ? NULL : $this->summariseCsvTally();
   }
 
   /**
@@ -546,8 +571,11 @@ class Redirect extends HelperBase {
    *   HTTP status code.
    * @param string $language
    *   Language code the redirect applies to.
+   *
+   * @return string
+   *   The outcome status: created, updated or skipped.
    */
-  protected function upsert(string $source_path, string $redirect_path, int $status_code, string $language): void {
+  protected function upsert(string $source_path, string $redirect_path, int $status_code, string $language): string {
     $source_path = ltrim($source_path, '/');
     $existing = $this->loadRedirects($source_path, $language);
 
@@ -559,7 +587,7 @@ class Redirect extends HelperBase {
         '@target' => $redirect_path,
       ]));
 
-      return;
+      return Reporter::CREATED;
     }
 
     /** @var \Drupal\Core\Entity\ContentEntityInterface $redirect */
@@ -582,7 +610,7 @@ class Redirect extends HelperBase {
         '@source' => $source_path,
       ]));
 
-      return;
+      return Reporter::SKIPPED;
     }
 
     $redirect->save();
@@ -592,6 +620,8 @@ class Redirect extends HelperBase {
       '@source' => $source_path,
       '@target' => $redirect_path,
     ]));
+
+    return Reporter::UPDATED;
   }
 
   /**
@@ -601,8 +631,11 @@ class Redirect extends HelperBase {
    *   Source path (without leading slash).
    * @param string $language
    *   Language code to match.
+   *
+   * @return string
+   *   The outcome status: deleted or skipped.
    */
-  protected function deleteRow(string $source_path, string $language): void {
+  protected function deleteRow(string $source_path, string $language): string {
     $source_path = ltrim($source_path, '/');
     $redirects = $this->loadRedirects($source_path, $language);
 
@@ -611,7 +644,7 @@ class Redirect extends HelperBase {
         '@source' => $source_path,
       ]));
 
-      return;
+      return Reporter::SKIPPED;
     }
 
     $this->entityTypeManager->getStorage('redirect')->delete($redirects);
@@ -621,6 +654,8 @@ class Redirect extends HelperBase {
       '@count' => $count,
       '@source' => $source_path,
     ]), $count);
+
+    return Reporter::DELETED;
   }
 
   /**
@@ -707,30 +742,58 @@ class Redirect extends HelperBase {
   }
 
   /**
-   * Capture the reporter counts at the start of a CSV run.
+   * Increment the current CSV run tally for a status.
+   *
+   * The tally lives in the sandbox during a batched run so it survives resumed
+   * chunks, and on the helper instance for a non-batched run.
+   *
+   * @param string $status
+   *   The status to increment (one of the SUMMARY_STATUSES).
    */
-  protected function rememberBaseline(): void {
-    $this->csvBaseline = [];
+  protected function bumpTally(string $status): void {
+    $tally = $this->readTally();
+    $tally[$status] = ($tally[$status] ?? 0) + 1;
 
-    foreach (self::SUMMARY_STATUSES as $status) {
-      $this->csvBaseline[$status] = $this->reporter->count($status);
+    if ($this->sandbox === NULL) {
+      $this->csvTally = $tally;
+
+      return;
     }
+
+    $this->sandbox['csv_tally'] = $tally;
   }
 
   /**
-   * Build a summary of the operations recorded since the baseline.
+   * Read the current CSV run tally, defaulting every known status to zero.
+   *
+   * @return array<string, int>
+   *   The per-status counts, keyed by status.
+   */
+  protected function readTally(): array {
+    $stored = $this->sandbox === NULL ? $this->csvTally : ($this->sandbox['csv_tally'] ?? []);
+
+    $tally = [];
+    foreach (self::SUMMARY_STATUSES as $status) {
+      $tally[$status] = is_array($stored) ? (int) ($stored[$status] ?? 0) : 0;
+    }
+
+    return $tally;
+  }
+
+  /**
+   * Build a summary of the current CSV run tally.
    *
    * @return string
    *   A summary such as "Created 3, updated 1, skipped 2, failed 1.", or "No
    *   changes." when nothing was recorded.
    */
-  protected function summariseSince(): string {
-    $segments = [];
+  protected function summariseCsvTally(): string {
+    $tally = $this->readTally();
 
+    $segments = [];
     foreach (self::SUMMARY_STATUSES as $status) {
-      $delta = $this->reporter->count($status) - ($this->csvBaseline[$status] ?? 0);
-      if ($delta > 0) {
-        $segments[] = $status . ' ' . $delta;
+      if ($tally[$status] > 0) {
+        $segments[] = $status . ' ' . $tally[$status];
       }
     }
 
@@ -739,17 +802,6 @@ class Redirect extends HelperBase {
     }
 
     return ucfirst(implode(', ', $segments)) . '.';
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function batchItemLabel(mixed $item): string {
-    if (is_array($item) && isset($item['line'])) {
-      return (string) $this->t('line @line', ['@line' => $item['line']]);
-    }
-
-    return parent::batchItemLabel($item);
   }
 
 }

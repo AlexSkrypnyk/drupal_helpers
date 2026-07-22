@@ -381,12 +381,10 @@ class RedirectHelperTest extends KernelTestBase {
     $this->assertCount(2, $storage->loadMultiple());
 
     $messages = $this->reporterMessages();
-    $this->assertStringContainsString('line 2', $messages);
-    $this->assertStringContainsString('missing source path', $messages);
-    $this->assertStringContainsString('line 3', $messages);
-    $this->assertStringContainsString('missing target path', $messages);
-    $this->assertStringContainsString('line 4', $messages);
-    $this->assertStringContainsString('line 5', $messages);
+    $this->assertStringContainsString('Line 2: missing source path', $messages);
+    $this->assertStringContainsString('Line 3: missing target path', $messages);
+    $this->assertStringContainsString('Line 4', $messages);
+    $this->assertStringContainsString('Line 5', $messages);
 
     unlink($csv_path);
   }
