@@ -15,11 +15,11 @@ use Drupal\user\UserInterface;
 class User extends HelperBase {
 
   public function __construct(
-    EntityTypeManagerInterface $entityTypeManager,
+    EntityTypeManagerInterface $entity_type_manager,
     Reporter $reporter,
     protected PasswordGeneratorInterface $passwordGenerator,
   ) {
-    parent::__construct($entityTypeManager, $reporter);
+    parent::__construct($entity_type_manager, $reporter);
   }
 
   /**
