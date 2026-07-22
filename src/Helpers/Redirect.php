@@ -54,7 +54,7 @@ class Redirect extends HelperBase {
    *
    * @param string $source_path
    *   Source path (without leading slash, e.g., 'old-page').
-   * @param string $redirect_path
+   * @param string $target_path
    *   Redirect target path (e.g., '/new-page' or 'https://example.com').
    * @param int $status_code
    *   HTTP status code. Defaults to 301.
@@ -67,7 +67,7 @@ class Redirect extends HelperBase {
    * @return \Drupal\Core\Entity\EntityInterface|null
    *   Created redirect entity or NULL if skipped.
    */
-  public function create(string $source_path, string $redirect_path, int $status_code = 301, bool $skip_existing = TRUE, ?string $langcode = NULL): mixed {
+  public function create(string $source_path, string $target_path, int $status_code = 301, bool $skip_existing = TRUE, ?string $langcode = NULL): mixed {
     $source_path = ltrim($source_path, '/');
     $langcode ??= LanguageInterface::LANGCODE_NOT_SPECIFIED;
 
@@ -82,12 +82,12 @@ class Redirect extends HelperBase {
       }
     }
 
-    $redirect = $this->saveRedirect($source_path, $redirect_path, $status_code, $langcode);
+    $redirect = $this->saveRedirect($source_path, $target_path, $status_code, $langcode);
 
     $this->reporter->created($this->t('Created @code redirect: "@source" -> "@target".', [
       '@code' => $status_code,
       '@source' => $source_path,
-      '@target' => $redirect_path,
+      '@target' => $target_path,
     ]));
 
     return $redirect;
@@ -537,7 +537,7 @@ class Redirect extends HelperBase {
    *
    * @param string $source_path
    *   Source path (without leading slash).
-   * @param string $redirect_path
+   * @param string $target_path
    *   Redirect target path.
    * @param int $status_code
    *   HTTP status code.
@@ -547,11 +547,11 @@ class Redirect extends HelperBase {
    * @return \Drupal\Core\Entity\ContentEntityInterface
    *   The saved redirect entity.
    */
-  protected function saveRedirect(string $source_path, string $redirect_path, int $status_code, string $langcode): ContentEntityInterface {
+  protected function saveRedirect(string $source_path, string $target_path, int $status_code, string $langcode): ContentEntityInterface {
     /** @var \Drupal\Core\Entity\ContentEntityInterface $redirect */
     $redirect = $this->entityTypeManager->getStorage('redirect')->create([
       'redirect_source' => ['path' => ltrim($source_path, '/')],
-      'redirect_redirect' => ['uri' => $this->pathToUri($redirect_path)],
+      'redirect_redirect' => ['uri' => $this->pathToUri($target_path)],
       'status_code' => $status_code,
       'language' => $langcode,
     ]);
@@ -565,7 +565,7 @@ class Redirect extends HelperBase {
    *
    * @param string $source_path
    *   Source path (without leading slash).
-   * @param string $redirect_path
+   * @param string $target_path
    *   Redirect target path.
    * @param int $status_code
    *   HTTP status code.
@@ -575,16 +575,16 @@ class Redirect extends HelperBase {
    * @return string
    *   The outcome status: created, updated or skipped.
    */
-  protected function upsert(string $source_path, string $redirect_path, int $status_code, string $langcode): string {
+  protected function upsert(string $source_path, string $target_path, int $status_code, string $langcode): string {
     $source_path = ltrim($source_path, '/');
     $existing = $this->loadRedirects($source_path, $langcode);
 
     if ($existing === []) {
-      $this->saveRedirect($source_path, $redirect_path, $status_code, $langcode);
+      $this->saveRedirect($source_path, $target_path, $status_code, $langcode);
       $this->reporter->created($this->t('Created @code redirect: "@source" -> "@target".', [
         '@code' => $status_code,
         '@source' => $source_path,
-        '@target' => $redirect_path,
+        '@target' => $target_path,
       ]));
 
       return Reporter::CREATED;
@@ -592,7 +592,7 @@ class Redirect extends HelperBase {
 
     /** @var \Drupal\Core\Entity\ContentEntityInterface $redirect */
     $redirect = reset($existing);
-    $uri = $this->pathToUri($redirect_path);
+    $uri = $this->pathToUri($target_path);
     $changed = FALSE;
 
     if ($this->firstValue($redirect, 'redirect_redirect', 'uri') !== $uri) {
@@ -618,7 +618,7 @@ class Redirect extends HelperBase {
     $this->reporter->updated($this->t('Updated @code redirect: "@source" -> "@target".', [
       '@code' => $status_code,
       '@source' => $source_path,
-      '@target' => $redirect_path,
+      '@target' => $target_path,
     ]));
 
     return Reporter::UPDATED;
