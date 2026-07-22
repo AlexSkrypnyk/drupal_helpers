@@ -427,7 +427,7 @@ Helper::config()->delete('my_module.settings');
 </details>
 
 <details>
-  <summary>Import a config from a module's config/install directory.<br/><code>import(string $module_name, string $config_name, string $subdirectory = 'install'): void</code></summary>
+  <summary>Import a config from a module's config/install directory.<br/><code>import(string $module, string $config_name, string $subdirectory = 'install'): void</code></summary>
 
 ```php
 Helper::config()->import('my_module', 'views.view.my_view');
@@ -437,7 +437,7 @@ Helper::config()->import('my_module', 'node.type.page', 'optional');
 </details>
 
 <details>
-  <summary>Import multiple configs from a module.<br/><code>importMultiple(string $module_name, array $config_names, string $subdirectory = 'install'): void</code></summary>
+  <summary>Import multiple configs from a module.<br/><code>importMultiple(string $module, array $config_names, string $subdirectory = 'install'): void</code></summary>
 
 ```php
 Helper::config()->importMultiple('my_module', [
@@ -766,7 +766,7 @@ Helper::module()->uninstall('ghost_module', function (string $module): void {
 >  Redirect helpers for deploy hooks.
 
 <details>
-  <summary>Create a redirect.<br/><code>create(string $source_path, string $redirect_path, int $status_code = 301, bool $skip_existing = TRUE, ?string $language = NULL): mixed</code></summary>
+  <summary>Create a redirect.<br/><code>create(string $source_path, string $target_path, int $status_code = 301, bool $skip_existing = TRUE, ?string $langcode = NULL): mixed</code></summary>
 
 ```php
 Helper::redirect()->create('old-page', '/new-page');

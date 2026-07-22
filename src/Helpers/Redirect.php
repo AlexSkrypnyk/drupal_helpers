@@ -54,27 +54,27 @@ class Redirect extends HelperBase {
    *
    * @param string $source_path
    *   Source path (without leading slash, e.g., 'old-page').
-   * @param string $redirect_path
+   * @param string $target_path
    *   Redirect target path (e.g., '/new-page' or 'https://example.com').
    * @param int $status_code
    *   HTTP status code. Defaults to 301.
    * @param bool $skip_existing
    *   If TRUE, skip creating if a redirect for this source already exists.
    *   Defaults to TRUE.
-   * @param string|null $language
+   * @param string|null $langcode
    *   Language code the redirect applies to, or NULL for all languages.
    *
    * @return \Drupal\Core\Entity\EntityInterface|null
    *   Created redirect entity or NULL if skipped.
    */
-  public function create(string $source_path, string $redirect_path, int $status_code = 301, bool $skip_existing = TRUE, ?string $language = NULL): mixed {
+  public function create(string $source_path, string $target_path, int $status_code = 301, bool $skip_existing = TRUE, ?string $langcode = NULL): mixed {
     $source_path = ltrim($source_path, '/');
-    $language ??= LanguageInterface::LANGCODE_NOT_SPECIFIED;
+    $langcode ??= LanguageInterface::LANGCODE_NOT_SPECIFIED;
 
     if ($skip_existing) {
-      $existing = $this->loadRedirects($source_path, $language);
+      $existing = $this->loadRedirects($source_path, $langcode);
       if ($existing !== []) {
-        $this->reporter->skipped($this->t('Redirect from "@source" already exists — skipped.', [
+        $this->reporter->skipped($this->t('Redirect from "@source" already exists - skipped.', [
           '@source' => $source_path,
         ]));
 
@@ -82,12 +82,12 @@ class Redirect extends HelperBase {
       }
     }
 
-    $redirect = $this->saveRedirect($source_path, $redirect_path, $status_code, $language);
+    $redirect = $this->saveRedirect($source_path, $target_path, $status_code, $langcode);
 
     $this->reporter->created($this->t('Created @code redirect: "@source" -> "@target".', [
       '@code' => $status_code,
       '@source' => $source_path,
-      '@target' => $redirect_path,
+      '@target' => $target_path,
     ]));
 
     return $redirect;
@@ -252,7 +252,7 @@ class Redirect extends HelperBase {
    * language already exists with a different target or status code, or skipped
    * when it is unchanged. Malformed rows are reported with their line number
    * and counted as failed while the rest of the import continues. The returned
-   * message summarises the created / updated / skipped / failed tallies.
+   * message summarizes the created / updated / skipped / failed tallies.
    *
    * @code
    * Helper::redirect()->importFromCsv('/path/to/redirects.csv');
@@ -274,9 +274,9 @@ class Redirect extends HelperBase {
    */
   public function importFromCsv(string $file_path): ?string {
     return $this->batchCsv($file_path, function (array $row): string {
-      [$source, $target, $status_code, $language] = $this->validateImportRow($row);
+      [$source, $target, $status_code, $langcode] = $this->validateImportRow($row);
 
-      return $this->upsert($source, $target, $status_code, $language);
+      return $this->upsert($source, $target, $status_code, $langcode);
     });
   }
 
@@ -308,9 +308,9 @@ class Redirect extends HelperBase {
    */
   public function deleteFromCsv(string $file_path): ?string {
     return $this->batchCsv($file_path, function (array $row): string {
-      [$source, $language] = $this->validateDeleteRow($row);
+      [$source, $langcode] = $this->validateDeleteRow($row);
 
-      return $this->deleteRow($source, $language);
+      return $this->deleteRow($source, $langcode);
     });
   }
 
@@ -362,7 +362,7 @@ class Redirect extends HelperBase {
 
     $result = $this->batch($rows, $process, 'redirects', status: NULL);
 
-    return $result === NULL ? NULL : $this->summariseCsvTally();
+    return $result === NULL ? NULL : $this->summarizeCsvTally();
   }
 
   /**
@@ -415,7 +415,7 @@ class Redirect extends HelperBase {
   }
 
   /**
-   * Validate and normalise a row for import.
+   * Validate and normalize a row for import.
    *
    * @param array $row
    *   A row record from parseRows().
@@ -446,7 +446,7 @@ class Redirect extends HelperBase {
   }
 
   /**
-   * Validate and normalise a row for deletion.
+   * Validate and normalize a row for deletion.
    *
    * @param array $row
    *   A row record from parseRows().
@@ -519,16 +519,16 @@ class Redirect extends HelperBase {
    *
    * @param string $source_path
    *   Source path (without leading slash).
-   * @param string $language
+   * @param string $langcode
    *   Language code to match.
    *
    * @return array<int, \Drupal\Core\Entity\EntityInterface>
    *   Matching redirect entities, keyed by entity ID.
    */
-  protected function loadRedirects(string $source_path, string $language): array {
+  protected function loadRedirects(string $source_path, string $langcode): array {
     return $this->entityTypeManager->getStorage('redirect')->loadByProperties([
       'redirect_source__path' => ltrim($source_path, '/'),
-      'language' => $language,
+      'language' => $langcode,
     ]);
   }
 
@@ -537,23 +537,23 @@ class Redirect extends HelperBase {
    *
    * @param string $source_path
    *   Source path (without leading slash).
-   * @param string $redirect_path
+   * @param string $target_path
    *   Redirect target path.
    * @param int $status_code
    *   HTTP status code.
-   * @param string $language
+   * @param string $langcode
    *   Language code the redirect applies to.
    *
    * @return \Drupal\Core\Entity\ContentEntityInterface
    *   The saved redirect entity.
    */
-  protected function saveRedirect(string $source_path, string $redirect_path, int $status_code, string $language): ContentEntityInterface {
+  protected function saveRedirect(string $source_path, string $target_path, int $status_code, string $langcode): ContentEntityInterface {
     /** @var \Drupal\Core\Entity\ContentEntityInterface $redirect */
     $redirect = $this->entityTypeManager->getStorage('redirect')->create([
       'redirect_source' => ['path' => ltrim($source_path, '/')],
-      'redirect_redirect' => ['uri' => $this->pathToUri($redirect_path)],
+      'redirect_redirect' => ['uri' => $this->pathToUri($target_path)],
       'status_code' => $status_code,
-      'language' => $language,
+      'language' => $langcode,
     ]);
     $redirect->save();
 
@@ -565,26 +565,26 @@ class Redirect extends HelperBase {
    *
    * @param string $source_path
    *   Source path (without leading slash).
-   * @param string $redirect_path
+   * @param string $target_path
    *   Redirect target path.
    * @param int $status_code
    *   HTTP status code.
-   * @param string $language
+   * @param string $langcode
    *   Language code the redirect applies to.
    *
    * @return string
    *   The outcome status: created, updated or skipped.
    */
-  protected function upsert(string $source_path, string $redirect_path, int $status_code, string $language): string {
+  protected function upsert(string $source_path, string $target_path, int $status_code, string $langcode): string {
     $source_path = ltrim($source_path, '/');
-    $existing = $this->loadRedirects($source_path, $language);
+    $existing = $this->loadRedirects($source_path, $langcode);
 
     if ($existing === []) {
-      $this->saveRedirect($source_path, $redirect_path, $status_code, $language);
+      $this->saveRedirect($source_path, $target_path, $status_code, $langcode);
       $this->reporter->created($this->t('Created @code redirect: "@source" -> "@target".', [
         '@code' => $status_code,
         '@source' => $source_path,
-        '@target' => $redirect_path,
+        '@target' => $target_path,
       ]));
 
       return Reporter::CREATED;
@@ -592,7 +592,7 @@ class Redirect extends HelperBase {
 
     /** @var \Drupal\Core\Entity\ContentEntityInterface $redirect */
     $redirect = reset($existing);
-    $uri = $this->pathToUri($redirect_path);
+    $uri = $this->pathToUri($target_path);
     $changed = FALSE;
 
     if ($this->firstValue($redirect, 'redirect_redirect', 'uri') !== $uri) {
@@ -606,7 +606,7 @@ class Redirect extends HelperBase {
     }
 
     if (!$changed) {
-      $this->reporter->skipped($this->t('Redirect from "@source" unchanged — skipped.', [
+      $this->reporter->skipped($this->t('Redirect from "@source" unchanged - skipped.', [
         '@source' => $source_path,
       ]));
 
@@ -618,7 +618,7 @@ class Redirect extends HelperBase {
     $this->reporter->updated($this->t('Updated @code redirect: "@source" -> "@target".', [
       '@code' => $status_code,
       '@source' => $source_path,
-      '@target' => $redirect_path,
+      '@target' => $target_path,
     ]));
 
     return Reporter::UPDATED;
@@ -629,18 +629,18 @@ class Redirect extends HelperBase {
    *
    * @param string $source_path
    *   Source path (without leading slash).
-   * @param string $language
+   * @param string $langcode
    *   Language code to match.
    *
    * @return string
    *   The outcome status: deleted or skipped.
    */
-  protected function deleteRow(string $source_path, string $language): string {
+  protected function deleteRow(string $source_path, string $langcode): string {
     $source_path = ltrim($source_path, '/');
-    $redirects = $this->loadRedirects($source_path, $language);
+    $redirects = $this->loadRedirects($source_path, $langcode);
 
     if ($redirects === []) {
-      $this->reporter->skipped($this->t('No redirect found for "@source" — skipped.', [
+      $this->reporter->skipped($this->t('No redirect found for "@source" - skipped.', [
         '@source' => $source_path,
       ]));
 
@@ -787,7 +787,7 @@ class Redirect extends HelperBase {
    *   A summary such as "Created 3, updated 1, skipped 2, failed 1.", or "No
    *   changes." when nothing was recorded.
    */
-  protected function summariseCsvTally(): string {
+  protected function summarizeCsvTally(): string {
     $tally = $this->readTally();
 
     $segments = [];

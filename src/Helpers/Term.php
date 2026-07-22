@@ -155,7 +155,7 @@ class Term extends HelperBase {
    */
   protected function reconcileTerm(TermInterface $term, int $weight, string $mode, string $vocabulary): void {
     if ($mode === self::MODE_SAFE) {
-      $this->reporter->skipped($this->t('Term "@name" already exists in "@vocabulary" — skipped.', [
+      $this->reporter->skipped($this->t('Term "@name" already exists in "@vocabulary" - skipped.', [
         '@name' => $term->getName(),
         '@vocabulary' => $vocabulary,
       ]));

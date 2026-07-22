@@ -166,7 +166,7 @@ class Menu extends HelperBase {
    */
   protected function reconcileLink(MenuLinkContentInterface $link, string $uri, int $weight, bool $expanded, array $extra, string $mode, string $menu_name): void {
     if ($mode === self::MODE_SAFE) {
-      $this->reporter->skipped($this->t('Menu link "@title" already exists in "@menu" — skipped.', [
+      $this->reporter->skipped($this->t('Menu link "@title" already exists in "@menu" - skipped.', [
         '@title' => $link->getTitle(),
         '@menu' => $menu_name,
       ]));
@@ -407,7 +407,7 @@ class Menu extends HelperBase {
     $link = $this->findItem($menu_name, $find_properties);
 
     if (!$link instanceof MenuLinkContentInterface) {
-      $this->reporter->skipped($this->t('Menu link not found in "@menu" — skipped update.', [
+      $this->reporter->skipped($this->t('Menu link not found in "@menu" - skipped update.', [
         '@menu' => $menu_name,
       ]), severity: Reporter::SEVERITY_WARNING);
 

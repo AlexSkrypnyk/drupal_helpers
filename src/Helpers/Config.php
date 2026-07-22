@@ -138,7 +138,7 @@ class Config {
     $config = $this->configFactory->getEditable($config_name);
 
     if ($config->isNew()) {
-      $this->reporter->skipped($this->t('Config "@config" does not exist — skipped.', [
+      $this->reporter->skipped($this->t('Config "@config" does not exist - skipped.', [
         '@config' => $config_name,
       ]), severity: Reporter::SEVERITY_WARNING);
 
@@ -162,15 +162,15 @@ class Config {
    * Helper::config()->import('my_module', 'node.type.page', 'optional');
    * @endcode
    *
-   * @param string $module_name
+   * @param string $module
    *   Module machine name.
    * @param string $config_name
    *   Config name (e.g., 'views.view.my_view').
    * @param string $subdirectory
    *   Config subdirectory. Defaults to 'install'.
    */
-  public function import(string $module_name, string $config_name, string $subdirectory = 'install'): void {
-    $module_path = $this->moduleExtensionList->getPath($module_name);
+  public function import(string $module, string $config_name, string $subdirectory = 'install'): void {
+    $module_path = $this->moduleExtensionList->getPath($module);
     $file_path = $module_path . '/config/' . $subdirectory . '/' . $config_name . '.yml';
 
     if (!file_exists($file_path)) {
@@ -188,7 +188,7 @@ class Config {
 
     $message = $this->t('Imported config "@config" from @module.', [
       '@config' => $config_name,
-      '@module' => $module_name,
+      '@module' => $module,
     ]);
 
     if ($existed) {
@@ -210,16 +210,16 @@ class Config {
    * ]);
    * @endcode
    *
-   * @param string $module_name
+   * @param string $module
    *   Module machine name.
    * @param array $config_names
    *   Array of config names.
    * @param string $subdirectory
    *   Config subdirectory. Defaults to 'install'.
    */
-  public function importMultiple(string $module_name, array $config_names, string $subdirectory = 'install'): void {
+  public function importMultiple(string $module, array $config_names, string $subdirectory = 'install'): void {
     foreach ($config_names as $config_name) {
-      $this->import($module_name, $config_name, $subdirectory);
+      $this->import($module, $config_name, $subdirectory);
     }
   }
 
