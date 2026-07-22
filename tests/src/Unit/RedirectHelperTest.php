@@ -215,7 +215,7 @@ class RedirectHelperTest extends TestCase {
   /**
    * Tests the CSV run summary is built from the accumulated tally.
    */
-  public function testSummariseCsvTally(): void {
+  public function testSummarizeCsvTally(): void {
     $redirect = $this->createRedirect();
 
     $this->invokeOn($redirect, 'bumpTally', Reporter::CREATED);
@@ -229,7 +229,7 @@ class RedirectHelperTest extends TestCase {
   /**
    * Tests the CSV run summary reports no changes for an empty tally.
    */
-  public function testSummariseCsvTallyEmpty(): void {
+  public function testSummarizeCsvTallyEmpty(): void {
     $this->assertSame('No changes.', $this->invoke('summarizeCsvTally'));
   }
 
