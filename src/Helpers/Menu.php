@@ -6,6 +6,7 @@ namespace Drupal\drupal_helpers\Helpers;
 
 use Drupal\drupal_helpers\Report\Reporter;
 use Drupal\drupal_helpers\Traits\TreeExportTrait;
+use Drupal\drupal_helpers\Traits\TreeSyncTrait;
 use Drupal\menu_link_content\MenuLinkContentInterface;
 
 /**
@@ -14,6 +15,7 @@ use Drupal\menu_link_content\MenuLinkContentInterface;
 class Menu extends HelperBase {
 
   use TreeExportTrait;
+  use TreeSyncTrait;
 
   /**
    * Create menu links from a nested tree structure.
@@ -31,6 +33,9 @@ class Menu extends HelperBase {
    *   'External' => 'https://example.com',
    * ];
    * Helper::menu()->createTree('main', $tree);
+   *
+   * // Reconcile: re-apply the tree to existing links and delete any not listed.
+   * Helper::menu()->createTree('main', $tree, mode: Menu::MODE_SYNC);
    * @endcode
    *
    * @param string $menu_name
@@ -39,13 +44,52 @@ class Menu extends HelperBase {
    *   Nested array where keys are link titles and values are either path
    *   strings or arrays with 'path' and optional 'children', plus any
    *   extra fields for the menu link entity.
-   * @param string|null $parent_id
-   *   Internal parameter for recursion. Parent menu link plugin ID.
+   * @param string $mode
+   *   Reconciliation mode, matching links by title within their parent:
+   *   self::MODE_SAFE (default) creates missing links and leaves existing ones
+   *   untouched; self::MODE_UPDATE also re-applies the path, order, expansion
+   *   and extra fields to existing links; self::MODE_SYNC additionally deletes
+   *   links absent from the tree.
    *
    * @return \Drupal\menu_link_content\MenuLinkContentInterface[]
-   *   Array of created menu link entities.
+   *   Array of created, updated or preserved menu link entities.
    */
-  public function createTree(string $menu_name, array $tree, ?string $parent_id = NULL): array {
+  public function createTree(string $menu_name, array $tree, string $mode = self::MODE_SAFE): array {
+    $this->assertMode($mode);
+
+    $existing = $this->indexLinksByParent($menu_name);
+    $kept = [];
+    $links = $this->reconcileMenuTree($menu_name, $tree, NULL, $mode, $existing, $kept);
+
+    if ($mode === self::MODE_SYNC) {
+      $this->syncDeleteLinks($menu_name, $tree, $kept);
+    }
+
+    return $links;
+  }
+
+  /**
+   * Reconcile one level of a menu tree, recursing into children.
+   *
+   * @param string $menu_name
+   *   Menu machine name.
+   * @param array $tree
+   *   The nested tree level to reconcile.
+   * @param string|null $parent_id
+   *   Parent menu link plugin ID for this level (NULL for the top level).
+   * @param string $mode
+   *   Reconciliation mode.
+   * @param array $existing
+   *   Existing links indexed as [parent plugin ID][title] => link, where the
+   *   top level uses '' as the parent key.
+   * @param array<int|string, bool> $kept
+   *   Accumulates the IDs of reconciled links by reference, as a set of
+   *   [link ID => TRUE].
+   *
+   * @return \Drupal\menu_link_content\MenuLinkContentInterface[]
+   *   Reconciled links for this level and its descendants.
+   */
+  protected function reconcileMenuTree(string $menu_name, array $tree, ?string $parent_id, string $mode, array $existing, array &$kept): array {
     $storage = $this->entityTypeManager->getStorage('menu_link_content');
     $links = [];
     $weight = 0;
@@ -58,38 +102,150 @@ class Menu extends HelperBase {
       unset($leaf['path'], $leaf['children']);
 
       $uri = $this->pathToUri($path);
+      $expanded = !empty($children);
 
-      $values = [
-        'menu_name' => $menu_name,
-        'title' => $title,
-        'link' => ['uri' => $uri],
-        'weight' => $weight,
-        'expanded' => !empty($children),
-      ] + $leaf;
+      $link = $existing[$parent_id ?? ''][$title] ?? NULL;
 
-      if ($parent_id !== NULL) {
-        $values['parent'] = $parent_id;
+      if ($link instanceof MenuLinkContentInterface) {
+        $this->reconcileLink($link, $uri, $weight, $expanded, $leaf, $mode, $menu_name);
+      }
+      else {
+        $values = [
+          'menu_name' => $menu_name,
+          'title' => $title,
+          'link' => ['uri' => $uri],
+          'weight' => $weight,
+          'expanded' => $expanded,
+        ] + $leaf;
+
+        if ($parent_id !== NULL) {
+          $values['parent'] = $parent_id;
+        }
+
+        /** @var \Drupal\menu_link_content\MenuLinkContentInterface $link */
+        $link = $storage->create($values);
+        $link->save();
+
+        $this->reporter->created($this->t('Created menu link "@title" in "@menu".', [
+          '@title' => $title,
+          '@menu' => $menu_name,
+        ]));
       }
 
-      /** @var \Drupal\menu_link_content\MenuLinkContentInterface $link */
-      $link = $storage->create($values);
-      $link->save();
-
-      $this->reporter->created($this->t('Created menu link "@title" in "@menu".', [
-        '@title' => $title,
-        '@menu' => $menu_name,
-      ]));
-
       $links[] = $link;
-      $weight++;
+      $kept[$link->id()] = TRUE;
 
       if ($children) {
         $plugin_id = 'menu_link_content:' . $link->uuid();
-        $links = array_merge($links, $this->createTree($menu_name, $children, $plugin_id));
+        $links = array_merge($links, $this->reconcileMenuTree($menu_name, $children, $plugin_id, $mode, $existing, $kept));
       }
+
+      $weight++;
     }
 
     return $links;
+  }
+
+  /**
+   * Apply the reconciliation mode to an existing menu link.
+   *
+   * @param \Drupal\menu_link_content\MenuLinkContentInterface $link
+   *   The existing link matched in the tree.
+   * @param string $uri
+   *   The link URI derived from the tree path.
+   * @param int $weight
+   *   The link's position within its parent.
+   * @param bool $expanded
+   *   Whether the link should be expanded (it has children).
+   * @param array $extra
+   *   Extra field values supplied for the link in the tree.
+   * @param string $mode
+   *   Reconciliation mode.
+   * @param string $menu_name
+   *   Menu machine name, for reporting.
+   */
+  protected function reconcileLink(MenuLinkContentInterface $link, string $uri, int $weight, bool $expanded, array $extra, string $mode, string $menu_name): void {
+    if ($mode === self::MODE_SAFE) {
+      $this->reporter->skipped($this->t('Menu link "@title" already exists in "@menu" — skipped.', [
+        '@title' => $link->getTitle(),
+        '@menu' => $menu_name,
+      ]));
+
+      return;
+    }
+
+    $values = [
+      'link' => ['uri' => $uri],
+      'weight' => $weight,
+      'expanded' => $expanded,
+    ] + $extra;
+
+    foreach ($values as $field => $value) {
+      $link->set($field, $value);
+    }
+
+    $link->save();
+
+    $this->reporter->updated($this->t('Updated menu link "@title" in "@menu".', [
+      '@title' => $link->getTitle(),
+      '@menu' => $menu_name,
+    ]));
+  }
+
+  /**
+   * Index all links in a menu by parent plugin ID and title.
+   *
+   * @param string $menu_name
+   *   Menu machine name.
+   *
+   * @return array<string, array<string, \Drupal\menu_link_content\MenuLinkContentInterface>>
+   *   Links indexed as [parent plugin ID][title] => link, where the top level
+   *   uses '' as the parent key. When several links share a title under the
+   *   same parent, the first loaded wins.
+   */
+  protected function indexLinksByParent(string $menu_name): array {
+    $storage = $this->entityTypeManager->getStorage('menu_link_content');
+    $index = [];
+
+    foreach ($storage->loadByProperties(['menu_name' => $menu_name]) as $link) {
+      $index[$link->getParentId()][$link->getTitle()] ??= $link;
+    }
+
+    return $index;
+  }
+
+  /**
+   * Delete links absent from the supplied tree during a sync.
+   *
+   * @param string $menu_name
+   *   Menu machine name.
+   * @param array $tree
+   *   The tree that was reconciled.
+   * @param array<int|string, bool> $kept
+   *   Set of kept link IDs.
+   */
+  protected function syncDeleteLinks(string $menu_name, array $tree, array $kept): void {
+    if ($tree === []) {
+      $this->reporter->skipped($this->t('Refused to delete every link in "@menu" from an empty sync tree; use deleteTree() to clear it intentionally.', [
+        '@menu' => $menu_name,
+      ]), severity: Reporter::SEVERITY_WARNING);
+
+      return;
+    }
+
+    $storage = $this->entityTypeManager->getStorage('menu_link_content');
+
+    foreach ($storage->loadByProperties(['menu_name' => $menu_name]) as $id => $link) {
+      if (isset($kept[$id])) {
+        continue;
+      }
+
+      $this->reporter->deleted($this->t('Deleted menu link "@title" from "@menu".', [
+        '@title' => $link->getTitle(),
+        '@menu' => $menu_name,
+      ]));
+      $link->delete();
+    }
   }
 
   /**

@@ -125,6 +125,149 @@ class MenuHelperTest extends KernelTestBase {
   }
 
   /**
+   * Tests that safe mode does not duplicate existing links.
+   */
+  public function testCreateTreeSafeSkipsExisting(): void {
+    $this->menuHelper->createTree('main', ['Home' => '/', 'About' => '/about']);
+
+    $this->menuHelper->createTree('main', [
+      'Home' => '/',
+      'About' => '/about',
+      'Contact' => '/contact',
+    ]);
+
+    $storage = $this->container->get('entity_type.manager')->getStorage('menu_link_content');
+    $this->assertCount(3, $storage->loadByProperties(['menu_name' => 'main']));
+    $this->assertSame([
+      'Home' => '/',
+      'About' => '/about',
+      'Contact' => '/contact',
+    ], $this->menuHelper->exportTree('main'));
+  }
+
+  /**
+   * Tests that update mode changes the path of an existing link in place.
+   */
+  public function testCreateTreeUpdateChangesPath(): void {
+    $this->menuHelper->createTree('main', ['About' => '/about']);
+
+    $this->menuHelper->createTree('main', ['About' => '/about-us'], Menu::MODE_UPDATE);
+
+    $this->assertSame(['About' => '/about-us'], $this->menuHelper->exportTree('main'));
+
+    $storage = $this->container->get('entity_type.manager')->getStorage('menu_link_content');
+    $this->assertCount(1, $storage->loadByProperties(['menu_name' => 'main']));
+  }
+
+  /**
+   * Tests that update mode re-applies extra fields to an existing link.
+   */
+  public function testCreateTreeUpdateAppliesExtraFields(): void {
+    $this->menuHelper->createTree('main', [
+      'About' => ['path' => '/about', 'description' => 'Old description'],
+    ]);
+
+    $this->menuHelper->createTree('main', [
+      'About' => ['path' => '/about', 'description' => 'New description'],
+    ], Menu::MODE_UPDATE);
+
+    $link = $this->menuHelper->findItem('main', ['title' => 'About']);
+    $this->assertNotNull($link);
+    $this->assertSame('New description', $link->get('description')->value);
+  }
+
+  /**
+   * Tests that update mode also creates links missing from the menu.
+   */
+  public function testCreateTreeUpdateCreatesMissing(): void {
+    $this->menuHelper->createTree('main', ['Home' => '/']);
+
+    $this->menuHelper->createTree('main', [
+      'Home' => '/',
+      'About' => '/about',
+    ], Menu::MODE_UPDATE);
+
+    $this->assertSame(['Home' => '/', 'About' => '/about'], $this->menuHelper->exportTree('main'));
+  }
+
+  /**
+   * Tests that sync mode deletes links absent from the supplied tree.
+   */
+  public function testCreateTreeSyncDeletesAbsent(): void {
+    $this->menuHelper->createTree('main', [
+      'Home' => '/',
+      'About' => '/about',
+      'Contact' => '/contact',
+    ]);
+
+    $this->menuHelper->createTree('main', [
+      'Home' => '/',
+      'Contact' => '/contact',
+    ], Menu::MODE_SYNC);
+
+    $this->assertSame(['Home' => '/', 'Contact' => '/contact'], $this->menuHelper->exportTree('main'));
+    $this->assertNull($this->menuHelper->findItem('main', ['title' => 'About']));
+  }
+
+  /**
+   * Tests that sync mode reconciles a nested tree, deleting absent children.
+   */
+  public function testCreateTreeSyncNested(): void {
+    $this->menuHelper->createTree('main', [
+      'About' => [
+        'path' => '/about',
+        'children' => [
+          'Team' => '/about/team',
+          'Contact' => '/about/contact',
+        ],
+      ],
+    ]);
+
+    $this->menuHelper->createTree('main', [
+      'About' => [
+        'path' => '/about',
+        'children' => [
+          'Team' => '/about/team',
+        ],
+      ],
+    ], Menu::MODE_SYNC);
+
+    $this->assertSame([
+      'About' => [
+        'path' => '/about',
+        'children' => ['Team' => '/about/team'],
+      ],
+    ], $this->menuHelper->exportTree('main'));
+    $this->assertNull($this->menuHelper->findItem('main', ['title' => 'Contact']));
+  }
+
+  /**
+   * Tests that sync mode refuses to wipe a menu from an empty tree.
+   */
+  public function testCreateTreeSyncEmptyTreeGuard(): void {
+    $this->menuHelper->createTree('main', ['Home' => '/', 'About' => '/about']);
+
+    $result = $this->menuHelper->createTree('main', [], Menu::MODE_SYNC);
+
+    $this->assertSame([], $result);
+
+    $storage = $this->container->get('entity_type.manager')->getStorage('menu_link_content');
+    $this->assertCount(2, $storage->loadByProperties(['menu_name' => 'main']));
+
+    $messages = $this->container->get('messenger')->messagesByType('warning');
+    $this->assertNotEmpty($messages);
+  }
+
+  /**
+   * Tests that an unsupported mode throws.
+   */
+  public function testCreateTreeInvalidModeThrows(): void {
+    $this->expectException(\InvalidArgumentException::class);
+
+    $this->menuHelper->createTree('main', ['Home' => '/'], 'bogus');
+  }
+
+  /**
    * Tests exporting a flat menu to a tree array.
    */
   public function testExportTreeFlat(): void {

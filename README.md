@@ -651,7 +651,7 @@ Helper::field()->deleteInstance('field_subtitle', 'node', 'article');
 >  Menu link helpers for deploy hooks.
 
 <details>
-  <summary>Create menu links from a nested tree structure.<br/><code>createTree(string $menu_name, array $tree, ?string $parent_id = NULL): array</code></summary>
+  <summary>Create menu links from a nested tree structure.<br/><code>createTree(string $menu_name, array $tree, string $mode = self::MODE_SAFE): array</code></summary>
 
 ```php
 $tree = [
@@ -666,6 +666,9 @@ $tree = [
   'External' => 'https://example.com',
 ];
 Helper::menu()->createTree('main', $tree);
+
+// Reconcile: re-apply the tree to existing links and delete any not listed.
+Helper::menu()->createTree('main', $tree, mode: Menu::MODE_SYNC);
 ```
 
 </details>
@@ -883,7 +886,7 @@ Helper::role()->revokePermissions('editor', ['edit any article content']);
 >  Taxonomy term helpers for deploy hooks.
 
 <details>
-  <summary>Create terms from a nested tree structure.<br/><code>createTree(string $vocabulary, array $tree, bool $preserve_existing = TRUE, int $parent_tid = 0): array</code></summary>
+  <summary>Create terms from a nested tree structure.<br/><code>createTree(string $vocabulary, array $tree, string $mode = self::MODE_SAFE): array</code></summary>
 
 ```php
 // Flat list:
@@ -904,6 +907,10 @@ Helper::term()->createTree('topics', [
   ],
   'Operations',
 ]);
+
+// Reconcile: re-apply the tree to existing terms and delete any not listed.
+$tree = ['Finance' => ['Budgets', 'Grants'], 'Operations'];
+Helper::term()->createTree('topics', $tree, mode: Term::MODE_SYNC);
 ```
 
 </details>
