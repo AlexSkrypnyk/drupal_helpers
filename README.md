@@ -111,7 +111,7 @@ Common deploy hook operations covered out of the box:
 - Import config YAML from modules.
 - Create users with roles and auto-generated passwords.
 - Create and delete roles and grant or revoke permissions (unknown permissions rejected).
-- Create, import (CSV), and clean up redirects.
+- Create, export, import (CSV round trip), delete, and clean up redirects.
 - Create, find, update, import (CSV), and clean up URL aliases (core, no contrib).
 
 </details>
@@ -748,11 +748,12 @@ Helper::module()->uninstall('ghost_module', function (string $module): void {
 >  Redirect helpers for deploy hooks.
 
 <details>
-  <summary>Create a redirect.<br/><code>create(string $source_path, string $redirect_path, int $status_code = 301, bool $skip_existing = TRUE): mixed</code></summary>
+  <summary>Create a redirect.<br/><code>create(string $source_path, string $redirect_path, int $status_code = 301, bool $skip_existing = TRUE, ?string $language = NULL): mixed</code></summary>
 
 ```php
 Helper::redirect()->create('old-page', '/new-page');
 Helper::redirect()->create('legacy', 'https://example.com', 302);
+Helper::redirect()->create('vieux', '/nouveau', 301, TRUE, 'fr');
 ```
 
 </details>
@@ -788,6 +789,15 @@ Helper::redirect()->deleteAll();
 </details>
 
 <details>
+  <summary>Export all redirects to a CSV file.<br/><code>exportToCsv(string $file_path): string</code></summary>
+
+```php
+Helper::redirect()->exportToCsv('/path/to/redirects.csv');
+```
+
+</details>
+
+<details>
   <summary>Import redirects from a CSV file.<br/><code>importFromCsv(string $file_path): ?string</code></summary>
 
 ```php
@@ -796,6 +806,20 @@ Helper::redirect()->importFromCsv('/path/to/redirects.csv');
 // With sandbox for large files:
 function my_module_deploy_001(array &$sandbox): ?string {
   return Helper::redirect($sandbox)->importFromCsv('/path/to/redirects.csv');
+}
+```
+
+</details>
+
+<details>
+  <summary>Delete redirects listed in a CSV file.<br/><code>deleteFromCsv(string $file_path): ?string</code></summary>
+
+```php
+Helper::redirect()->deleteFromCsv('/path/to/remove.csv');
+
+// With sandbox for large files:
+function my_module_deploy_001(array &$sandbox): ?string {
+  return Helper::redirect($sandbox)->deleteFromCsv('/path/to/remove.csv');
 }
 ```
 
