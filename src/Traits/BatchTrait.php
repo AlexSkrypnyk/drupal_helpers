@@ -250,11 +250,11 @@ trait BatchTrait {
    *   The configured entity query.
    */
   protected function buildEntityQuery(string $entity_type, ?string $bundle, array $conditions): QueryInterface {
-    $etm = $this->getEntityTypeManager();
-    $query = $etm->getStorage($entity_type)->getQuery()->accessCheck(FALSE);
+    $entity_type_manager = $this->getEntityTypeManager();
+    $query = $entity_type_manager->getStorage($entity_type)->getQuery()->accessCheck(FALSE);
 
     if ($bundle !== NULL) {
-      $bundle_key = $etm->getDefinition($entity_type)->getKey('bundle');
+      $bundle_key = $entity_type_manager->getDefinition($entity_type)->getKey('bundle');
       if ($bundle_key) {
         $query->condition($bundle_key, $bundle);
       }
