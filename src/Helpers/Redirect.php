@@ -252,7 +252,7 @@ class Redirect extends HelperBase {
    * language already exists with a different target or status code, or skipped
    * when it is unchanged. Malformed rows are reported with their line number
    * and counted as failed while the rest of the import continues. The returned
-   * message summarises the created / updated / skipped / failed tallies.
+   * message summarizes the created / updated / skipped / failed tallies.
    *
    * @code
    * Helper::redirect()->importFromCsv('/path/to/redirects.csv');
@@ -362,7 +362,7 @@ class Redirect extends HelperBase {
 
     $result = $this->batch($rows, $process, 'redirects', status: NULL);
 
-    return $result === NULL ? NULL : $this->summariseCsvTally();
+    return $result === NULL ? NULL : $this->summarizeCsvTally();
   }
 
   /**
@@ -415,7 +415,7 @@ class Redirect extends HelperBase {
   }
 
   /**
-   * Validate and normalise a row for import.
+   * Validate and normalize a row for import.
    *
    * @param array $row
    *   A row record from parseRows().
@@ -446,7 +446,7 @@ class Redirect extends HelperBase {
   }
 
   /**
-   * Validate and normalise a row for deletion.
+   * Validate and normalize a row for deletion.
    *
    * @param array $row
    *   A row record from parseRows().
@@ -787,7 +787,7 @@ class Redirect extends HelperBase {
    *   A summary such as "Created 3, updated 1, skipped 2, failed 1.", or "No
    *   changes." when nothing was recorded.
    */
-  protected function summariseCsvTally(): string {
+  protected function summarizeCsvTally(): string {
     $tally = $this->readTally();
 
     $segments = [];

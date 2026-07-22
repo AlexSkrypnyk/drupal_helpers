@@ -590,7 +590,7 @@ class RedirectHelperTest extends KernelTestBase {
   }
 
   /**
-   * A normalised, source-sorted snapshot of every stored redirect.
+   * A normalized, source-sorted snapshot of every stored redirect.
    *
    * @return array<int, array<string, int|string>>
    *   One record per redirect with source, uri, status_code and language.
