@@ -184,13 +184,11 @@ class User extends HelperBase {
   protected function findUser(string $user_identifier): ?UserInterface {
     $storage = $this->entityTypeManager->getStorage('user');
 
-    // Try by email first.
     $users = $storage->loadByProperties(['mail' => $user_identifier]);
     if ($users) {
       return reset($users);
     }
 
-    // Try by name.
     $users = $storage->loadByProperties(['name' => $user_identifier]);
 
     return $users ? reset($users) : NULL;

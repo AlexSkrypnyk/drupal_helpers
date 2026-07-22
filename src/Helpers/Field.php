@@ -153,7 +153,8 @@ class Field extends HelperBase {
     $field_storage = $field_storage_config_storage->load($field_name);
 
     if ($field_storage === NULL) {
-      // Try loading by entity_type.field_name pattern.
+      // A storage config ID is "entity_type.field_name", so a bare field name
+      // misses above; fall back to matching it across entity types.
       $storages = $field_storage_config_storage->loadByProperties(['field_name' => $field_name]);
       if (empty($storages)) {
         $this->reporter->skipped($this->t('Field storage "@field" not found — skipped.', [
