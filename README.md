@@ -766,7 +766,7 @@ Helper::module()->uninstall('ghost_module', function (string $module): void {
 >  Redirect helpers for deploy hooks.
 
 <details>
-  <summary>Create a redirect.<br/><code>create(string $source_path, string $redirect_path, int $status_code = 301, bool $skip_existing = TRUE, ?string $language = NULL): mixed</code></summary>
+  <summary>Create a redirect.<br/><code>create(string $source_path, string $redirect_path, int $status_code = 301, bool $skip_existing = TRUE, ?string $langcode = NULL): mixed</code></summary>
 
 ```php
 Helper::redirect()->create('old-page', '/new-page');
