@@ -165,7 +165,7 @@ class RedirectHelperTest extends TestCase {
   }
 
   /**
-   * Tests validating and normalising a well-formed import row.
+   * Tests validating and normalizing a well-formed import row.
    */
   public function testValidateImportRow(): void {
     $row = ['line' => 1, 'source' => ' old ', 'target' => ' /new ', 'status_code' => '302', 'language' => 'fr'];
@@ -194,7 +194,7 @@ class RedirectHelperTest extends TestCase {
   }
 
   /**
-   * Tests validating and normalising a well-formed delete row.
+   * Tests validating and normalizing a well-formed delete row.
    */
   public function testValidateDeleteRow(): void {
     $row = ['line' => 1, 'source' => ' old ', 'target' => '', 'status_code' => '', 'language' => 'fr'];
@@ -215,7 +215,7 @@ class RedirectHelperTest extends TestCase {
   /**
    * Tests the CSV run summary is built from the accumulated tally.
    */
-  public function testSummariseCsvTally(): void {
+  public function testSummarizeCsvTally(): void {
     $redirect = $this->createRedirect();
 
     $this->invokeOn($redirect, 'bumpTally', Reporter::CREATED);
@@ -223,14 +223,14 @@ class RedirectHelperTest extends TestCase {
     $this->invokeOn($redirect, 'bumpTally', Reporter::UPDATED);
     $this->invokeOn($redirect, 'bumpTally', Reporter::FAILED);
 
-    $this->assertSame('Created 2, updated 1, failed 1.', $this->invokeOn($redirect, 'summariseCsvTally'));
+    $this->assertSame('Created 2, updated 1, failed 1.', $this->invokeOn($redirect, 'summarizeCsvTally'));
   }
 
   /**
    * Tests the CSV run summary reports no changes for an empty tally.
    */
-  public function testSummariseCsvTallyEmpty(): void {
-    $this->assertSame('No changes.', $this->invoke('summariseCsvTally'));
+  public function testSummarizeCsvTallyEmpty(): void {
+    $this->assertSame('No changes.', $this->invoke('summarizeCsvTally'));
   }
 
   /**
