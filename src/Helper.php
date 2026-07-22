@@ -16,6 +16,7 @@ use Drupal\drupal_helpers\Helpers\Module;
 use Drupal\drupal_helpers\Helpers\Redirect;
 use Drupal\drupal_helpers\Helpers\Role;
 use Drupal\drupal_helpers\Helpers\Term;
+use Drupal\drupal_helpers\Helpers\Translation;
 use Drupal\drupal_helpers\Helpers\User;
 use Drupal\drupal_helpers\Report\Reporter;
 
@@ -144,6 +145,14 @@ class Helper {
   public static function display(): Display {
     /** @var \Drupal\drupal_helpers\Helpers\Display */
     return \Drupal::service('drupal_helpers.display');
+  }
+
+  /**
+   * Get the interface translation helper service.
+   */
+  public static function translation(): Translation {
+    /** @var \Drupal\drupal_helpers\Helpers\Translation */
+    return static::service('translation');
   }
 
   /**

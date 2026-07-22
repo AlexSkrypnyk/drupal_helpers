@@ -146,6 +146,16 @@ class HelperFacadeTest extends KernelTestBase {
   }
 
   /**
+   * Tests that the translation facade fails clearly without the locale module.
+   */
+  public function testTranslationRequiresLocale(): void {
+    $this->expectException(\RuntimeException::class);
+    $this->expectExceptionMessage('Required modules not installed: locale');
+
+    Helper::translation();
+  }
+
+  /**
    * Tests that a custom batch_size is set on the cloned instance.
    */
   public function testBatchSize(): void {
