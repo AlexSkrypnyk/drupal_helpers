@@ -239,7 +239,7 @@ class Helper {
   protected static function checkRequirements(HelperBase $helper): void {
     $required = $helper->requiredModules();
 
-    if (empty($required)) {
+    if ($required === []) {
       return;
     }
 
