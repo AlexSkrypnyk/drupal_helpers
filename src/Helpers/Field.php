@@ -157,7 +157,7 @@ class Field extends HelperBase {
       // misses above; fall back to matching it across entity types.
       $storages = $field_storage_config_storage->loadByProperties(['field_name' => $field_name]);
       if (empty($storages)) {
-        $this->reporter->skipped($this->t('Field storage "@field" not found — skipped.', [
+        $this->reporter->skipped($this->t('Field storage "@field" not found - skipped.', [
           '@field' => $field_name,
         ]), severity: Reporter::SEVERITY_WARNING);
 
@@ -198,7 +198,7 @@ class Field extends HelperBase {
     $field_config = $field_config_storage->load($id);
 
     if ($field_config === NULL) {
-      $this->reporter->skipped($this->t('Field instance "@field" not found on @entity_type.@bundle — skipped.', [
+      $this->reporter->skipped($this->t('Field instance "@field" not found on @entity_type.@bundle - skipped.', [
         '@field' => $field_name,
         '@entity_type' => $entity_type,
         '@bundle' => $bundle,

@@ -27,10 +27,10 @@ use Drupal\drupal_helpers\Report\Reporter;
  * needing to know service names.
  *
  * @code
- * // Simple — no sandbox:
+ * // Simple - no sandbox:
  * Helper::term()->createTree('topics', ['Term 1', 'Term 2']);
  *
- * // Batched — with sandbox:
+ * // Batched - with sandbox:
  * function my_module_deploy_001(array &$sandbox): ?string {
  *   return Helper::entity($sandbox)->batchEntity('node', 'article', function ($node) {
  *     $node->set('field_migrated', TRUE);

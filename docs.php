@@ -82,7 +82,7 @@ function extract_info(string $base_path): array {
   $files = scandir($helpers_path) ?: [];
   sort($files);
 
-  // Classes to skip — base classes and abstract classes.
+  // Classes to skip - base classes and abstract classes.
   $skip = ['HelperBase'];
   // Methods inherited from base classes that should not be documented.
   $skip_methods = [
@@ -168,7 +168,7 @@ function extract_class_info(string $fqcn, string $src_file, string $base_path, a
  *   First line of the class docblock.
  */
 function parse_class_description(string $source): string {
-  // Find the class docblock — the last docblock before "class ".
+  // Find the class docblock - the last docblock before "class ".
   if (preg_match('#/\*\*\s*\n(.*?)\*/\s*\n\s*class\s#s', $source, $match)) {
     $lines = explode("\n", $match[1]);
     foreach ($lines as $line) {
