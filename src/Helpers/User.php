@@ -118,7 +118,7 @@ class User extends HelperBase {
     $user = $this->findUser($user_identifier);
 
     if (!$user instanceof UserInterface) {
-      $this->reporter->skipped($this->t('User "@identifier" not found — skipped.', [
+      $this->reporter->skipped($this->t('User "@identifier" not found - skipped.', [
         '@identifier' => $user_identifier,
       ]), severity: Reporter::SEVERITY_WARNING);
 
@@ -153,7 +153,7 @@ class User extends HelperBase {
     $user = $this->findUser($user_identifier);
 
     if (!$user instanceof UserInterface) {
-      $this->reporter->skipped($this->t('User "@identifier" not found — skipped.', [
+      $this->reporter->skipped($this->t('User "@identifier" not found - skipped.', [
         '@identifier' => $user_identifier,
       ]), severity: Reporter::SEVERITY_WARNING);
 

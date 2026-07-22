@@ -138,7 +138,7 @@ class Config {
     $config = $this->configFactory->getEditable($config_name);
 
     if ($config->isNew()) {
-      $this->reporter->skipped($this->t('Config "@config" does not exist — skipped.', [
+      $this->reporter->skipped($this->t('Config "@config" does not exist - skipped.', [
         '@config' => $config_name,
       ]), severity: Reporter::SEVERITY_WARNING);
 

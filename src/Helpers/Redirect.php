@@ -74,7 +74,7 @@ class Redirect extends HelperBase {
     if ($skip_existing) {
       $existing = $this->loadRedirects($source_path, $language);
       if ($existing !== []) {
-        $this->reporter->skipped($this->t('Redirect from "@source" already exists — skipped.', [
+        $this->reporter->skipped($this->t('Redirect from "@source" already exists - skipped.', [
           '@source' => $source_path,
         ]));
 
@@ -606,7 +606,7 @@ class Redirect extends HelperBase {
     }
 
     if (!$changed) {
-      $this->reporter->skipped($this->t('Redirect from "@source" unchanged — skipped.', [
+      $this->reporter->skipped($this->t('Redirect from "@source" unchanged - skipped.', [
         '@source' => $source_path,
       ]));
 
@@ -640,7 +640,7 @@ class Redirect extends HelperBase {
     $redirects = $this->loadRedirects($source_path, $language);
 
     if ($redirects === []) {
-      $this->reporter->skipped($this->t('No redirect found for "@source" — skipped.', [
+      $this->reporter->skipped($this->t('No redirect found for "@source" - skipped.', [
         '@source' => $source_path,
       ]));
 
