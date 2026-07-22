@@ -18,6 +18,14 @@ class Config {
 
   use StringTranslationTrait;
 
+  /**
+   * Sentinel marking an omitted expected value.
+   *
+   * Lets a guarded write be told apart from an unconditional one even when the
+   * caller's expected value is NULL, since NULL is itself a valid config value.
+   */
+  protected const NO_EXPECTED = '__drupal_helpers_no_expected__';
+
   public function __construct(
     protected ConfigFactoryInterface $configFactory,
     protected StorageInterface $configStorage,
@@ -26,10 +34,21 @@ class Config {
   ) {}
 
   /**
-   * Set a value in a configuration object.
+   * Set a value in a configuration object, optionally guarded.
+   *
+   * With no $expected argument the value is written unconditionally. Pass
+   * $expected to guard the write against clobbering a value that has drifted
+   * from what the caller assumed: the change applies only when the live value
+   * equals $expected. On a mismatch the write is skipped and reported as a
+   * warning describing the difference; when the target value is already in
+   * place the call is an idempotent no-op that still reports success. Any
+   * $expected value enables the guard, including NULL.
    *
    * @code
+   * // Unconditional write:
    * Helper::config()->set('system.site', 'name', 'My Site');
+   * // Guarded - applies only while the live value is still 'Old Name':
+   * return Helper::config()->set('system.site', 'name', 'New Name', 'Old Name');
    * @endcode
    *
    * @param string $config_name
@@ -38,65 +57,41 @@ class Config {
    *   Dot-separated key path (e.g., 'page.front').
    * @param mixed $value
    *   Value to set.
-   */
-  public function set(string $config_name, string $key, mixed $value): void {
-    $this->configFactory->getEditable($config_name)->set($key, $value)->save();
-
-    $this->reporter->updated($this->t('Set "@key" in "@config".', [
-      '@key' => $key,
-      '@config' => $config_name,
-    ]));
-  }
-
-  /**
-   * Set a value only when the live value matches an expected value.
-   *
-   * Guards a config write against clobbering a value that has drifted from what
-   * the caller assumed: the change applies only when the current value equals
-   * the expected value. Re-running once the target value is already in place is
-   * a no-op that still reports success, so the operation is idempotent.
-   *
-   * @code
-   * return Helper::config()->setIfExpected('system.site', 'name', 'Old Name', 'New Name');
-   * @endcode
-   *
-   * @param string $config_name
-   *   Config name (e.g., 'system.site').
-   * @param string $key
-   *   Dot-separated key path (e.g., 'page.front').
    * @param mixed $expected
-   *   Value the live config must currently hold for the change to apply.
-   * @param mixed $value
-   *   Value to set when the guard passes.
+   *   When provided, the value the live config must currently hold for the
+   *   write to apply. Omit to write unconditionally.
    *
    * @return string
    *   A human-readable description of the outcome, suitable for returning
    *   directly as a deploy hook's output.
    */
-  public function setIfExpected(string $config_name, string $key, mixed $expected, mixed $value): string {
+  public function set(string $config_name, string $key, mixed $value, mixed $expected = self::NO_EXPECTED): string {
     $config = $this->configFactory->getEditable($config_name);
-    $current = $config->get($key);
 
-    if ($current === $value) {
-      $message = $this->t('Value "@key" in "@config" already set - skipped.', [
-        '@key' => $key,
-        '@config' => $config_name,
-      ]);
-      $this->reporter->skipped($message);
+    if ($expected !== self::NO_EXPECTED) {
+      $current = $config->get($key);
 
-      return (string) $message;
-    }
+      if ($current === $value) {
+        $message = $this->t('Value "@key" in "@config" already set - skipped.', [
+          '@key' => $key,
+          '@config' => $config_name,
+        ]);
+        $this->reporter->skipped($message);
 
-    if ($current !== $expected) {
-      $message = $this->t('Value "@key" in "@config" is "@current" but expected "@expected" - skipped.', [
-        '@key' => $key,
-        '@config' => $config_name,
-        '@current' => $this->formatValue($current),
-        '@expected' => $this->formatValue($expected),
-      ]);
-      $this->reporter->skipped($message, severity: Reporter::SEVERITY_WARNING);
+        return (string) $message;
+      }
 
-      return (string) $message;
+      if ($current !== $expected) {
+        $message = $this->t('Value "@key" in "@config" is "@current" but expected "@expected" - skipped.', [
+          '@key' => $key,
+          '@config' => $config_name,
+          '@current' => $this->formatValue($current),
+          '@expected' => $this->formatValue($expected),
+        ]);
+        $this->reporter->skipped($message, severity: Reporter::SEVERITY_WARNING);
+
+        return (string) $message;
+      }
     }
 
     $config->set($key, $value)->save();
