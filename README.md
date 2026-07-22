@@ -909,6 +909,7 @@ Helper::term()->createTree('topics', [
 ]);
 
 // Reconcile: re-apply the tree to existing terms and delete any not listed.
+$tree = ['Finance' => ['Budgets', 'Grants'], 'Operations'];
 Helper::term()->createTree('topics', $tree, mode: Term::MODE_SYNC);
 ```
 
