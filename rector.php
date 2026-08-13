@@ -38,7 +38,6 @@ use Rector\Php80\Rector\Switch_\ChangeSwitchToMatchRector;
 use Rector\Privatization\Rector\ClassMethod\PrivatizeFinalClassMethodRector;
 use Rector\Privatization\Rector\MethodCall\PrivatizeLocalGetterToPropertyRector;
 use Rector\Privatization\Rector\Property\PrivatizeFinalClassPropertyRector;
-use Rector\Strict\Rector\Empty_\DisallowedEmptyRuleFixerRector;
 use Rector\TypeDeclaration\Rector\StmtsAwareInterface\DeclareStrictTypesRector;
 
 return RectorConfig::configure()
@@ -47,7 +46,6 @@ return RectorConfig::configure()
     CatchExceptionNameMatchingTypeRector::class,
     ChangeSwitchToMatchRector::class,
     CompleteDynamicPropertiesRector::class,
-    DisallowedEmptyRuleFixerRector::class,
     InlineArrayReturnAssignRector::class,
     NewlineAfterStatementRector::class,
     NewlineBeforeNewAssignSetRector::class,
