@@ -5,11 +5,18 @@
 # from vendor/mglaman/phpstan-drupal/extension.neon and vendor/mglaman/phpstan-drupal/rules.neon
 # @see https://github.com/mglaman/phpstan-drupal
 #
-# Paths are passed as CLI arguments.
+# Paths are declared in the `paths` key below, not passed as CLI
+# arguments.
 
 parameters:
 
   level: 7
+
+  # PHPStan caches reflection data that embeds absolute paths into its own
+  # PHAR. The default cache directory is shared by every project on the machine,
+  # so entries left by a build that no longer exists break the next run. Keeping
+  # the cache beside this config scopes it to a single codebase.
+  tmpDir: .phpstan
 
   paths:
     - web/modules/custom
@@ -27,9 +34,13 @@ parameters:
       messages:
         - '#.* no value type specified in iterable type array#'
         - '#.* has no return type specified#'
-      paths:
-        - web/modules/custom/*
-        - web/themes/custom/*
+      reportUnmatched: false
+    -
+      # PHP resolves attribute classes lazily and PHPUnit 9.6 reads doc-comment
+      # metadata, so these are inert rather than broken on a Drupal 10 build.
+      # Rector writes them from the Drupal 11 set.
+      messages:
+        - '#^Attribute class PHPUnit\\Framework\\Attributes\\.+ does not exist\.$#'
       reportUnmatched: false
 
   reportUnmatchedIgnoredErrors: false

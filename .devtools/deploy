@@ -61,7 +61,7 @@ if ($deploy_ssh_key_fingerprint !== '') {
   }
   file_put_contents($ssh_dir . '/config', "\nHost *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile /dev/null\n");
 
-  // Find the MD5 hash if the SSH_KEY_FINGERPRINT starts with SHA256.
+  // Find the MD5 hash if the DEPLOY_SSH_KEY_FINGERPRINT starts with SHA256.
   if (str_starts_with($deploy_ssh_key_fingerprint, 'SHA256:')) {
     foreach (glob($home . '/.ssh/id_rsa*') ?: [] as $key_file) {
       $sha256_output = [];
@@ -90,7 +90,7 @@ if ($deploy_ssh_key_fingerprint !== '') {
     FAIL('Unable to find SSH key file %s.', $key_file);
   }
 
-  if (getenv('SSH_AGENT_PID') === FALSE || getenv('SSH_AGENT_PID') === '') {
+  if (getenv_default('SSH_AGENT_PID', '') === '') {
     passthru('eval "$(ssh-agent)"');
   }
 
@@ -106,25 +106,25 @@ echo PHP_EOL;
 
 if ($deploy_proceed !== '1') {
   PASS('Skip deployment because DEPLOY_PROCEED is not set to 1.');
-  quit();
+  quit(0);
 }
 
 $git_user_name = trim((string) shell_exec('git config --global user.name'));
 if ($git_user_name === '') {
-  NOTE('Configuring global git user name %s.', $deploy_user_name);
+  TASK('Configuring global git user name %s.', $deploy_user_name);
   passthru_or_fail(sprintf('git config --global user.name %s', escapeshellarg($deploy_user_name)));
 }
 
 $git_user_email = trim((string) shell_exec('git config --global user.email'));
 if ($git_user_email === '') {
-  NOTE('Configuring global git user email %s.', $deploy_user_email);
+  TASK('Configuring global git user email %s.', $deploy_user_email);
   passthru_or_fail(sprintf('git config --global user.email %s', escapeshellarg($deploy_user_email)));
 }
 
-NOTE('Setting git to push to a matching remote branch.');
+TASK('Setting git to push to a matching remote branch.');
 passthru_or_fail('git config --global push.default matching');
 
-NOTE('Adding remote %s.', $deploy_remote);
+TASK('Adding remote %s.', $deploy_remote);
 passthru_or_fail(sprintf('git remote add deployremote %s', escapeshellarg($deploy_remote)));
 
 if ($deploy_branch === '') {
