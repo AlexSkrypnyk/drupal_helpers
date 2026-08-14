@@ -37,6 +37,7 @@ use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRecto
 use Rector\Privatization\Rector\ClassMethod\PrivatizeFinalClassMethodRector;
 use Rector\Privatization\Rector\MethodCall\PrivatizeLocalGetterToPropertyRector;
 use Rector\Privatization\Rector\Property\PrivatizeFinalClassPropertyRector;
+use Rector\Strict\Rector\Empty_\DisallowedEmptyRuleFixerRector;
 use Rector\TypeDeclaration\Rector\StmtsAwareInterface\DeclareStrictTypesRector;
 
 // Rector and its embedded PHPStan cache reflection data that records
@@ -52,13 +53,15 @@ if (!is_dir($cache_dir)) {
 return RectorConfig::configure()
   ->withSkip([
     // Specific rules to skip based on project coding standards. Rector only
-    // registers `AddOverrideAttributeToOverriddenMethodsRector` on the version
-    // resolved for Drupal 10 builds and warns that the entry is unused on
-    // newer ones, so it stays listed to cover both.
+    // registers `AddOverrideAttributeToOverriddenMethodsRector` and
+    // `DisallowedEmptyRuleFixerRector` on the version resolved for Drupal 10
+    // builds and warns that the entries are unused on newer ones, so they stay
+    // listed to cover both.
     AddOverrideAttributeToOverriddenMethodsRector::class,
     CatchExceptionNameMatchingTypeRector::class,
     ChangeSwitchToMatchRector::class,
     CompleteDynamicPropertiesRector::class,
+    DisallowedEmptyRuleFixerRector::class,
     InlineArrayReturnAssignRector::class,
     NewlineAfterStatementRector::class,
     NewlineBeforeNewAssignSetRector::class,

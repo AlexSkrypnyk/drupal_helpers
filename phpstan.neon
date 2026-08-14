@@ -42,5 +42,13 @@ parameters:
       messages:
         - '#^Attribute class PHPUnit\\Framework\\Attributes\\.+ does not exist\.$#'
       reportUnmatched: false
+    -
+      # `FieldPurger` only exists from Drupal 11.4.0. Every call sits behind a
+      # `DeprecationHelper::backwardsCompatibleCall()` version guard and the
+      # service is injected optionally, so the class is absent rather than
+      # missing on a Drupal 10 build.
+      messages:
+        - '#Drupal\\Core\\Field\\FieldPurger#'
+      reportUnmatched: false
 
   reportUnmatchedIgnoredErrors: false
