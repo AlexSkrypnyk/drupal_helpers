@@ -4,15 +4,17 @@
  * @file
  * Helper functions for DevTools tooling scripts.
  *
- * This file provides reusable PHP helper functions for Vortex notification
- * and utility scripts, enabling consistent behavior across all tooling.
+ * This file provides reusable PHP helper functions shared by the
+ * '.devtools/*' command scripts, enabling consistent behavior across all
+ * tooling.
  *
  * ## Why We Use These Helpers
  *
  * These helper functions serve several critical purposes:
  *
  * 1. **Consistency**: Standardized output formatting (info, task, pass, fail)
- *    ensures all Vortex scripts produce uniform, recognizable messages.
+ *    ensures all '.devtools/*' scripts produce uniform, recognizable
+ *    messages.
  *
  * 2. **Reusability**: Common operations (files operations, command execution,
  *    etc.) are centralized to avoid code duplication.
@@ -57,19 +59,19 @@ function getenv_default(mixed ...$vars): string {
  * '#' (after optional whitespace) are ignored. Surrounding single or double
  * quotes around the value are stripped. Keys and values are trimmed.
  *
- * @param string $file
+ * @param string $dotenv_file
  *   Path to the dotenv file.
  *
  * @return array<string, string>
  *   Associative array of key-value pairs. Empty if the file does not exist
  *   or contains no parseable lines.
  */
-function dotenv_read(string $file = '.env'): array {
-  if (!file_exists($file)) {
+function dotenv_read(string $dotenv_file = '.env'): array {
+  if (!file_exists($dotenv_file)) {
     return [];
   }
 
-  $contents = file_get_contents($file);
+  $contents = file_get_contents($dotenv_file);
   if ($contents === FALSE) {
     return [];
   }
@@ -122,23 +124,23 @@ function dotenv_read(string $file = '.env'): array {
  *   Variable name to write.
  * @param string $value
  *   Variable value to write. Not quoted.
- * @param string $file
+ * @param string $dotenv_file
  *   Path to the dotenv file.
  */
-function dotenv_write_var(string $key, string $value, string $file = '.env'): void {
+function dotenv_write_var(string $key, string $value, string $dotenv_file = '.env'): void {
   $assignment = sprintf('%s=%s', $key, $value);
 
-  if (!file_exists($file)) {
-    if (file_put_contents($file, $assignment . PHP_EOL) === FALSE) {
-      FAIL('Unable to write %s', $file);
+  if (!file_exists($dotenv_file)) {
+    if (file_put_contents($dotenv_file, $assignment . PHP_EOL) === FALSE) {
+      FAIL('Unable to write %s', $dotenv_file);
     }
 
     return;
   }
 
-  $contents = file_get_contents($file);
+  $contents = file_get_contents($dotenv_file);
   if ($contents === FALSE) {
-    FAIL('Unable to read %s', $file);
+    FAIL('Unable to read %s', $dotenv_file);
 
     // @codeCoverageIgnoreStart
     return;
@@ -179,8 +181,8 @@ function dotenv_write_var(string $key, string $value, string $file = '.env'): vo
     $lines[$replace_index] = $assignment;
   }
 
-  if (file_put_contents($file, implode(PHP_EOL, $lines) . PHP_EOL) === FALSE) {
-    FAIL('Unable to write %s', $file);
+  if (file_put_contents($dotenv_file, implode(PHP_EOL, $lines) . PHP_EOL) === FALSE) {
+    FAIL('Unable to write %s', $dotenv_file);
   }
 }
 
@@ -203,33 +205,76 @@ function dotenv_write_var(string $key, string $value, string $file = '.env'): vo
  * @param string $dotenv_file
  *   Path to the dotenv file to consult.
  *
- * @return array{0: string, 1: string}
- *   Tuple of [value, source] where source is 'env' when the value came
- *   from the shell environment, the dotenv file path when the value
+ * @return array{value: string, source: string}
+ *   Resolved value together with a source label: 'env' when the value
+ *   came from the shell environment, the dotenv file path when the value
  *   came from that file, or 'default' when neither produced a value.
  */
 function resolve_env_value(string $name, string $default, string $dotenv_file = '.env'): array {
   $env = getenv($name);
   if ($env !== FALSE && $env !== '') {
-    return [$env, 'env'];
+    return ['value' => $env, 'source' => 'env'];
   }
 
   $dotenv = dotenv_read($dotenv_file);
   if (isset($dotenv[$name]) && $dotenv[$name] !== '') {
-    return [$dotenv[$name], $dotenv_file];
+    return ['value' => $dotenv[$name], 'source' => $dotenv_file];
   }
 
-  return [$default, 'default'];
+  return ['value' => $default, 'source' => 'default'];
+}
+
+/**
+ * Resolve a port variable, auto-discovering and persisting one when unset.
+ *
+ * Shared by resolve_webserver() and resolve_webdriver_port(): both resolve
+ * a named port variable via the env -> dotenv -> default chain, and, when
+ * auto-discovery is requested and neither source supplies a value,
+ * allocate a free port starting from $scan_start and persist it back to
+ * the dotenv file so repeat runs reuse the same port.
+ *
+ * @param string $name
+ *   Variable name to resolve (e.g. 'WEBSERVER_PORT').
+ * @param string $default
+ *   Value to use when auto-discovery is disabled and neither env nor the
+ *   dotenv file supplies one.
+ * @param bool $auto_discover
+ *   When TRUE and the port resolves from neither env nor dotenv, discover
+ *   a free port via find_free_port() and persist it via
+ *   dotenv_write_var(). The reported source then becomes the dotenv file
+ *   path because that is where the value now lives.
+ * @param int $scan_start
+ *   Port number to start the free-port scan from when auto-discovery
+ *   kicks in.
+ * @param string $dotenv_file
+ *   Path to the dotenv file to read and (optionally) write.
+ *
+ * @return array{value: string, source: string}
+ *   Resolved port and source, in the same shape as resolve_env_value(),
+ *   with source updated to the dotenv file path when auto-discovery
+ *   persisted a value.
+ */
+function resolve_port_value(string $name, string $default, bool $auto_discover, int $scan_start, string $dotenv_file = '.env'): array {
+  $default_port = $auto_discover ? '' : $default;
+  ['value' => $port, 'source' => $port_source] = resolve_env_value($name, $default_port, $dotenv_file);
+
+  if ($auto_discover && $port_source === 'default') {
+    $port = (string) find_free_port($scan_start);
+    dotenv_write_var($name, $port, $dotenv_file);
+    $port_source = $dotenv_file;
+  }
+
+  return ['value' => $port, 'source' => $port_source];
 }
 
 /**
  * Resolve the webserver host and port with source tracking.
  *
- * Wraps resolve_env_value() for both 'WEBSERVER_HOST' and
- * 'WEBSERVER_PORT'. Optionally auto-discovers a free port when neither
- * env nor the dotenv file provides one, persisting the discovered port
- * back to the dotenv file. Optionally validates that the resolved port
- * is a valid TCP port number.
+ * Resolves 'WEBSERVER_HOST' via resolve_env_value() and
+ * 'WEBSERVER_PORT' via resolve_port_value(). Optionally auto-discovers
+ * a free port when neither env nor the dotenv file provides one,
+ * persisting the discovered port back to the dotenv file. Optionally
+ * validates that the resolved port is a valid TCP port number.
  *
  * @param bool $auto_discover
  *   When TRUE and the port resolves from neither env nor dotenv,
@@ -251,16 +296,8 @@ function resolve_env_value(string $name, string $default, string $dotenv_file = 
  *   the supplied default was used.
  */
 function resolve_webserver(bool $auto_discover = FALSE, bool $validate_port = TRUE, string $dotenv_file = '.env'): array {
-  [$host, $host_source] = resolve_env_value('WEBSERVER_HOST', 'localhost', $dotenv_file);
-
-  $default_port = $auto_discover ? '' : '8000';
-  [$port, $port_source] = resolve_env_value('WEBSERVER_PORT', $default_port, $dotenv_file);
-
-  if ($auto_discover && $port_source === 'default') {
-    $port = (string) find_free_port();
-    dotenv_write_var('WEBSERVER_PORT', $port, $dotenv_file);
-    $port_source = $dotenv_file;
-  }
+  ['value' => $host, 'source' => $host_source] = resolve_env_value('WEBSERVER_HOST', 'localhost', $dotenv_file);
+  ['value' => $port, 'source' => $port_source] = resolve_port_value('WEBSERVER_PORT', '8000', $auto_discover, 8000, $dotenv_file);
 
   if ($validate_port) {
     validate_port_or_fail($port, 'WEBSERVER_PORT');
@@ -275,6 +312,71 @@ function resolve_webserver(bool $auto_discover = FALSE, bool $validate_port = TR
 }
 
 /**
+ * Resolve the WebDriver endpoint port with source tracking.
+ *
+ * Mirrors the port half of resolve_webserver() for 'WEBDRIVER_PORT':
+ * shell env first, then a matching key in the dotenv file, then the
+ * default. With auto_discover and no configured value, a free port is
+ * allocated from 4444 and persisted to the dotenv file so that several
+ * projects each get their own WebDriver endpoint and never contend
+ * for a single port.
+ *
+ * @param bool $auto_discover
+ *   When TRUE and the port resolves from neither env nor dotenv, discover
+ *   a free port via find_free_port() and persist it via dotenv_write_var().
+ *   The reported source then becomes the dotenv file path.
+ * @param bool $validate_port
+ *   When TRUE, call validate_port_or_fail() on the resolved port and abort
+ *   if it is not a valid TCP port. The info script disables this so a
+ *   malformed value can be surfaced in the output rather than crashing the
+ *   read-only summary.
+ * @param string $dotenv_file
+ *   Path to the dotenv file to read and (optionally) write.
+ *
+ * @return array{port: string, port_source: string}
+ *   The resolved port and its source label: 'env', the dotenv file path,
+ *   or 'default'.
+ */
+function resolve_webdriver_port(bool $auto_discover = FALSE, bool $validate_port = TRUE, string $dotenv_file = '.env'): array {
+  ['value' => $port, 'source' => $port_source] = resolve_port_value('WEBDRIVER_PORT', '4444', $auto_discover, 4444, $dotenv_file);
+
+  if ($validate_port) {
+    validate_port_or_fail($port, 'WEBDRIVER_PORT');
+  }
+
+  return [
+    'port' => $port,
+    'port_source' => $port_source,
+  ];
+}
+
+/**
+ * Resolve the public site URL, preferring an active tunnel URL.
+ *
+ * Reads TUNNEL_URL straight from the dotenv file rather than the process
+ * environment. A wrapping Make or Ahoy invocation loads '.env' into the
+ * environment once at startup, so a TUNNEL_URL written to '.env' during the
+ * same run would otherwise be masked by the stale exported value. Falls back
+ * to the 'http://host:port' form when no tunnel URL is set.
+ *
+ * @param string $host
+ *   Webserver host for the fallback URL.
+ * @param string $port
+ *   Webserver port for the fallback URL.
+ * @param string $dotenv_file
+ *   Path to the dotenv file to consult for TUNNEL_URL.
+ *
+ * @return string
+ *   The TUNNEL_URL value when the dotenv file defines a non-empty one,
+ *   otherwise 'http://<host>:<port>'.
+ */
+function resolve_site_url(string $host, string $port, string $dotenv_file = '.env'): string {
+  $tunnel_url = dotenv_read($dotenv_file)['TUNNEL_URL'] ?? '';
+
+  return $tunnel_url !== '' ? $tunnel_url : sprintf('http://%s:%s', $host, $port);
+}
+
+/**
  * Detect the XDebug state of the dev server listening on the given port.
  *
  * Inspects the running PHP process's command line for the
@@ -282,8 +384,8 @@ function resolve_webserver(bool $auto_discover = FALSE, bool $validate_port = TR
  * server is listening, and '-' when no server is bound to the port.
  */
 function xdebug_state(string $port): string {
-  $cmd = sprintf('ps -o command= -p "$(lsof -ti:%s 2>/dev/null | head -1)" 2>/dev/null', escapeshellarg($port));
-  $out = trim((string) @shell_exec($cmd));
+  $command = sprintf('ps -o command= -p "$(lsof -ti:%s 2>/dev/null | head -1)" 2>/dev/null', escapeshellarg($port));
+  $out = trim((string) @shell_exec($command));
   if ($out === '') {
     return '-';
   }
@@ -347,6 +449,20 @@ function find_free_port(int $start = 8000, int $max_attempts = 100): int {
   // @codeCoverageIgnoreStart
   return $start;
   // @codeCoverageIgnoreEnd
+}
+
+/**
+ * Kill whatever process is listening on a TCP port, if any.
+ *
+ * A best-effort operation: a missing listener or a missing 'lsof' binary
+ * are silenced so callers may invoke it unconditionally before (re)binding
+ * the same port.
+ *
+ * @param int|string $port
+ *   The TCP port to free.
+ */
+function kill_port(int|string $port): void {
+  @passthru(sprintf('lsof -ti:%s | xargs kill -9 2>/dev/null', escapeshellarg((string) $port)));
 }
 
 /**
@@ -451,16 +567,113 @@ function command_must_exist(string $command): void {
 }
 
 /**
- * Run a command via passthru, failing if exit code is non-zero.
+ * Run a command and capture its combined stdout and stderr.
+ *
+ * The command is wrapped in a brace group so both streams are captured
+ * together and the exit status is preserved, even for compound commands.
+ *
+ * @param string $command
+ *   The command to run.
+ * @param int|null &$exit_code
+ *   Populated with the command's exit code.
+ *
+ * @param-out int $exit_code
+ *
+ * @return string
+ *   The captured combined output.
  */
-function passthru_or_fail(string $cmd, string $format = '', string|int|float ...$args): void {
-  passthru($cmd, $exit_code);
-  if ($exit_code !== 0) {
-    if ($format !== '') {
-      FAIL($format, ...$args);
+function passthru_capture(string $command, ?int &$exit_code = NULL): string {
+  ob_start();
+  passthru('{ ' . $command . '; } 2>&1', $exit_code);
+
+  return ob_get_clean() ?: '';
+}
+
+/**
+ * Run a command via passthru, failing if exit code is non-zero.
+ *
+ * Command output is suppressed during a normal run and surfaced only when the
+ * command fails; set DEBUG=1 to stream it live instead.
+ */
+function passthru_or_fail(string $command, string $format = '', string|int|float ...$args): void {
+  $exit_code = 0;
+
+  if (is_debug()) {
+    passthru($command, $exit_code);
+  }
+  else {
+    $output = passthru_capture($command, $exit_code);
+
+    // Surface the captured output only on failure so the error stays
+    // diagnosable while a successful run remains quiet.
+    if ($exit_code !== 0) {
+      echo $output;
     }
+  }
+
+  if ($exit_code !== 0) {
+    // Surface the failure message without exiting here so the quit() below
+    // always preserves the command's real exit code, whether or not a
+    // message was supplied.
+    if ($format !== '') {
+      FAIL_NO_EXIT($format, ...$args);
+    }
+
     quit($exit_code);
   }
+}
+
+/**
+ * Run a command via passthru, always showing output, failing on non-zero exit.
+ *
+ * The counterpart to passthru_or_fail(): here the command's output is always
+ * streamed to the terminal rather than suppressed, for commands whose output
+ * is meaningful in its own right rather than dependency-tool noise.
+ */
+function passthru_verbose_or_fail(string $command, string $format = '', string|int|float ...$args): void {
+  $exit_code = 0;
+  passthru($command, $exit_code);
+
+  if ($exit_code !== 0) {
+    // Surface the failure message without exiting here so the quit() below
+    // always preserves the command's real exit code, whether or not a
+    // message was supplied.
+    if ($format !== '') {
+      FAIL_NO_EXIT($format, ...$args);
+    }
+
+    quit($exit_code);
+  }
+}
+
+/**
+ * Render a URL as a scannable QR code in the terminal.
+ *
+ * Opt-in: draws nothing unless the QRCODE variable - read from the shell
+ * environment or '.env' - is set to a truthy value ('1', 'true', 'yes',
+ * 'on'). When enabled it uses `qrencode -t ANSIUTF8` to draw the code with
+ * Unicode block glyphs, and is still a no-op when the URL is empty or the
+ * `qrencode` binary is not installed, so callers may invoke it
+ * unconditionally.
+ *
+ * @param string $url
+ *   The URL to encode. An empty string renders nothing.
+ */
+function print_qrcode(string $url): void {
+  if ($url === '') {
+    return;
+  }
+
+  $enabled = resolve_env_value('QRCODE', '')['value'];
+  if (!in_array(strtolower($enabled), ['1', 'true', 'yes', 'on'], TRUE)) {
+    return;
+  }
+
+  if (!command_path('qrencode')) {
+    return;
+  }
+
+  passthru(sprintf('qrencode -t ANSIUTF8 %s', escapeshellarg($url)));
 }
 
 /**
@@ -472,8 +685,8 @@ function passthru_or_fail(string $cmd, string $format = '', string|int|float ...
  * environment. A non-zero exit from any script aborts the parent.
  *
  * The directory and any matching scripts are optional: a missing
- * directory or an empty match set returns silently. This is the
- * post-assemble / post-provision extension point.
+ * directory or an empty match set returns silently. This is the extension
+ * point behind the assemble, provision, start and stop hooks.
  *
  * @param string $dir
  *   Directory to scan, relative to the current working directory.
@@ -497,7 +710,9 @@ function run_custom_scripts(string $dir, string $prefix): void {
       continue;
     }
     TASK("Running custom script '%s'.", $file);
-    passthru_or_fail(escapeshellarg($file), "Custom script '%s' failed.", $file);
+    // Show the hook's output - these scripts are the project's own and their
+    // output is intentional, unlike the suppressed dependency-tool commands.
+    passthru_verbose_or_fail(escapeshellarg($file), "Custom script '%s' failed.", $file);
     PASS("Completed custom script '%s'.", $file);
   }
 }
@@ -530,15 +745,31 @@ function drush(string $command, mixed $args = NULL, ?int &$exit_code = NULL): st
 
   $command = 'build/vendor/bin/drush -r ' . escapeshellarg(getcwd() . '/build/web') . ' -y ' . $command;
 
-  ob_start();
-  passthru($command, $exit_code);
-  $output = ob_get_clean();
+  if (is_debug()) {
+    // Stream drush's progress - which it writes to stderr - live, while still
+    // capturing stdout for the return value.
+    ob_start();
+    passthru($command, $exit_code);
+    $output = ob_get_clean() ?: '';
+  }
+  else {
+    // Fold stderr into the captured output so drush's progress notices stay
+    // hidden during a normal run; the return value is still available to
+    // callers that read it.
+    $output = passthru_capture($command, $exit_code);
+  }
 
   if (!$exit_code_provided && $exit_code !== 0) {
+    // Surface the captured output on a quiet run so the failure is diagnosable;
+    // in debug mode it already streamed live.
+    if (!is_debug()) {
+      echo $output;
+    }
+
     FAIL('Drush command failed: %s', $command);
   }
 
-  return $output ?: '';
+  return $output;
 }
 
 /**
@@ -560,6 +791,20 @@ function extension_info(): array {
   $type = str_contains((string) file_get_contents($info_files[0]), 'type: theme') ? 'theme' : 'module';
 
   return ['name' => $name, 'type' => $type];
+}
+
+/**
+ * Build the path to the extension's SQLite database file.
+ *
+ * @param string $extension_name
+ *   Machine name of the extension, as returned by extension_info().
+ *
+ * @return string
+ *   Absolute path to the SQLite database file used by the site-install
+ *   and status commands.
+ */
+function site_db_file(string $extension_name): string {
+  return '/tmp/site_' . $extension_name . '.sqlite';
 }
 
 /**
@@ -602,12 +847,12 @@ function replace_in_file(string $file, string $pattern, string $replacement): st
 /**
  * Recursively remove a directory.
  */
-function remove_dir(string $directory): void {
-  if (!is_dir($directory)) {
+function remove_dir(string $dir): void {
+  if (!is_dir($dir)) {
     return;
   }
   $items = new \RecursiveIteratorIterator(
-    new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS),
+    new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS),
     \RecursiveIteratorIterator::CHILD_FIRST
   );
   /** @var \SplFileInfo $item */
@@ -623,7 +868,7 @@ function remove_dir(string $directory): void {
       @unlink($path);
     }
   }
-  @rmdir($directory);
+  @rmdir($dir);
 }
 
 /**
@@ -654,12 +899,12 @@ function copy_dir(string $src, string $dst): void {
 /**
  * Recursively chmod a directory.
  */
-function chmod_recursive(string $path, int $mode): void {
-  if (!is_dir($path)) {
+function chmod_recursive(string $dir, int $mode): void {
+  if (!is_dir($dir)) {
     return;
   }
   $iterator = new \RecursiveIteratorIterator(
-    new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS),
+    new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::UNIX_PATHS),
     \RecursiveIteratorIterator::SELF_FIRST
   );
   /** @var \SplFileInfo $item */
@@ -668,7 +913,51 @@ function chmod_recursive(string $path, int $mode): void {
       @chmod($item->getPathname(), $mode);
     }
   }
-  @chmod($path, $mode);
+  @chmod($dir, $mode);
+}
+
+/**
+ * Redirect Drupal's browser test output directory into the logs directory.
+ *
+ * Drupal writes functional test HTML dumps - and, for JavaScript tests,
+ * screenshots - to a location hardcoded to "<webroot>/sites/simpletest/
+ * browser_output", ignoring any configured output directory
+ * (https://www.drupal.org/node/2992069). Replacing that location with a
+ * symlink into the logs directory gathers the output alongside the other
+ * test artifacts instead of leaving it under the web root.
+ *
+ * Any existing file, directory, or symlink at the browser output location is
+ * removed first. Does nothing when the web root is absent.
+ *
+ * @param string $webroot
+ *   Absolute path to the Drupal web root: the directory that contains "sites".
+ * @param string $logs_dir
+ *   Absolute path to the directory that gathers test artifacts.
+ */
+function link_browser_output(string $webroot, string $logs_dir): void {
+  if (!is_dir($webroot)) {
+    return;
+  }
+
+  $target = $logs_dir . '/browser_output';
+  if (!is_dir($target)) {
+    mkdir($target, 0755, TRUE);
+  }
+
+  $simpletest_dir = $webroot . '/sites/simpletest';
+  if (!is_dir($simpletest_dir)) {
+    mkdir($simpletest_dir, 0755, TRUE);
+  }
+
+  $link = $simpletest_dir . '/browser_output';
+  if (is_link($link) || is_file($link)) {
+    unlink($link);
+  }
+  elseif (is_dir($link)) {
+    remove_dir($link);
+  }
+
+  symlink($target, $link);
 }
 
 // Never run the real quit() function during tests. This also avoids bleeding

@@ -42,7 +42,19 @@ jobs:
 
       - name: Deploy to Remote
         env:
-          DEPLOY_BRANCH: ${{ env.DEPLOY_BRANCH }}
+          # Optional repository variable. Falls back to the branch that
+          # triggered the build, and then to the default branch.
+          DEPLOY_BRANCH: ${{ vars.DEPLOY_BRANCH }}
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          DEPLOY_BRANCH="${DEPLOY_BRANCH:-${HEAD_BRANCH}}" .devtools/deploy
+          # A tag push reports the tag name as the head branch, which would
+          # deploy the release to a remote branch named after the tag. A
+          # branch can share a name with an unrelated tag, so match the tags
+          # on the commit that triggered the run rather than the name alone.
+          if git tag --points-at "${HEAD_SHA}" | grep -Fxq "${HEAD_BRANCH}"; then
+            HEAD_BRANCH=''
+          fi
+
+          DEPLOY_BRANCH="${DEPLOY_BRANCH:-${HEAD_BRANCH:-${DEFAULT_BRANCH}}}" .devtools/deploy
