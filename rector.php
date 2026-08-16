@@ -59,6 +59,13 @@ return RectorConfig::configure()
     CatchExceptionNameMatchingTypeRector::class,
     ChangeSwitchToMatchRector::class,
     CompleteDynamicPropertiesRector::class,
+    // `DisallowedEmptyRuleFixerRector` rewrites `empty()` into the
+    // isset()/comparison chains it was later deprecated for producing. The
+    // Rector release resolved for Drupal 10 builds still registers it, so the
+    // entry has to stay; the newer one resolved for Drupal 11 deprecates the
+    // class, and referencing it as `::class` is reported there in its own
+    // right, hence the string.
+    'Rector\Strict\Rector\Empty_\DisallowedEmptyRuleFixerRector',
     InlineArrayReturnAssignRector::class,
     NewlineAfterStatementRector::class,
     NewlineBeforeNewAssignSetRector::class,
