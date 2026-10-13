@@ -212,4 +212,4 @@ php -d pcov.directory=.. vendor/bin/phpunit --group=wip
 5. Run the tests: `ahoy test`.
 6. Open a pull request against the `2.x` branch and fill in the pull request template.
 
-Pull requests are tested against PHP 8.2-8.5 and Drupal 10-12 in CI.
+Pull requests are tested against PHP 8.3-8.5 and Drupal 10-12 in CI.

@@ -16,7 +16,7 @@
     <arg value="sp"/>
     <arg name="parallel" value="75"/>
     <!-- Lint code against the minimum PHP version required in composer.json. -->
-    <config name="testVersion" value="8.2"/>
+    <config name="testVersion" value="8.3"/>
 
     <!-- Exclude front-end assets. -->
     <exclude-pattern>.*\/node_modules\/.*</exclude-pattern>
