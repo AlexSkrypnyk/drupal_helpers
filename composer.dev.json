@@ -32,7 +32,7 @@
     },
     "extra": {
         "eddy": {
-            "drupal-version": "12",
+            "drupal-version": "11",
             "version": "5.0.0-alpha3"
         },
         "phpcodesniffer-search-depth": 10,
