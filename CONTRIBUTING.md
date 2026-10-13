@@ -6,7 +6,7 @@ This document explains how to report issues, set up a local development environm
 
 ## Reporting issues
 
-Use the [GitHub issue queue](https://github.com/AlexSkrypnyk/drupal_helpers/issues) to report bugs and request features. Include reproduction steps and the Drupal and PHP versions you are running.
+Use the [GitHub issue queue](https://github.com/drevops/drupal_helpers/issues) to report bugs and request features. Include reproduction steps and the Drupal and PHP versions you are running.
 
 ## Local development
 

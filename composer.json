@@ -7,7 +7,7 @@
         "helper",
         "utility"
     ],
-    "homepage": "https://github.com/AlexSkrypnyk/drupal_helpers",
+    "homepage": "https://github.com/drevops/drupal_helpers",
     "license": "GPL-2.0-or-later",
     "authors": [
         {
@@ -16,8 +16,8 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/AlexSkrypnyk/drupal_helpers/issues",
-        "source": "https://github.com/AlexSkrypnyk/drupal_helpers"
+        "issues": "https://github.com/drevops/drupal_helpers/issues",
+        "source": "https://github.com/drevops/drupal_helpers"
     },
     "require": {
         "php": ">=8.3"
