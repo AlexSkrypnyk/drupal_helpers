@@ -7,12 +7,12 @@
 
 <div align="center">
 
-[![GitHub Issues](https://img.shields.io/github/issues/AlexSkrypnyk/drupal_helpers.svg)](https://github.com/AlexSkrypnyk/drupal_helpers/issues)
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/AlexSkrypnyk/drupal_helpers.svg)](https://github.com/AlexSkrypnyk/drupal_helpers/pulls)
-[![Build, test and deploy](https://github.com/AlexSkrypnyk/drupal_helpers/actions/workflows/test.yml/badge.svg)](https://github.com/AlexSkrypnyk/drupal_helpers/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/AlexSkrypnyk/drupal_helpers/graph/badge.svg?token=T6IXYAT4VU)](https://codecov.io/gh/AlexSkrypnyk/drupal_helpers)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/AlexSkrypnyk/drupal_helpers)
-![LICENSE](https://img.shields.io/github/license/AlexSkrypnyk/drupal_helpers)
+[![GitHub Issues](https://img.shields.io/github/issues/drevops/drupal_helpers.svg)](https://github.com/drevops/drupal_helpers/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/drevops/drupal_helpers.svg)](https://github.com/drevops/drupal_helpers/pulls)
+[![Build, test and deploy](https://github.com/drevops/drupal_helpers/actions/workflows/test.yml/badge.svg)](https://github.com/drevops/drupal_helpers/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/drevops/drupal_helpers/graph/badge.svg)](https://codecov.io/gh/drevops/drupal_helpers)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/drevops/drupal_helpers)
+![LICENSE](https://img.shields.io/github/license/drevops/drupal_helpers)
 ![Renovate](https://img.shields.io/badge/renovate-enabled-green?logo=renovatebot)
 
 ![PHP 8.3](https://img.shields.io/badge/PHP-8.3-777BB4.svg)
