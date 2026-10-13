@@ -21,7 +21,7 @@ class TermHelperTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected static $modules = ['drupal_helpers', 'system', 'taxonomy', 'user', 'text'];
+  protected static $modules = ['drupal_helpers', 'system', 'taxonomy', 'user', 'text', 'filter'];
 
   /**
    * The term helper service.
