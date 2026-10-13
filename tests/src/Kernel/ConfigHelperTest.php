@@ -19,12 +19,6 @@ class ConfigHelperTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  // phpcs:ignore DrupalPractice.Objects.StrictSchemaDisabled.StrictConfigSchema
-  protected $strictConfigSchema = FALSE;
-
-  /**
-   * {@inheritdoc}
-   */
   protected static $modules = ['drupal_helpers', 'system'];
 
   /**
@@ -36,6 +30,11 @@ class ConfigHelperTest extends KernelTestBase {
    * {@inheritdoc}
    */
   protected function setUp(): void {
+    // The tests write config objects that have no schema. Drupal 12 types
+    // this property and earlier cores do not, so it is assigned rather than
+    // redeclared.
+    $this->strictConfigSchema = FALSE;
+
     parent::setUp();
 
     $this->installConfig(['system']);
