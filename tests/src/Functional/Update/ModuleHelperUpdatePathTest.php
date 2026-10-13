@@ -11,6 +11,8 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Tests the Module helper driven from a post-update hook.
+ *
+ * @group drupal_helpers
  */
 #[Group('drupal_helpers')]
 #[CoversNothing]
