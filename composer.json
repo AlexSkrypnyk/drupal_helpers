@@ -20,7 +20,7 @@
         "source": "https://github.com/AlexSkrypnyk/drupal_helpers"
     },
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.3"
     },
     "suggest": {
         "drupal/redirect": "Required for the Redirect helper."

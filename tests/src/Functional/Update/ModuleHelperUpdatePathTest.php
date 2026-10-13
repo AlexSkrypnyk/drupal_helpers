@@ -11,6 +11,8 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Tests the Module helper driven from a post-update hook.
+ *
+ * @group drupal_helpers
  */
 #[Group('drupal_helpers')]
 #[CoversNothing]
@@ -26,8 +28,17 @@ class ModuleHelperUpdatePathTest extends UpdatePathTestBase {
    * {@inheritdoc}
    */
   protected function setDatabaseDumpFiles(): void {
+    $fixtures_dir = $this->root . '/core/modules/system/tests/fixtures/update';
+    $dump = $fixtures_dir . '/drupal-11.3.0.bare.standard.php.gz';
+
+    // Drupal 12 removed the 10.3.0 dump, and Drupal 10 and earlier 11.x
+    // releases lack the 11.3.0 one.
+    if (!file_exists($dump)) {
+      $dump = $fixtures_dir . '/drupal-10.3.0.bare.standard.php.gz';
+    }
+
     $this->databaseDumpFiles = [
-      $this->root . '/core/modules/system/tests/fixtures/update/drupal-10.3.0.bare.standard.php.gz',
+      $dump,
       __DIR__ . '/../../../fixtures/update/drupal_helpers_modules.php',
     ];
   }

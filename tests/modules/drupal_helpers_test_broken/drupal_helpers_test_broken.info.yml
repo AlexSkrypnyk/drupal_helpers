@@ -1,7 +1,7 @@
 name: 'Drupal Helpers Test Broken'
 type: module
 description: 'Support module with an unresolvable dependency.'
-core_version_requirement: ^10.3 || ^11
+core_version_requirement: ^10.3 || ^11 || ^12
 package: Testing
 hidden: true
 dependencies:

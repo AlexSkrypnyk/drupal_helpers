@@ -16,14 +16,14 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\drupal_helpers\Report\Reporter;
 use Drupal\drupal_helpers\Traits\BatchTrait;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Tests for BatchTrait.
  */
-#[CoversClass(BatchTrait::class)]
+#[CoversTrait(BatchTrait::class)]
 class BatchTraitTest extends TestCase {
 
   /**

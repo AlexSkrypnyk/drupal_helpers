@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Drupal\Tests\drupal_helpers\Unit;
 
 use Drupal\drupal_helpers\Traits\TreeExportTrait;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Drupal\Component\Serialization\Yaml;
@@ -13,7 +13,7 @@ use Drupal\Component\Serialization\Yaml;
 /**
  * Tests for TreeExportTrait.
  */
-#[CoversClass(TreeExportTrait::class)]
+#[CoversTrait(TreeExportTrait::class)]
 class TreeExportTraitTest extends TestCase {
 
   /**
