@@ -47,7 +47,7 @@ class BlockHelperTest extends KernelTestBase {
     FieldStorageConfig::create([
       'field_name' => 'body',
       'entity_type' => 'block_content',
-      'type' => 'text_with_summary',
+      'type' => 'text_long',
     ])->save();
     FieldConfig::create([
       'field_name' => 'body',
