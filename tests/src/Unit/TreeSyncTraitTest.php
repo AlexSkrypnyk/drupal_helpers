@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Drupal\Tests\drupal_helpers\Unit;
 
 use Drupal\drupal_helpers\Traits\TreeSyncTrait;
-use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\CoversTrait;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Tests for TreeSyncTrait.
  */
-#[CoversClass(TreeSyncTrait::class)]
+#[CoversTrait(TreeSyncTrait::class)]
 class TreeSyncTraitTest extends TestCase {
 
   /**
